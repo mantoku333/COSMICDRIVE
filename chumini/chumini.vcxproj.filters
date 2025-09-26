@@ -1,0 +1,952 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <FxCompile Include="gs2d.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsCube.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsDebugLine.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsDownSamplingX.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsHPBar.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsDownSamplingY.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsOnScreen.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="gsSkyBox.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="ps2d.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="ps3d.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psBlur.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psDebugLine.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psPostProcess.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psOnScreen.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psShadow.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="psSkyBox.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
+    <FxCompile Include="vs3d.hlsl">
+      <Filter>App\Shader\vs</Filter>
+    </FxCompile>
+    <FxCompile Include="vsMotion.hlsl">
+      <Filter>App\Shader\vs</Filter>
+    </FxCompile>
+    <FxCompile Include="vsNone.hlsl">
+      <Filter>App\Shader\vs</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Actor.cpp">
+      <Filter>sf\Actor</Filter>
+    </ClCompile>
+    <ClCompile Include="Button.cpp">
+      <Filter>sf\Button</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>sf\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>sf\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="Collider.cpp">
+      <Filter>sf\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>sf\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>sf\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug.cpp">
+      <Filter>sf\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectX11.cpp">
+      <Filter>sf\DirectX11</Filter>
+    </ClCompile>
+    <ClCompile Include="Easing.cpp">
+      <Filter>sf\Easing</Filter>
+    </ClCompile>
+    <ClCompile Include="File.cpp">
+      <Filter>sf\File</Filter>
+    </ClCompile>
+    <ClCompile Include="BinaryFile.cpp">
+      <Filter>sf\File</Filter>
+    </ClCompile>
+    <ClCompile Include="TextFile.cpp">
+      <Filter>sf\File</Filter>
+    </ClCompile>
+    <ClCompile Include="BoxCollider.cpp">
+      <Filter>sf\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="SphereCollider.cpp">
+      <Filter>sf\Collider</Filter>
+    </ClCompile>
+    <ClCompile Include="BlendState.cpp">
+      <Filter>sf\DirectX11\BlendState</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstBuffer.cpp">
+      <Filter>sf\DirectX11\ConstBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Context.cpp">
+      <Filter>sf\DirectX11\Context</Filter>
+    </ClCompile>
+    <ClCompile Include="Depth.cpp">
+      <Filter>sf\DirectX11\Depth</Filter>
+    </ClCompile>
+    <ClCompile Include="Device.cpp">
+      <Filter>sf\DirectX11\Device</Filter>
+    </ClCompile>
+    <ClCompile Include="MainDevice.cpp">
+      <Filter>sf\DirectX11\MainDevice</Filter>
+    </ClCompile>
+    <ClCompile Include="PixelShader.cpp">
+      <Filter>sf\DirectX11\PixelShader</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderingBuffer2D.cpp">
+      <Filter>sf\DirectX11\RenderingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderingBuffer3D.cpp">
+      <Filter>sf\DirectX11\RenderingBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="RTV.cpp">
+      <Filter>sf\DirectX11\RTV</Filter>
+    </ClCompile>
+    <ClCompile Include="OffScreenRTV.cpp">
+      <Filter>sf\DirectX11\RTV\OffScreenRTV</Filter>
+    </ClCompile>
+    <ClCompile Include="OnScreenRTV.cpp">
+      <Filter>sf\DirectX11\RTV\OnScreenRTV</Filter>
+    </ClCompile>
+    <ClCompile Include="Sampler.cpp">
+      <Filter>sf\DirectX11\Sampler</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>sf\DirectX11\Shader</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>sf\DirectX11\SwapChain</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>sf\DirectX11\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexShader.cpp">
+      <Filter>sf\DirectX11\VertexShader</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryCube.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryCylinder.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryFbx.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryField.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometryShader.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometrySphere.cpp">
+      <Filter>sf\Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="GUI.cpp">
+      <Filter>sf\GUI</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_draw.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\backends\imgui_impl_win32.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_tables.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui\imgui_widgets.cpp">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Image.cpp">
+      <Filter>sf\Image</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexBuffer.cpp">
+      <Filter>sf\IndexBuffer</Filter>
+    </ClCompile>
+    <ClCompile Include="SInput.cpp">
+      <Filter>sf\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="JobSystem.cpp">
+      <Filter>sf\JobSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>sf\Material</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>sf\Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Motion.cpp">
+      <Filter>sf\Motion</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionData.cpp">
+      <Filter>sf\MotionData</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionMesh.cpp">
+      <Filter>sf\MotionMesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Ref.cpp">
+      <Filter>sf\Ref</Filter>
+    </ClCompile>
+    <ClCompile Include="Ray.cpp">
+      <Filter>sf\Ray</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>sf\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBox.cpp">
+      <Filter>sf\SkyBox</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundPlayer.cpp">
+      <Filter>sf\SoundPlayer</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundResource.cpp">
+      <Filter>sf\SoundResource</Filter>
+    </ClCompile>
+    <ClCompile Include="Subset.cpp">
+      <Filter>sf\Subset</Filter>
+    </ClCompile>
+    <ClCompile Include="Time.cpp">
+      <Filter>sf\Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>sf\Transform</Filter>
+    </ClCompile>
+    <ClCompile Include="UI.cpp">
+      <Filter>sf\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>sf\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Vector3.cpp">
+      <Filter>sf\Vector3</Filter>
+    </ClCompile>
+    <ClCompile Include="stb.cpp">
+      <Filter>sf</Filter>
+    </ClCompile>
+    <ClCompile Include="App.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlCamera.cpp">
+      <Filter>App\ControlCamera</Filter>
+    </ClCompile>
+    <ClCompile Include="ChangeMotionComponent.cpp">
+      <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="FollowCameraComponent.cpp">
+      <Filter>App\Component\hoge\FollowCameraComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="LookAtComponent.cpp">
+      <Filter>App\Component\hoge\LookAtComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveComponent.cpp">
+      <Filter>App\Component\hoge\MoveComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="NoteComponent.cpp">
+      <Filter>App\Component\NoteComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerComponent.cpp">
+      <Filter>App\Component\PlayerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneChangeComponent.cpp">
+      <Filter>App\Component\SceneChangeComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundComponent.cpp">
+      <Filter>App\Component\SoundComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectCanvas.cpp">
+      <Filter>App\Scene\SelectScene\SelectCanvas</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectScene.cpp">
+      <Filter>App\Scene\SelectScene</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultCanvas.cpp">
+      <Filter>App\Scene\ResultScene\ResultCanvas</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicScene.cpp">
+      <Filter>App\Scene\DynamicScene</Filter>
+    </ClCompile>
+    <ClCompile Include="ResultScene.cpp">
+      <Filter>App\Scene\ResultScene</Filter>
+    </ClCompile>
+    <ClCompile Include="ResidentScene.cpp">
+      <Filter>App\Scene\ResidentScene</Filter>
+    </ClCompile>
+    <ClCompile Include="TestScene.cpp">
+      <Filter>App\Scene\TestScene</Filter>
+    </ClCompile>
+    <ClCompile Include="TestCanvas.cpp">
+      <Filter>App\Scene\TestScene\TestCanvas</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleScene.cpp">
+      <Filter>App\Scene\TitleScene</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleCanvas.cpp">
+      <Filter>App\Scene\TitleScene\TitleCanvas</Filter>
+    </ClCompile>
+    <ClCompile Include="NoteManager.cpp">
+      <Filter>App\Component\NoteManagerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometrySwat.cpp">
+      <Filter>App\Component\hoge\GeometrySwat</Filter>
+    </ClCompile>
+    <ClCompile Include="SwatMotionArray.cpp">
+      <Filter>App\Component\hoge\SwatMotionArray</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoRef.cpp">
+      <Filter>sf\Ref\AutoRef</Filter>
+    </ClCompile>
+    <ClCompile Include="EditScene.cpp">
+      <Filter>App\Scene\EditScene</Filter>
+    </ClCompile>
+    <ClCompile Include="EditCanvas.cpp">
+      <Filter>App\Scene\EditScene\EditCanvas</Filter>
+    </ClCompile>
+    <ClCompile Include="BGMComponent.cpp">
+      <Filter>App\Component\BGMComponent</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Actor.h">
+      <Filter>sf\Actor</Filter>
+    </ClInclude>
+    <ClInclude Include="Button.h">
+      <Filter>sf\Button</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>sf\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>sf\Canvas</Filter>
+    </ClInclude>
+    <ClInclude Include="Collider.h">
+      <Filter>sf\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="Command.h">
+      <Filter>sf\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>sf\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug.h">
+      <Filter>sf\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX11.h">
+      <Filter>sf\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="Easing.h">
+      <Filter>sf\Easing</Filter>
+    </ClInclude>
+    <ClInclude Include="File.h">
+      <Filter>sf\File</Filter>
+    </ClInclude>
+    <ClInclude Include="FileBase.h">
+      <Filter>sf\File</Filter>
+    </ClInclude>
+    <ClInclude Include="BinaryFile.h">
+      <Filter>sf\File</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFile.h">
+      <Filter>sf\File</Filter>
+    </ClInclude>
+    <ClInclude Include="BoxCollider.h">
+      <Filter>sf\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="SphereCollider.h">
+      <Filter>sf\Collider</Filter>
+    </ClInclude>
+    <ClInclude Include="BlendState.h">
+      <Filter>sf\DirectX11\BlendState</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstBuffer.h">
+      <Filter>sf\DirectX11\ConstBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Context.h">
+      <Filter>sf\DirectX11\Context</Filter>
+    </ClInclude>
+    <ClInclude Include="Depth.h">
+      <Filter>sf\DirectX11\Depth</Filter>
+    </ClInclude>
+    <ClInclude Include="Device.h">
+      <Filter>sf\DirectX11\Device</Filter>
+    </ClInclude>
+    <ClInclude Include="MainDevice.h">
+      <Filter>sf\DirectX11\MainDevice</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelShader.h">
+      <Filter>sf\DirectX11\PixelShader</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderingBuffer.h">
+      <Filter>sf\DirectX11\RenderingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderingBuffer2D.h">
+      <Filter>sf\DirectX11\RenderingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderingBuffer3D.h">
+      <Filter>sf\DirectX11\RenderingBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="RTV.h">
+      <Filter>sf\DirectX11\RTV</Filter>
+    </ClInclude>
+    <ClInclude Include="OffScreenRTV.h">
+      <Filter>sf\DirectX11\RTV\OffScreenRTV</Filter>
+    </ClInclude>
+    <ClInclude Include="OnScreenRTV.h">
+      <Filter>sf\DirectX11\RTV\OnScreenRTV</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampler.h">
+      <Filter>sf\DirectX11\Sampler</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>sf\DirectX11\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>sf\DirectX11\SwapChain</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>sf\DirectX11\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexShader.h">
+      <Filter>sf\DirectX11\VertexShader</Filter>
+    </ClInclude>
+    <ClInclude Include="D3D.h">
+      <Filter>sf\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexBuffer.h">
+      <Filter>sf\DirectX11</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryCube.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryCylinder.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryFbx.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryField.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometryShader.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometrySphere.h">
+      <Filter>sf\Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="GUI.h">
+      <Filter>sf\GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imconfig.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\backends\imgui_impl_dx11.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\backends\imgui_impl_win32.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imgui_internal.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_rectpack.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_textedit.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui\imstb_truetype.h">
+      <Filter>sf\GUI\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Image.h">
+      <Filter>sf\Image</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexBuffer.h">
+      <Filter>sf\IndexBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="SInput.h">
+      <Filter>sf\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="JobSystem.h">
+      <Filter>sf\JobSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>sf\Material</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>sf\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Motion.h">
+      <Filter>sf\Motion</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionArray.h">
+      <Filter>sf\MotionArray</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionData.h">
+      <Filter>sf\MotionData</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionMesh.h">
+      <Filter>sf\MotionMesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Ref.h">
+      <Filter>sf\Ref</Filter>
+    </ClInclude>
+    <ClInclude Include="Ray.h">
+      <Filter>sf\Ray</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>sf\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>sf\SkyBox</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundPlayer.h">
+      <Filter>sf\SoundPlayer</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundResource.h">
+      <Filter>sf\SoundResource</Filter>
+    </ClInclude>
+    <ClInclude Include="Subset.h">
+      <Filter>sf\Subset</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>sf\Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>sf\Transform</Filter>
+    </ClInclude>
+    <ClInclude Include="UI.h">
+      <Filter>sf\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>sf\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Vector3.h">
+      <Filter>sf\Vector3</Filter>
+    </ClInclude>
+    <ClInclude Include="Singleton.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="stb_truetype.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="Delegate.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="App.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteData.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlCamera.h">
+      <Filter>App\ControlCamera</Filter>
+    </ClInclude>
+    <ClInclude Include="ChangeMotionComponent.h">
+      <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="FollowCameraComponent.h">
+      <Filter>App\Component\hoge\FollowCameraComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="LookAtComponent.h">
+      <Filter>App\Component\hoge\LookAtComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveComponent.h">
+      <Filter>App\Component\hoge\MoveComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteComponent.h">
+      <Filter>App\Component\NoteComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerComponent.h">
+      <Filter>App\Component\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneChangeComponent.h">
+      <Filter>App\Component\SceneChangeComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundComponent.h">
+      <Filter>App\Component\SoundComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectCanvas.h">
+      <Filter>App\Scene\SelectScene\SelectCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectScene.h">
+      <Filter>App\Scene\SelectScene</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultCanvas.h">
+      <Filter>App\Scene\ResultScene\ResultCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="DynamicScene.h">
+      <Filter>App\Scene\DynamicScene</Filter>
+    </ClInclude>
+    <ClInclude Include="ResultScene.h">
+      <Filter>App\Scene\ResultScene</Filter>
+    </ClInclude>
+    <ClInclude Include="ResidentScene.h">
+      <Filter>App\Scene\ResidentScene</Filter>
+    </ClInclude>
+    <ClInclude Include="TestScene.h">
+      <Filter>App\Scene\TestScene</Filter>
+    </ClInclude>
+    <ClInclude Include="TestCanvas.h">
+      <Filter>App\Scene\TestScene\TestCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleScene.h">
+      <Filter>App\Scene\TitleScene</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleCanvas.h">
+      <Filter>App\Scene\TitleScene\TitleCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="NoteManager.h">
+      <Filter>App\Component\NoteManagerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometrySwat.h">
+      <Filter>App\Component\hoge\GeometrySwat</Filter>
+    </ClInclude>
+    <ClInclude Include="SwatMotionArray.h">
+      <Filter>App\Component\hoge\SwatMotionArray</Filter>
+    </ClInclude>
+    <ClInclude Include="AutoRef.h">
+      <Filter>sf\Ref\AutoRef</Filter>
+    </ClInclude>
+    <ClInclude Include="SafePtr.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="sf.h">
+      <Filter>sf</Filter>
+    </ClInclude>
+    <ClInclude Include="SongInfo.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="EditScene.h">
+      <Filter>App\Scene\EditScene</Filter>
+    </ClInclude>
+    <ClInclude Include="EditCanvas.h">
+      <Filter>App\Scene\EditScene\EditCanvas</Filter>
+    </ClInclude>
+    <ClInclude Include="BGMComponent.h">
+      <Filter>App\Component\BGMComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="Config.h">
+      <Filter>App</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="App">
+      <UniqueIdentifier>{5fa8b3aa-4138-4741-8fef-d3507cf07823}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf">
+      <UniqueIdentifier>{43bfddc1-40b5-46c9-a975-4091ff8d473b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Actor">
+      <UniqueIdentifier>{a74ee0d3-2c05-48a2-a107-b2f0ebfcc4a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Button">
+      <UniqueIdentifier>{53a6190e-e67d-4016-a6ac-c77b7c46cbfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Camera">
+      <UniqueIdentifier>{5bca39bb-4860-4173-8792-f8d1134ea5e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Canvas">
+      <UniqueIdentifier>{266b11db-6f38-4460-a1af-76978677f770}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Collider">
+      <UniqueIdentifier>{70ea26cb-e901-438f-a575-d8accf1c3167}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Component">
+      <UniqueIdentifier>{fee65e68-6e52-48b3-9737-6191a21c9393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Debug">
+      <UniqueIdentifier>{b872b9e0-c17a-48b1-bd7f-cb55a8257891}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11">
+      <UniqueIdentifier>{cef6abe2-c25f-488f-b1b9-3fd6336dd14a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Easing">
+      <UniqueIdentifier>{a11e92fa-a5ee-42b9-ba6a-a994a038e1f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\File">
+      <UniqueIdentifier>{3516f110-febb-44a8-8eab-18749e9a8849}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Command">
+      <UniqueIdentifier>{6f39c4ae-820f-47ab-a846-f42f827b01e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\BlendState">
+      <UniqueIdentifier>{2d259e35-4a14-4e2c-a39e-5294b23cf474}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\ConstBuffer">
+      <UniqueIdentifier>{fc548653-860d-4d1f-99c8-edcbccb95a6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Context">
+      <UniqueIdentifier>{7349682d-fe3d-4e74-9667-bd4c7886ad4f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Depth">
+      <UniqueIdentifier>{3a31d429-501c-42cb-b831-44c49e2dfd3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Device">
+      <UniqueIdentifier>{af058fc9-7d1e-4b39-a8ba-503d4633ad37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\MainDevice">
+      <UniqueIdentifier>{12ac21c3-93fb-45fc-bfc7-0983f98af119}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\PixelShader">
+      <UniqueIdentifier>{9fa1531d-ebf7-4d8a-977e-bcfb0ae5cca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\RenderingBuffer">
+      <UniqueIdentifier>{86f653c5-3e46-4bde-a9a2-ed770454e3f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\RTV">
+      <UniqueIdentifier>{4d7ec8e0-c5c1-4857-8ef0-7e31d87d6769}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\RTV\OffScreenRTV">
+      <UniqueIdentifier>{f0e6a10e-ec28-4d75-8a62-b1b3697b9606}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\RTV\OnScreenRTV">
+      <UniqueIdentifier>{715b4eb5-2453-4e8e-a07d-eee34bbe4be8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Sampler">
+      <UniqueIdentifier>{20d48fe7-80bd-47d5-95fa-c695a7a23249}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Shader">
+      <UniqueIdentifier>{d90580a9-6f95-4fd3-abb6-579637e485d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\SwapChain">
+      <UniqueIdentifier>{90117683-e066-4ef2-8614-24e06350e54e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\Texture">
+      <UniqueIdentifier>{2f82b088-fd55-4836-90cc-8272a7dcab32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\DirectX11\VertexShader">
+      <UniqueIdentifier>{79dffc5e-3aff-47a5-868d-6365b803debd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Geometry">
+      <UniqueIdentifier>{10e9cc09-f70d-4e6d-a474-d48a7e50cf55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\GUI">
+      <UniqueIdentifier>{916a1bf6-ac23-4cfc-bc2a-4b54a9273ea7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\GUI\imgui">
+      <UniqueIdentifier>{63c785b4-cb18-4c28-b6ac-c18367ea9bc9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Image">
+      <UniqueIdentifier>{071900e7-00cf-4ea8-9ef1-c9df34db2e50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\IndexBuffer">
+      <UniqueIdentifier>{0a9db607-5bee-4393-be7b-2e1d63c0ace2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Input">
+      <UniqueIdentifier>{7cb690c4-8317-4681-a0ba-52f74b710373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\JobSystem">
+      <UniqueIdentifier>{0a125aeb-952f-45d9-8d2e-11c07cd69f45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Material">
+      <UniqueIdentifier>{9c671fd1-a0e6-49e8-a6ff-83f7f77e73d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Mesh">
+      <UniqueIdentifier>{039cb138-0d2b-4f24-be80-0e0b61f9051b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Motion">
+      <UniqueIdentifier>{ae50a6a3-e151-4a3d-8d4e-1a039ec40879}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\MotionArray">
+      <UniqueIdentifier>{e958edad-a323-4326-b48c-000197429a63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\MotionData">
+      <UniqueIdentifier>{00429aa4-38e7-4263-b0b3-7351036e58e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\MotionMesh">
+      <UniqueIdentifier>{48c52126-089b-42dc-b025-e0f03531dc18}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Ray">
+      <UniqueIdentifier>{c615f49b-5c4c-4ed6-be4f-1fbce2956c13}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Ref">
+      <UniqueIdentifier>{07741155-baa6-490d-bc59-c9b3686a6544}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Scene">
+      <UniqueIdentifier>{dbc3803f-76fd-4857-a748-9e89965fd2fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\SkyBox">
+      <UniqueIdentifier>{3001bd02-12a8-48b2-b847-b79e8a86fd66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\SoundPlayer">
+      <UniqueIdentifier>{3f0b26f1-1a10-4f73-833d-bd71ff98d476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\SoundResource">
+      <UniqueIdentifier>{6cab68ab-4f17-4459-99ea-534d10cccb0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Subset">
+      <UniqueIdentifier>{b1801cb3-4a3d-4b36-9b68-8f0c2b495135}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Time">
+      <UniqueIdentifier>{a3b7ca1c-ddd7-4f25-8ac9-5a2b058b6ce5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Transform">
+      <UniqueIdentifier>{40dfaccb-1570-4472-b12f-ad10f42b713a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\UI">
+      <UniqueIdentifier>{b6f56818-c30b-4f35-9f6a-d7176490a80d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Vector3">
+      <UniqueIdentifier>{cd392933-c364-4246-9854-af3c4526fc77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Window">
+      <UniqueIdentifier>{aecdf125-e91c-4353-831f-f6aea881274e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Shader">
+      <UniqueIdentifier>{b9eea808-c271-4fcc-a445-83ede8ed4dfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Shader\gs">
+      <UniqueIdentifier>{1459ca47-7e70-4427-9aea-a777832e4b8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Shader\ps">
+      <UniqueIdentifier>{d8f1ebab-d87c-446d-bd87-df3110097717}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Shader\vs">
+      <UniqueIdentifier>{152a1206-3d71-448f-9afd-effb3fa0f3d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\ControlCamera">
+      <UniqueIdentifier>{e2b0b637-8851-48da-b2ad-c89eed60460d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component">
+      <UniqueIdentifier>{d1caffa9-4502-42ba-82e8-2b3da500dcb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge">
+      <UniqueIdentifier>{c6875a08-b279-4bd9-bee5-c1c59c6663cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\ChangeMotionComponent">
+      <UniqueIdentifier>{084088d1-4c53-49cd-b457-971d2693caed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\FollowCameraComponent">
+      <UniqueIdentifier>{ca3c1cac-00f3-4697-bd84-e260f7822109}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\LookAtComponent">
+      <UniqueIdentifier>{08ec2ea7-c711-4370-bd62-248989607dc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\MoveComponent">
+      <UniqueIdentifier>{a9b2b4fe-e63c-49e9-a289-bc31a914fb49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\NoteComponent">
+      <UniqueIdentifier>{5cbf0ea5-90df-42b5-be2d-3a1ba40b4705}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\PlayerComponent">
+      <UniqueIdentifier>{f01c330c-9f35-4e54-a9e0-4a95b47d440a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\SceneChangeComponent">
+      <UniqueIdentifier>{3d75e5e2-6004-46a3-8a30-93594a07b601}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\SoundComponent">
+      <UniqueIdentifier>{b0a1fea6-4d34-49b9-ac55-3fec7ce5edef}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene">
+      <UniqueIdentifier>{99bbb38d-8dfc-411d-b6de-c10a09e5728f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\ResultScene">
+      <UniqueIdentifier>{c676f0b9-ec5e-42f7-9cf2-9f9b03376235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\TestScene">
+      <UniqueIdentifier>{db6d7ddd-b2c3-4271-9611-df91b05f8dfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\TitleScene">
+      <UniqueIdentifier>{21fd5beb-e5e8-4328-b5d4-0f960a658596}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\ResidentScene">
+      <UniqueIdentifier>{ddd74777-ace8-4cf8-9913-1f4c50b7f213}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\SelectScene">
+      <UniqueIdentifier>{a2f47f1f-1311-4b6f-8236-473192468b1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\SelectScene\SelectCanvas">
+      <UniqueIdentifier>{3c240543-c4f6-4880-9a6d-ec14f41122b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\ResultScene\ResultCanvas">
+      <UniqueIdentifier>{8c8ec35f-e2b0-459c-bbf7-446d921e003b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\DynamicScene">
+      <UniqueIdentifier>{1c719a5f-0a9d-4892-a14f-c7bcce0253a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\TestScene\TestCanvas">
+      <UniqueIdentifier>{1a2197b8-c71b-4c59-9b7d-5a86924bf4b5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\TitleScene\TitleCanvas">
+      <UniqueIdentifier>{e42474cd-b8c1-4d76-a564-a152ec045352}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\NoteManagerComponent">
+      <UniqueIdentifier>{fd0b3d98-cc13-4914-8961-aed4395f7b70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\GeometrySwat">
+      <UniqueIdentifier>{21554619-3dec-4573-8e69-1f9442bb4c52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\hoge\SwatMotionArray">
+      <UniqueIdentifier>{9f65a268-ea72-4ebc-9fdc-2a280d4ada4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sf\Ref\AutoRef">
+      <UniqueIdentifier>{c9a6228d-5abe-4212-bdb7-cf817ea7d2e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\EditScene">
+      <UniqueIdentifier>{73cede99-f2c7-4096-b25a-3fa962d0fe74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\EditScene\EditCanvas">
+      <UniqueIdentifier>{7d4df967-c458-45cf-ba95-76e32c7bca46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\BGMComponent">
+      <UniqueIdentifier>{0395d81c-0f9f-4488-9f53-528149902078}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Constant.hlsli">
+      <Filter>App\Shader</Filter>
+    </None>
+  </ItemGroup>
+</Project>

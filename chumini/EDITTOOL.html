@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音ゲー譜面エディタ（5レーン版）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e, #2d2d42);
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-right: 2px solid #444;
+            overflow-y: auto;
+        }
+
+        .editor-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toolbar {
+            height: 60px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 15px;
+            border-bottom: 2px solid #444;
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            background: #1a1a2e;
+            overflow: auto;
+        }
+
+        .chart-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .lane {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            border-right: 1px solid #333;
+            cursor: crosshair;
+        }
+
+        .lane:nth-child(1) { left: 0; width: 20%; background: rgba(255, 100, 100, 0.1); }
+        .lane:nth-child(2) { left: 20%; width: 20%; background: rgba(100, 255, 100, 0.1); }
+        .lane:nth-child(3) { left: 40%; width: 20%; background: rgba(100, 100, 255, 0.1); }
+        .lane:nth-child(4) { left: 60%; width: 20%; background: rgba(255, 255, 100, 0.1); }
+        .lane:nth-child(5) { left: 80%; width: 20%; background: rgba(255, 100, 255, 0.1); }
+
+        .timeline {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #ff6b6b;
+            z-index: 100;
+            box-shadow: 0 0 10px #ff6b6b;
+            top: 0;
+            display: none;
+        }
+
+        .beat-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+        }
+
+        .beat-line.measure {
+            background: rgba(255, 255, 255, 0.8);
+            height: 2px;
+        }
+
+        .beat-line.half-beat {
+            background: rgba(255, 255, 255, 0.6);
+            height: 1px;
+        }
+
+        .beat-line.quarter-beat {
+            background: rgba(255, 255, 255, 0.4);
+            height: 1px;
+        }
+
+        .beat-line.eighth-beat {
+            background: rgba(255, 255, 255, 0.3);
+            height: 1px;
+        }
+
+        .beat-line.sixteenth-beat {
+            background: rgba(255, 255, 255, 0.15);
+            height: 1px;
+        }
+
+        .beat-line.time-line {
+            background: rgba(100, 255, 100, 0.2);
+            height: 1px;
+        }
+
+        .note {
+            position: absolute;
+            width: calc(20% - 4px);
+            height: 20px;
+            border-radius: 4px;
+            cursor: grab;
+            border: 2px solid;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .note:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        .note.dragging {
+            cursor: grabbing;
+            z-index: 1000;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+            transition: none;
+        }
+
+        .note.type-0 {
+            background: #ff6b6b;
+            border-color: #ff5252;
+            color: white;
+        }
+
+        .note.selected {
+            box-shadow: 0 0 20px #ffeb3b;
+            border-color: #ffeb3b;
+        }
+
+        .note.delete-hover {
+            background: #ff4444 !important;
+            transform: scale(0.9);
+            box-shadow: 0 0 20px #ff4444;
+        }
+
+        .button {
+            padding: 8px 16px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ccc;
+            font-weight: bold;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tool-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #444;
+        }
+
+        .tool-section h3 {
+            margin-bottom: 10px;
+            color: #64b5f6;
+        }
+
+        .note-type-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .note-type-btn {
+            padding: 10px;
+            border: 2px solid;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: bold;
+        }
+
+        .note-type-btn.type-0 {
+            background: #ff6b6b;
+            border-color: #ff5252;
+            color: white;
+        }
+
+        .note-type-btn.active {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+
+        .time-display {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: monospace;
+            z-index: 200;
+        }
+
+        .export-area {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .export-area textarea {
+            width: 100%;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: white;
+            padding: 10px;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .snap-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .help-text {
+            background: rgba(255, 255, 100, 0.1);
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 100, 0.3);
+        }
+
+        .time-marker {
+            position: absolute;
+            right: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #64b5f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="tool-section">
+                <h3>楽曲情報</h3>
+                <div class="input-group">
+                    <label>曲名</label>
+                    <input type="text" id="songTitle" value="GOODTEK">
+                </div>
+                <div class="input-group">
+                    <label>BPM</label>
+                    <input type="number" id="bpm" value="190">
+                </div>
+                <div class="input-group">
+                    <label>長さ (分:秒)</label>
+                    <input type="text" id="length" value="2:03">
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>ノート配置</h3>
+                <div class="help-text">
+                    左クリック: ノート配置/選択<br>
+                    右クリック: ノート削除
+                </div>
+                <div class="note-type-selector">
+                    <div class="note-type-btn type-0 active" data-type="0">TAP</div>
+                </div>
+                <div class="input-group">
+                    <label>スナップ</label>
+                    <select id="snapDivision">
+                        <option value="0.01">0.01秒</option>
+                        <option value="0.05">0.05秒</option>
+                        <option value="0.1" selected>0.1秒</option>
+                        <option value="0.2">0.2秒</option>
+                        <option value="0.5">0.5秒</option>
+                        <option value="1">1秒</option>
+                        <option value="4">1/4拍</option>
+                        <option value="8">1/8拍</option>
+                        <option value="16">1/16拍</option>
+                        <option value="32">1/32拍</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tool-section">
+                <h3>ファイル操作</h3>
+                <button class="button" id="loadBtn">読み込み</button>
+                <button class="button" id="exportBtn">エクスポート</button>
+                <button class="button" id="clearBtn">クリア</button>
+            </div>
+
+            <div class="export-area">
+                <h3>譜面データ</h3>
+                <textarea id="chartData" placeholder="譜面データがここに表示されます..."></textarea>
+            </div>
+        </div>
+
+        <div class="editor-area">
+            <div class="toolbar">
+                <div class="zoom-controls">
+                    <button class="button" id="zoomIn">拡大</button>
+                    <button class="button" id="zoomOut">縮小</button>
+                    <span>ズーム: <span id="zoomLevel">100%</span></span>
+                    <span id="scaleIndicator">1メモリ = 0.1秒</span>
+                </div>
+                <div class="snap-controls">
+                    <label>スクロール速度:</label>
+                    <input type="range" id="scrollSpeed" min="0.5" max="3" step="0.1" value="1">
+                </div>
+            </div>
+
+            <div class="chart-container" id="chartContainer">
+                <div class="time-display">
+                    <div>拍: <span id="currentBeat">0.0</span></div>
+                </div>
+                <div class="timeline" id="timeline"></div>
+                <div class="chart-grid" id="chartGrid">
+                    <div class="lane" data-lane="0"></div>
+                    <div class="lane" data-lane="1"></div>
+                    <div class="lane" data-lane="2"></div>
+                    <div class="lane" data-lane="3"></div>
+                    <div class="lane" data-lane="4"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" style="display: none;" accept=".txt">
+
+    <script>
+        class ChartEditor {
+            constructor() {
+                this.notes = [];
+                this.selectedNoteType = 0;
+                this.zoom = 1;
+                this.snapDivision = 16;
+                this.basePixelsPerSecond = 200;
+                this.selectedNotes = new Set();
+                
+                this.bpm = 190;
+                this.songTitle = "GOODTEK";
+                this.length = "2:03";
+                
+                this.snapMode = 'time';
+                this.snapValue = 0.1;
+                this.isDragging = false;
+                this.dragNote = null;
+                this.dragStartX = 0;
+                this.dragStartY = 0;
+                this.dragOffsetX = 0;
+                this.dragOffsetY = 0;
+                
+                this.initializeEditor();
+                this.loadSampleData();
+            }
+
+            get pixelsPerSecond() {
+                return this.basePixelsPerSecond * this.zoom;
+            }
+
+            initializeEditor() {
+                this.bindEvents();
+                this.setupGrid();
+                this.updateDisplay();
+                
+                setTimeout(() => {
+                    const chartContainer = document.getElementById('chartContainer');
+                    chartContainer.scrollTop = chartContainer.scrollHeight;
+                }, 100);
+                
+                document.addEventListener('contextmenu', (e) => {
+                    if (e.target.classList.contains('note')) {
+                        e.preventDefault();
+                    }
+                });
+
+                document.addEventListener('mousemove', (e) => this.handleMouseMove(e));
+                document.addEventListener('mouseup', (e) => this.handleMouseUp(e));
+            }
+
+            bindEvents() {
+                document.querySelectorAll('.note-type-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('.note-type-btn').forEach(b => b.classList.remove('active'));
+                        e.target.classList.add('active');
+                        this.selectedNoteType = parseInt(e.target.dataset.type);
+                    });
+                });
+
+                document.querySelectorAll('.lane').forEach(lane => {
+                    lane.addEventListener('click', (e) => this.handleLaneClick(e));
+                });
+
+                document.getElementById('zoomIn').addEventListener('click', () => this.changeZoom(1.2));
+                document.getElementById('zoomOut').addEventListener('click', () => this.changeZoom(0.8));
+                
+                document.getElementById('loadBtn').addEventListener('click', () => this.loadFile());
+                document.getElementById('exportBtn').addEventListener('click', () => this.exportChart());
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearChart());
+
+                document.getElementById('bpm').addEventListener('input', (e) => {
+                    this.bpm = parseInt(e.target.value);
+                    this.setupGrid();
+                });
+
+                document.getElementById('snapDivision').addEventListener('change', (e) => {
+                    const value = parseFloat(e.target.value);
+                    if (value < 1) {
+                        this.snapMode = 'time';
+                        this.snapValue = value;
+                    } else {
+                        this.snapMode = 'beat';
+                        this.snapDivision = value;
+                    }
+                });
+
+                document.getElementById('scrollSpeed').addEventListener('input', (e) => {
+                    // スクロール速度は削除
+                });
+
+                document.addEventListener('keydown', (e) => this.handleKeydown(e));
+
+                document.getElementById('chartData').addEventListener('input', (e) => {
+                    this.parseChartFromText(e.target.value);
+                });
+            }
+
+            setupGrid() {
+                const container = document.getElementById('chartGrid');
+                const totalTime = this.parseTime(this.length);
+                const beatsPerSecond = this.bpm / 60;
+                const totalBeats = totalTime * beatsPerSecond;
+                
+                container.querySelectorAll('.beat-line, .time-marker').forEach(line => line.remove());
+                
+                for (let beat = 0; beat <= totalBeats; beat += 0.0625) {
+                    const timePos = beat / beatsPerSecond;
+                    const yPos = timePos * this.pixelsPerSecond;
+                    
+                    const line = document.createElement('div');
+                    if (beat % 1 === 0) {
+                        line.className = 'beat-line measure';
+                    } else if (beat % 0.5 === 0) {
+                        line.className = 'beat-line half-beat';
+                    } else if (beat % 0.25 === 0) {
+                        line.className = 'beat-line quarter-beat';
+                    } else if (beat % 0.125 === 0) {
+                        line.className = 'beat-line eighth-beat';
+                    } else {
+                        line.className = 'beat-line sixteenth-beat';
+                    }
+                    line.style.top = yPos + 'px';
+                    container.appendChild(line);
+                }
+                
+                // 5秒刻みの時間マーカーを追加
+                for (let time = 0; time <= totalTime; time += 5) {
+                    const reversedTime = totalTime - time;
+                    const yPos = reversedTime * this.pixelsPerSecond;
+                    
+                    const marker = document.createElement('div');
+                    marker.className = 'time-marker';
+                    marker.style.top = (yPos - 10) + 'px';
+                    marker.textContent = time + 's';
+                    container.appendChild(marker);
+                }
+                
+                const timeIntervals = [0.01, 0.05, 0.1, 0.2, 0.5, 1.0];
+                
+                let bestInterval = timeIntervals[0];
+                for (let interval of timeIntervals) {
+                    if (interval * this.pixelsPerSecond >= 5) {
+                        bestInterval = interval;
+                        break;
+                    }
+                }
+                
+                for (let time = 0; time <= totalTime; time += bestInterval) {
+                    const yPos = time * this.pixelsPerSecond;
+                    const line = document.createElement('div');
+                    line.className = 'beat-line time-line';
+                    line.style.top = yPos + 'px';
+                    container.appendChild(line);
+                }
+                
+                container.style.height = (totalTime * this.pixelsPerSecond) + 'px';
+                
+                setTimeout(() => {
+                    const chartContainer = document.getElementById('chartContainer');
+                    chartContainer.scrollTop = chartContainer.scrollHeight;
+                }, 10);
+            }
+
+            handleLaneClick(e) {
+                if (this.isDragging) return;
+                
+                const lane = parseInt(e.target.dataset.lane);
+                const chartContainer = document.getElementById('chartContainer');
+                const rect = chartContainer.getBoundingClientRect();
+                const y = e.clientY - rect.top + chartContainer.scrollTop;
+                
+                const totalTime = this.parseTime(this.length);
+                const reversedTime = y / this.pixelsPerSecond;
+                const time = totalTime - reversedTime;
+                
+                if (time < 0 || time > totalTime) return;
+                
+                const snappedTime = this.snapTime(time);
+                
+                const existingNote = this.notes.find(note => 
+                    note.lane === lane && Math.abs(note.hittime - snappedTime) < 0.01
+                );
+                
+                if (existingNote) {
+                    this.removeNote(existingNote);
+                } else {
+                    this.addNote(lane, snappedTime, this.selectedNoteType);
+                }
+                
+                this.updateDisplay();
+            }
+
+            snapTime(time) {
+                if (this.snapMode === 'time') {
+                    return Math.round(time / this.snapValue) * this.snapValue;
+                } else {
+                    const beatsPerSecond = this.bpm / 60;
+                    const beatTime = time * beatsPerSecond;
+                    const snapUnit = 1 / this.snapDivision;
+                    const snappedBeat = Math.round(beatTime / snapUnit) * snapUnit;
+                    return snappedBeat / beatsPerSecond;
+                }
+            }
+
+            addNote(lane, hittime, type) {
+                const note = {
+                    lane: lane,
+                    hittime: Math.round(hittime * 1000) / 1000,
+                    type: type
+                };
+                this.notes.push(note);
+                this.notes.sort((a, b) => a.hittime - b.hittime);
+            }
+
+            removeNote(note) {
+                const index = this.notes.indexOf(note);
+                if (index > -1) {
+                    this.notes.splice(index, 1);
+                    this.selectedNotes.delete(note);
+                }
+            }
+
+            updateDisplay() {
+                document.querySelectorAll('.note').forEach(note => note.remove());
+                
+                this.notes.forEach(note => {
+                    const noteElement = this.createNoteElement(note);
+                    if (this.selectedNotes.has(note)) {
+                        noteElement.classList.add('selected');
+                    }
+                    document.getElementById('chartGrid').appendChild(noteElement);
+                });
+                
+                this.updateChartData();
+                
+                document.getElementById('currentBeat').textContent = '0.0';
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+                
+                this.updateScaleIndicator();
+            }
+
+            updateScaleIndicator() {
+                const timePerGrid = 0.1 / this.zoom;
+                const scaleIndicator = document.getElementById('scaleIndicator');
+                if (timePerGrid >= 1) {
+                    scaleIndicator.textContent = `1メモリ = ${timePerGrid.toFixed(1)}秒`;
+                } else if (timePerGrid >= 0.1) {
+                    scaleIndicator.textContent = `1メモリ = ${(timePerGrid * 1000).toFixed(0)}ms`;
+                } else {
+                    scaleIndicator.textContent = `1メモリ = ${(timePerGrid * 1000).toFixed(1)}ms`;
+                }
+            }
+
+            createNoteElement(note) {
+                const element = document.createElement('div');
+                element.className = `note type-${note.type}`;
+                element.style.left = (note.lane * 20 + 1) + '%';
+                
+                const totalTime = this.parseTime(this.length);
+                const reversedTime = totalTime - note.hittime;
+                element.style.top = (reversedTime * this.pixelsPerSecond) + 'px';
+                element.textContent = 'TAP';
+                
+                element.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) {
+                        this.startDrag(e, note, element);
+                    }
+                });
+                
+                element.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!this.isDragging) {
+                        this.selectNote(note, element);
+                    }
+                });
+                
+                element.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.removeNoteWithAnimation(note, element);
+                });
+                
+                element.addEventListener('mouseenter', (e) => {
+                    if (e.buttons === 2) {
+                        element.classList.add('delete-hover');
+                    }
+                });
+                
+                element.addEventListener('mouseleave', () => {
+                    element.classList.remove('delete-hover');
+                });
+                
+                return element;
+            }
+
+            removeNoteWithAnimation(note, element) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.transform = 'scale(0)';
+                element.style.opacity = '0';
+                
+                setTimeout(() => {
+                    this.removeNote(note);
+                    this.updateDisplay();
+                }, 300);
+            }
+
+            startDrag(e, note, element) {
+                e.preventDefault();
+                this.isDragging = true;
+                this.dragNote = note;
+                this.dragElement = element;
+                
+                const rect = element.getBoundingClientRect();
+                this.dragOffsetX = e.clientX - rect.left;
+                this.dragOffsetY = e.clientY - rect.top;
+                
+                element.classList.add('dragging');
+                
+                setTimeout(() => {
+                    this.isDragging = false;
+                }, 10);
+            }
+
+            handleMouseMove(e) {
+                if (!this.isDragging || !this.dragNote) return;
+                
+                const chartContainer = document.getElementById('chartContainer');
+                const rect = chartContainer.getBoundingClientRect();
+                
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top + chartContainer.scrollTop;
+                
+                const newLane = Math.floor(x / (rect.width / 5));
+                const clampedLane = Math.max(0, Math.min(4, newLane));
+                
+                const totalTime = this.parseTime(this.length);
+                const reversedTime = y / this.pixelsPerSecond;
+                const newTime = totalTime - reversedTime;
+                const clampedTime = Math.max(0, Math.min(totalTime, newTime));
+                
+                const snappedTime = this.snapTime(clampedTime);
+                
+                this.dragNote.lane = clampedLane;
+                this.dragNote.hittime = snappedTime;
+                
+                this.dragElement.style.left = (clampedLane * 20 + 1) + '%';
+                const reversedSnappedTime = totalTime - snappedTime;
+                this.dragElement.style.top = (reversedSnappedTime * this.pixelsPerSecond) + 'px';
+            }
+
+            handleMouseUp(e) {
+                if (this.isDragging && this.dragNote) {
+                    this.dragElement.classList.remove('dragging');
+                    
+                    this.notes.sort((a, b) => a.hittime - b.hittime);
+                    
+                    this.updateChartData();
+                    
+                    this.isDragging = false;
+                    this.dragNote = null;
+                    this.dragElement = null;
+                }
+            }
+
+            selectNote(note, element) {
+                if (this.selectedNotes.has(note)) {
+                    this.selectedNotes.delete(note);
+                    element.classList.remove('selected');
+                } else {
+                    this.selectedNotes.add(note);
+                    element.classList.add('selected');
+                }
+            }
+
+            changeZoom(factor) {
+                const oldZoom = this.zoom;
+                this.zoom *= factor;
+                this.zoom = Math.max(0.1, Math.min(50, this.zoom));
+                
+                const chartContainer = document.getElementById('chartContainer');
+                const scrollRatio = chartContainer.scrollTop / chartContainer.scrollHeight;
+                
+                this.setupGrid();
+                this.updateDisplay();
+                
+                setTimeout(() => {
+                    chartContainer.scrollTop = scrollRatio * chartContainer.scrollHeight;
+                }, 10);
+            }
+
+            play() {
+                this.isPlaying = true;
+                this.playLoop();
+            }
+
+            pause() {
+                this.isPlaying = false;
+            }
+
+            reset() {
+                this.isPlaying = false;
+                this.currentTime = 0;
+                this.updateTimeline();
+                this.updateDisplay();
+            }
+
+            playLoop() {
+                if (!this.isPlaying) return;
+                
+                this.currentTime += 0.016 * this.scrollSpeed;
+                this.updateTimeline();
+                this.updateDisplay();
+                
+                const totalTime = this.parseTime(this.length);
+                if (this.currentTime >= totalTime) {
+                    this.reset();
+                    return;
+                }
+                
+                requestAnimationFrame(() => this.playLoop());
+            }
+
+            updateTimeline() {
+                // タイムラインは画面下部に固定
+                const timeline = document.getElementById('timeline');
+                timeline.style.bottom = '100px';
+                timeline.style.top = 'auto';
+            }
+
+            parseTime(timeStr) {
+                const [minutes, seconds] = timeStr.split(':').map(Number);
+                return minutes * 60 + seconds;
+            }
+
+            loadSampleData() {
+                const sampleNotes = [
+                    { lane: 0, hittime: 0.263, type: 0 },
+                    { lane: 1, hittime: 1.000, type: 0 },
+                    { lane: 2, hittime: 2.000, type: 0 },
+                    { lane: 3, hittime: 3.158, type: 0 },
+                    { lane: 4, hittime: 3.884, type: 0 }
+                ];
+                
+                this.notes = sampleNotes;
+                this.updateDisplay();
+            }
+
+            updateChartData() {
+                let output = `//song:${this.songTitle}\n`;
+                output += `//BPM:${this.bpm}\n`;
+                output += `//length:${this.length}\n`;
+                output += `// lane,hittime,type\n`;
+                
+                this.notes.forEach(note => {
+                    const hittimeStr = note.hittime.toFixed(3);
+                    output += `${note.lane},${hittimeStr},${note.type}\n`;
+                });
+                
+                document.getElementById('chartData').value = output;
+            }
+
+            exportChart() {
+                const data = document.getElementById('chartData').value;
+                const blob = new Blob([data], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${this.songTitle}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            loadFile() {
+                document.getElementById('fileInput').click();
+            }
+
+            clearChart() {
+                if (confirm('譜面をクリアしますか？')) {
+                    this.notes = [];
+                    this.selectedNotes.clear();
+                    this.updateDisplay();
+                }
+            }
+
+            handleKeydown(e) {
+                switch(e.key) {
+                    case 'Delete':
+                        this.selectedNotes.forEach(note => this.removeNote(note));
+                        this.selectedNotes.clear();
+                        this.updateDisplay();
+                        break;
+                    case '1':
+                        this.selectedNoteType = 0;
+                        document.querySelectorAll('.note-type-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelector('[data-type="0"]').classList.add('active');
+                        break;
+                }
+            }
+
+            parseChartFromText(content) {
+                const lines = content.split('\n');
+                const notes = [];
+                let songTitle = this.songTitle;
+                let bpm = this.bpm;
+                let length = this.length;
+                
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (line.startsWith('//song:')) {
+                        songTitle = line.substring(7);
+                    } else if (line.startsWith('//BPM:')) {
+                        const newBpm = parseInt(line.substring(6));
+                        if (!isNaN(newBpm)) bpm = newBpm;
+                    } else if (line.startsWith('//length:')) {
+                        length = line.substring(9);
+                    } else if (!line.startsWith('//') && line.includes(',')) {
+                        const parts = line.split(',');
+                        if (parts.length >= 3) {
+                            const lane = parseInt(parts[0]);
+                            const hittime = parseFloat(parts[1]);
+                            const type = parseInt(parts[2]);
+                            
+                            if (!isNaN(lane) && !isNaN(hittime) && !isNaN(type) && lane >= 0 && lane <= 4) {
+                                notes.push({
+                                    lane: lane,
+                                    hittime: hittime,
+                                    type: type
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                this.songTitle = songTitle;
+                this.bpm = bpm;
+                this.length = length;
+                this.notes = notes;
+                this.selectedNotes.clear();
+                
+                document.getElementById('songTitle').value = songTitle;
+                document.getElementById('bpm').value = bpm;
+                document.getElementById('length').value = length;
+                
+                this.setupGrid();
+                this.updateDisplayWithoutChartData();
+            }
+
+            updateDisplayWithoutChartData() {
+                document.querySelectorAll('.note').forEach(note => note.remove());
+                
+                this.notes.forEach(note => {
+                    const noteElement = this.createNoteElement(note);
+                    if (this.selectedNotes.has(note)) {
+                        noteElement.classList.add('selected');
+                    }
+                    document.getElementById('chartGrid').appendChild(noteElement);
+                });
+                
+                document.getElementById('currentBeat').textContent = '0.0';
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+                
+                this.updateScaleIndicator();
+            }
+        }
+
+        document.getElementById('fileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    parseChartFile(content);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function parseChartFile(content) {
+            const lines = content.split('\n');
+            const notes = [];
+            let songTitle = "Unknown";
+            let bpm = 120;
+            let length = "2:00";
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('//song:')) {
+                    songTitle = line.substring(7);
+                } else if (line.startsWith('//BPM:')) {
+                    bpm = parseInt(line.substring(6));
+                } else if (line.startsWith('//length:')) {
+                    length = line.substring(9);
+                } else if (!line.startsWith('//') && line.includes(',')) {
+                    const parts = line.split(',');
+                    if (parts.length >= 3) {
+                        const lane = parseInt(parts[0]);
+                        const hittime = parseFloat(parts[1]);
+                        const type = parseInt(parts[2]);
+                        
+                        if (!isNaN(lane) && !isNaN(hittime) && !isNaN(type) && lane >= 0 && lane <= 4) {
+                            notes.push({
+                                lane: lane,
+                                hittime: hittime,
+                                type: type
+                            });
+                        }
+                    }
+                }
+            });
+            
+            editor.songTitle = songTitle;
+            editor.bpm = bpm;
+            editor.length = length;
+            editor.notes = notes;
+            
+            document.getElementById('songTitle').value = songTitle;
+            document.getElementById('bpm').value = bpm;
+            document.getElementById('length').value = length;
+            
+            editor.setupGrid();
+            editor.updateDisplay();
+        }
+
+        const editor = new ChartEditor();
+    </script>
+</body>
+</html>
