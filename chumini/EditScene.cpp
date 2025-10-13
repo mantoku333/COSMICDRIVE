@@ -7,126 +7,97 @@
 #include <sstream>
 #include <algorithm>
 #include <cstdio>
+#include <windows.h> 
+#include <DirectXMath.h>
+#include "EditorComponent.h"
+
 
 using namespace app::test;
+using namespace DirectX;
 
 void EditScene::Init()
 {
     // ---- UI キャンバス（エディタ本体） ----
     uiManagerActor = Instantiate();
-    auto editCanvas = uiManagerActor.Target()->AddComponent<EditCanvas>();
+    //auto editCanvas = uiManagerActor.Target()->AddComponent<EditCanvas>();
     uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
+
+    uiManagerActor.Target()->AddComponent<EditorComponent>();
 
     // ---- Update 登録 ----
     updateCommand.Bind(std::bind(&EditScene::Update, this, std::placeholders::_1));
 
-    // ---- 既存譜面のロード（固定パス）----
-    if (!LoadChartFromFile()) {
-        sf::debug::Debug::Log("EditScene: 初回ロード失敗（新規開始）");
+    //// 背景パネル
+    //{
+    //    auto a_Bg = Instantiate();
+    //    auto m_Bg = a_Bg.Target()->AddComponent<sf::Mesh>();
+    //    m_Bg->SetGeometry(g_cube); // 既存の立方体ジオメトリを使用
+    //    a_Bg.Target()->transform.SetScale({ panelW, panelH, 0.1f });     // 薄め
+    //    a_Bg.Target()->transform.SetPosition({ panelPos.x, panelPos.y, panelPos.z + 0.01f });
+    //    m_Bg->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+    //}
+
+    // レーン板
+    lanePanels.clear();
+    {
+        // laneW を panelW / lanes に合わせたい場合は下記を有効に
+        // laneW = panelW / static_cast<float>(lanes);
+
+        for (int i = 0; i < lanes; ++i) {
+            float localX = (i - lanes * 0.5f + 0.5f) * laneW;
+            auto lanePanel = Instantiate();
+            auto mLane = lanePanel.Target()->AddComponent<sf::Mesh>();
+            mLane->SetGeometry(g_cube);
+            lanePanel.Target()->transform.SetScale({ laneW, panelH, 0.1f });
+            lanePanel.Target()->transform.SetPosition({
+                panelPos.x + localX,
+                panelPos.y,
+                panelPos.z
+                });
+            mLane->material.SetColor({ 0.25f, 0.25f, 0.25f, 1.0f }); // 背景より少し暗め
+            lanePanels.push_back(lanePanel);
+        }
     }
 
-    sf::debug::Debug::Log("EditScene 初期化完了");
+    // レーン区切り線
+    {
+        const float lineThickness = 0.05f;
+        const float lineDepth = 0.1f;
+        for (int i = 1; i < lanes; ++i) {
+            float localX = (i - lanes * 0.5f) * laneW;
+            auto line = Instantiate();
+            auto mLine = line.Target()->AddComponent<sf::Mesh>();
+            mLine->SetGeometry(g_cube);
+            line.Target()->transform.SetScale({ lineThickness, panelH, lineDepth });
+            line.Target()->transform.SetPosition({
+                panelPos.x + localX,
+                panelPos.y,
+                panelPos.z - 0.01f
+                });
+            mLine->material.SetColor({ 1, 1, 1, 1 });
+        }
+    }
+
+    // ヒット判定バー（赤線）
+    {
+        float localY = -panelH * 0.5f + panelH * 0.7f + barH * 0.5f;
+        barY = panelPos.y - localY;
+
+        auto bar = Instantiate();
+        auto mBar = bar.Target()->AddComponent<sf::Mesh>();
+        mBar->SetGeometry(g_cube);
+        bar.Target()->transform.SetScale({ panelW, barH, 0.1f });
+        bar.Target()->transform.SetPosition({
+            panelPos.x,
+            barY,
+            panelPos.z - 0.01f
+            });
+        mBar->material.SetColor({ 1, 0, 0, 1 });
+    }
 }
 
 void EditScene::Update(const sf::command::ICommand& /*command*/)
 {
-    const float dt = sf::Time::DeltaTime();
-
-    if (isPlaying) {
-        songTimeSec += dt;
-
-        // 長さが設定されていれば自動停止
-        if (songLengthSec > 0.0f && songTimeSec >= songLengthSec) {
-            TransportStop();
-        }
-    }
+   
 }
 
-void EditScene::TransportPlay()
-{
-    if (isPlaying) return;
-    isPlaying = true;
-    // サウンド無しなので songTimeSec の進行だけ行う
-}
-
-void EditScene::TransportStop()
-{
-    isPlaying = false;
-    songTimeSec = 0.0f;
-}
-
-void EditScene::TransportSeek(float sec)
-{
-    if (sec < 0.0f) sec = 0.0f;
-    if (songLengthSec > 0.0f) {
-        if (sec > songLengthSec) sec = songLengthSec;
-    }
-    songTimeSec = sec;
-}
-
-// -------------------------------------------------
-// 固定パスへ保存 (CSV: lane,measure,beat,tick16,type)
-// -------------------------------------------------
-bool EditScene::SaveChartToFile()
-{
-    std::ofstream ofs(kChartPath);
-    if (!ofs) {
-        sf::debug::Debug::Log("EditScene: Save 失敗（ファイル開けず）");
-        return false;
-    }
-
-    // 一応ソート（measure→beat→tick→lane）
-    std::sort(chart.begin(), chart.end(), [](const NoteData& a, const NoteData& b) {
-        if (a.mbt.measure != b.mbt.measure) return a.mbt.measure < b.mbt.measure;
-        if (a.mbt.beat != b.mbt.beat) return a.mbt.beat < b.mbt.beat;
-        if (a.mbt.tick16 != b.mbt.tick16) return a.mbt.tick16 < b.mbt.tick16;
-        return a.lane < b.lane;
-        });
-
-    for (const auto& ev : chart) {
-        ofs << ev.lane << ","
-            << ev.mbt.measure << ","
-            << ev.mbt.beat << ","
-            << ev.mbt.tick16 << ","
-            << static_cast<int>(ev.type) << "\n";
-    }
-
-    sf::debug::Debug::Log("EditScene: Save 成功");
-    return true;
-}
-
-// -------------------------------------------------
-// 固定パスから読込 (CSV: lane,measure,beat,tick16,type)
-// -------------------------------------------------
-bool EditScene::LoadChartFromFile()
-{
-    std::ifstream ifs(kChartPath);
-    if (!ifs) {
-        sf::debug::Debug::Log("EditScene: Load 失敗（ファイル無し）");
-        return false;
-    }
-
-    std::vector<NoteData> temp;
-    std::string line;
-
-    while (std::getline(ifs, line)) {
-        if (line.empty() || line[0] == '#') continue;
-
-        std::stringstream ss(line);
-        NoteData ev{};
-        char comma;
-        int typeI = 0;
-
-        if (ss >> ev.lane >> comma
-            >> ev.mbt.measure >> comma
-            >> ev.mbt.beat >> comma
-            >> ev.mbt.tick16 >> comma
-            >> typeI) {
-            ev.type = static_cast<NoteType>(typeI);
-            temp.push_back(ev);
-        }
-    }
-
-    chart.swap(temp);
-    return true;
-}

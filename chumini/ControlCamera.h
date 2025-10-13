@@ -11,8 +11,9 @@ namespace app
 		void Begin()override;
 
 		// targetActorƒƒ“ƒo[‚ğ’Ç‰Á
-		sf::SafePtr<sf::Actor> targetActor;
+		sf::ref::Ref<sf::Actor> targetActor;
 
+		void SetTarget(sf::ref::Ref<sf::Actor> actor);
 
 	private:
 		void Update();

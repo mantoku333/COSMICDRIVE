@@ -348,6 +348,9 @@
     <ClCompile Include="BGMComponent.cpp">
       <Filter>App\Component\BGMComponent</Filter>
     </ClCompile>
+    <ClCompile Include="EditorComponent.cpp">
+      <Filter>App\Component\EditorComponent</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -680,6 +683,9 @@
     <ClInclude Include="Config.h">
       <Filter>App</Filter>
     </ClInclude>
+    <ClInclude Include="EditorComponent.h">
+      <Filter>App\Component\EditorComponent</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -942,6 +948,9 @@
     </Filter>
     <Filter Include="App\Component\BGMComponent">
       <UniqueIdentifier>{0395d81c-0f9f-4488-9f53-528149902078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Component\EditorComponent">
+      <UniqueIdentifier>{e32be4f4-b1e5-44e6-9b58-882076738fe6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

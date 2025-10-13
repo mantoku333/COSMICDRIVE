@@ -12,8 +12,6 @@
 #include "NoteManager.h"   
 #include "SongInfo.h"
 
-
-
 void app::test::TestScene::Init()
 {
     sf::debug::Debug::Log("TestScene‚ÌInit‚Å‚·");
@@ -28,24 +26,6 @@ void app::test::TestScene::Init()
         bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
 
 
-        managerActor.Target()->transform.SetScale({ 3.0f, 3.0f, 0.1f });
-        managerActor.Target()->transform.SetPosition({
-            panelPos.x + 15,
-            panelPos.y ,
-            panelPos.z - 0.01f
-            });
-
-        //mgrActor->leadTime = 1.5f;  // 1.5•b‚Å startY¨hitY ‚ð—¬‚·
-    }
-
-    //„Ÿ„Ÿ ƒpƒlƒ‹i”wŒij „Ÿ„Ÿ
-    {
-        auto a_Bg = Instantiate();
-        auto m_Bg = a_Bg.Target()->AddComponent<sf::Mesh>();
-        m_Bg->SetGeometry(g_cube);
-        a_Bg.Target()->transform.SetScale({ panelW, panelH, 0.1f });      // ”–‚­‚·‚é‚È‚ç 0.1f
-        a_Bg.Target()->transform.SetPosition({ panelPos.x, panelPos.y, panelPos.z + 0.01f });
-        m_Bg->material.SetColor({ 0.3f,0.3f,0.3f,1.0f });
     }
 
 

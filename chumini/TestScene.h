@@ -29,7 +29,7 @@ namespace app
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
 			const float panelW = 20.0f;
-			const float panelH = 30.0f;
+			const float panelH = 100.0f;
 			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f };  // Å© Ç±Ç±ÇæÇØégÇ§
 
 	        int   lanes = 5;
@@ -39,13 +39,14 @@ namespace app
 			const float noteH = 0.2f;
 			const float noteD = 0.1f;
 
+			float barY;
 			const float barH = 0.1f;
 
 			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;
 
 			sf::ref::Ref<sf::Actor> managerActor;
 
-			float barY;
+			
 
 			void SetSelectedSong(const SongInfo& song) { selectedSong = song; }
 			const SongInfo& GetSelectedSong() const { return selectedSong; }

@@ -179,6 +179,7 @@
     <ClCompile Include="DynamicScene.cpp" />
     <ClCompile Include="Easing.cpp" />
     <ClCompile Include="EditCanvas.cpp" />
+    <ClCompile Include="EditorComponent.cpp" />
     <ClCompile Include="EditScene.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FollowCameraComponent.cpp" />
@@ -280,6 +281,7 @@
     <ClInclude Include="DynamicScene.h" />
     <ClInclude Include="Easing.h" />
     <ClInclude Include="EditCanvas.h" />
+    <ClInclude Include="EditorComponent.h" />
     <ClInclude Include="EditScene.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileBase.h" />

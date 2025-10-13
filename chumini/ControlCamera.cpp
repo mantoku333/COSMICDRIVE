@@ -4,6 +4,24 @@ void app::ControlCamera::Begin()
 {
 	command.Bind(std::bind(&ControlCamera::Update, this));
 
+	auto actor = actorRef.Target();
+	if (!actor) return;
+
+	auto cam = actor->GetComponent<sf::Camera>();
+	if (cam)
+	{
+		//cam->LookAt({ 0.0f, 5.0f, 5.0f });         // 奥方向(Z+)を注視
+	}
+
+	//Vector3 eye = { 0.0f, 1.0f, 0.0f };   // カメラ位置
+	//Vector3 rot = { -45.0f, 0.0f, 0.0f };    // ピッチ(下向き45°)
+
+	// もし SetRotation がラジアン指定なら：
+	// rot = { XMConvertToRadians(-45.0f), 0.0f, 0.0f };
+
+	//actor->transform.SetPosition(eye);
+	//actor->transform.SetRotation(rot);
+
 	del += &ControlCamera::Rotation;
 	del += &ControlCamera::Move;
 
@@ -77,6 +95,14 @@ void app::ControlCamera::Move()
 			moveVec += right * -speed;
 		}
 
+		if (SInput::Instance().GetKey(Key::KEY_UP))
+		{
+			moveVec.y += speed * 2;
+		}
+		if (SInput::Instance().GetKey(Key::KEY_DOWN))
+		{
+			moveVec.y -= speed * 2;
+		}
 		auto v3 = actorRef.Target()->transform.GetPosition();
 		v3 += moveVec;
 		actorRef.Target()->transform.SetPosition(v3);
