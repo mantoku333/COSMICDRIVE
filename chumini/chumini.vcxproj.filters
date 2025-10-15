@@ -351,6 +351,27 @@
     <ClCompile Include="EditorComponent.cpp">
       <Filter>App\Component\EditorComponent</Filter>
     </ClCompile>
+    <ClCompile Include="DirectWriteCustomFont.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectWrite.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="D.cpp">
+      <Filter>App\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="TextComponent.cpp">
+      <Filter>App\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="DWriteContext.cpp">
+      <Filter>App\UItext</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>App\UItext</Filter>
+    </ClCompile>
+    <ClCompile Include="TextImage.cpp">
+      <Filter>App\UItext</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -686,6 +707,27 @@
     <ClInclude Include="EditorComponent.h">
       <Filter>App\Component\EditorComponent</Filter>
     </ClInclude>
+    <ClInclude Include="DirectWriteCustomFont.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="D.h">
+      <Filter>App\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectWrite.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="TextComponent.h">
+      <Filter>App\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="DWriteContext.h">
+      <Filter>App\UItext</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>App\UItext</Filter>
+    </ClInclude>
+    <ClInclude Include="TextImage.h">
+      <Filter>App\UItext</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -951,6 +993,9 @@
     </Filter>
     <Filter Include="App\Component\EditorComponent">
       <UniqueIdentifier>{e32be4f4-b1e5-44e6-9b58-882076738fe6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\UItext">
+      <UniqueIdentifier>{88861654-a063-48e9-b4a9-d378eb481db4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,8 @@
 #include "App.h"
 #include "SongInfo.h"
 
+
+
 namespace app {
     namespace test {
 
@@ -21,6 +23,8 @@ namespace app {
             // 選択情報（実際に確定されるのは targetIndex 基準）
             int GetSelectedSongIndex() const { return targetIndex; }
             const SongInfo& GetSelectedSong() const;
+
+
 
         private:
             // =========================

@@ -3,10 +3,34 @@
 #include "SelectScene.h"
 #include "EditScene.h"
 
+// テキスト描画に必要
+#include "Text.h"            // sf::ui::Text
+#include "TextImage.h"   
+#include "DWriteContext.h"   // D2D/DirectWrite共有コンテキスト
+#include "DirectX11.h"       // SwapChain取得（あなたの環境に合わせて）
+
 void app::test::TitleCanvas::Begin()
 {
-    //基底クラスのBeginを必ず呼び出す
+    // 基底クラスのBeginを必ず呼び出す
     sf::ui::Canvas::Begin();
+
+    auto* dx11 = sf::dx::DirectX11::Instance();
+
+    // TextImage を作成して Canvas に載せる
+    auto titleText = AddUI<sf::ui::TextImage>();
+    titleText->transform.SetPosition(Vector3(-550, -100, 0));
+    titleText->transform.SetScale(Vector3(10, 2, 0));
+
+    titleText->Create(
+        dx11->GetMainDevice().GetDevice(),
+        L"茶色いアクエリ",
+        L"メイリオ",
+        120.0f,
+        D2D1::ColorF(D2D1::ColorF::Brown),
+        1024, 256);
+
+
+
 
     // テクスチャの読み込み
     textureEditButton.LoadTextureFromFile("Assets\\Texture\\edit.png");
@@ -31,26 +55,37 @@ void app::test::TitleCanvas::Begin()
     editButton->transform.SetScale(Vector3(3, 1, 0));
     editButton->material.texture = &textureEditButton;
 
-    
+    //// ▼ タイトル文字を追加（ここが今回の実装）
+    //{
+    //    auto titleText = AddUI<sf::ui::Text>();
+    //    titleText->transform.SetPosition(Vector3(0, 0, 0));
+    //    titleText->transform.SetScale(Vector3(1, 1, 1));
+    //    titleText->width = 1200;   // 描画領域幅（UI座標系）
+    //    titleText->height = 200;   // 描画領域高さ
+    //    titleText->SetFont(L"Meiryo UI");
+    //    titleText->SetSize(100.0f);       // フォントサイズ
+    //    titleText->SetColor(D2D1::ColorF(D2D1::ColorF::Orange, 1.0f));
+    //    titleText->SetAlign(DWRITE_TEXT_ALIGNMENT_CENTER,
+    //        DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+    //    titleText->SetText(L"TESTTESTTEST");
+    //}
 
     // 初期選択状態の設定
     selectedButton = 0; // 0: エディット, 1: プレイ
     UpdateButtonSelection();
 
-
     // シーンがメモリ上に存在しなければ
     if (scene.isNull())
     {
-        //シーンをスタンバイ状態にする
+        // シーンをスタンバイ状態にする
         scene = SelectScene::StandbyScene();
     }
 
     if (sceneEdit.isNull())
     {
-        //EDITシーンをスタンバイ
+        // EDITシーンをスタンバイ
         sceneEdit = EditScene::StandbyScene();
     }
-
 
     updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
 }
@@ -151,26 +186,20 @@ Vector2 app::test::TitleCanvas::GetMousePosition()
 void app::test::TitleCanvas::UpdateButtonSelection()
 {
     if (selectedButton == 0) {
-        // エディットボタンが選択されている場合  
+        // エディットボタンが選択されている場合
+        editButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));  // 選択時：大きく
+        playButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));  // 非選択時：通常サイズ
 
-        // スケール変更：選択されたボタンを大きく表示  
-        editButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));  // 選択時：大きく  
-        playButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));  // 非選択時：通常サイズ  
-
-        // 色の変更：選択されたボタンを明るく、非選択を暗く  
-        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 1.0f));  // 選択時：明るい黄色味  
-        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 0.3f));   // 非選択時：暗いグレー  
+        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 1.0f)); // 明るい
+        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 0.3f));  // 暗い
     }
     else {
-        // プレイボタンが選択されている場合  
+        // プレイボタンが選択されている場合
+        editButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));
+        playButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));
 
-        // スケール変更  
-        editButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));   // 非選択時：通常サイズ  
-        playButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));  // 選択時：大きく  
-
-        // 色の変更  
-        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));   // 非選択時：暗いグレー  
-        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 0.3f));   // 選択時：明るい黄色味
+        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
+        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 0.3f));
     }
 }
 
@@ -194,7 +223,7 @@ void app::test::TitleCanvas::ShowSongSelectScene()
         // シーンを実体化させる
         scene->Activate();
     }
-    
+
     // 今いるシーンを消す
     auto actor = actorRef.Target();
     if (!actor) return;
