@@ -29,7 +29,7 @@ namespace app
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
 			const float panelW = 20.0f;
-			const float panelH = 100.0f;
+			const float panelH = 30.0f;
 			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f };  // © ‚±‚±‚¾‚¯g‚¤
 
 	        int   lanes = 5;

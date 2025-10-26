@@ -5,17 +5,32 @@
 #include "TestScene.h"
 #include "Easing.h"
 
+// テキスト描画に必要
+#include "Text.h"
+#include "TextImage.h"
+#include "DWriteContext.h"
+#include "DirectX11.h"
+#include <Windows.h> // ★ UTF-8→UTF-16変換で使用
+
 namespace app::test {
 
-    // ===== ローカルユーティリティ =====
-    // 0..N へ正規化
+    // ===== UTF-8 → UTF-16 変換ユーティリティ =====
+    static std::wstring Utf8ToWstring(const std::string& str)
+    {
+        if (str.empty()) return L"";
+        int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+        std::wstring wstr(sizeNeeded, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
+        return wstr;
+    }
+
+    // ===== ユーティリティ =====
     static inline float WrapFloat(float x, float N) {
         float r = std::fmod(x, N);
         if (r < 0) r += N;
         return r;
     }
 
-    // current から target(0..N-1) へ向かう最短差分（-N/2..+N/2）
     static inline float ShortestDeltaOnRing(float current, float target, float N) {
         float c = WrapFloat(current, N);
         float diff = target - c;
@@ -24,9 +39,7 @@ namespace app::test {
         return diff;
     }
 
-    // ===== ヘルパ =====
     float SelectCanvas::ScaleByDistance(float d, float scaleCenter, float scaleEdge) {
-        // 中央(d=0)ほど大きく、離れるほど小さくする（ガウス減衰）
         const float falloff = std::exp(-0.5f * (d * d));
         return scaleEdge + (scaleCenter - scaleEdge) * falloff;
     }
@@ -39,24 +52,26 @@ namespace app::test {
         InitializeSongs();
         InitializeUI();
 
-        // シーンがメモリ上に存在しなければスタンバイ
         if (scene.isNull()) {
             scene = TestScene::StandbyScene();
         }
 
-        // 初期選択の同期
         selectedIndex = std::clamp(selectedIndex, 0, (int)songs.size() - 1);
         targetIndex = selectedIndex;
         currentIndex = (float)targetIndex;
-
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // 更新コマンド
+        // ★ 起動時：曲タイトル初期化
+        if (songTitleText && !songs.empty()) {
+            std::wstring title = Utf8ToWstring(songs[targetIndex].title);
+            songTitleText->SetText(title);
+        }
+
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
     }
 
-    // ===== 初期化：テクスチャ =====
+    // ===== テクスチャ初期化 =====
     void SelectCanvas::InitializeTextures() {
         textureBack.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
         textureSelectFrame.LoadTextureFromFile("Assets\\Texture\\SelectFrame.png");
@@ -65,53 +80,28 @@ namespace app::test {
         textureCC.LoadTextureFromFile("Assets\\Texture\\CC.png");
     }
 
-    // ===== 初期化：楽曲 =====
+    // ===== 楽曲初期化 =====
     void SelectCanvas::InitializeSongs() {
         songs = {
-            {"GOODTEK",     "ebimayo",
+            {"GOODTEK", "ebimayo",
              "Assets\\Texture\\Jacket\\GOODTEK.png",
              "Save\\chart\\goodtek.chart",
              "Save\\music\\GOODTEK.wav",
              "190"},
 
-            {"真千年女王",  "しらいし",
+            {"真千年女王", "しらいし",
              "Assets\\Texture\\Jacket\\sinsennen.png",
              "Save\\chart\\sinsen.chart",
              "Save\\music\\sinsen.wav",
              "160"},
 
-            {"Chronomia",   "Lime/Kankitsu",
-             "Assets\\Texture\\Jacket\\Chronomia.png",
-             "Save\\chart\\chronomia.chart",
-             "Save\\music\\chronomia.wav",
-             "227"},
-
-            {"Chronomia",   "Lime/Kankitsu",
-             "Assets\\Texture\\Jacket\\Chronomia.png",
-             "Save\\chart\\chronomia.chart",
-             "Save\\music\\chronomia.wav",
-             "227"},
-
-            {"Chronomia",   "Lime/Kankitsu",
-             "Assets\\Texture\\Jacket\\Chronomia.png",
-             "Save\\chart\\chronomia.chart",
-             "Save\\music\\chronomia.wav",
-             "227"},
-
-            {"Chronomia",   "Lime/Kankitsu",
-             "Assets\\Texture\\Jacket\\Chronomia.png",
-             "Save\\chart\\chronomia.chart",
-             "Save\\music\\chronomia.wav",
-             "227"},
-
-            {"Chronomia",   "Lime/Kankitsu",
+            {"Chronomia", "Lime/Kankitsu",
              "Assets\\Texture\\Jacket\\Chronomia.png",
              "Save\\chart\\chronomia.chart",
              "Save\\music\\chronomia.wav",
              "227"},
         };
 
-        // ジャケット読み込み（なければデフォルト）
         jacketTextures.resize(songs.size());
         for (size_t i = 0; i < songs.size(); ++i) {
             const std::string& jacketPath = songs[i].jacketPath;
@@ -121,44 +111,45 @@ namespace app::test {
         }
     }
 
-    // ===== 初期化：UI =====
+    // ===== UI初期化 =====
     void SelectCanvas::InitializeUI() {
-
-        // 背景
         backgroundGradient = AddUI<sf::ui::Image>();
         backgroundGradient->transform.SetPosition(Vector3(-200, 0, -10));
         backgroundGradient->transform.SetScale(Vector3(16.0f, 10.0f, 1.0f));
         backgroundGradient->material.texture = &textureBack;
 
-        // タイトル
         titlePanel = AddUI<sf::ui::Image>();
         titlePanel->transform.SetPosition(Vector3(-200, 300, 0));
         titlePanel->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
         titlePanel->material.texture = &textureTitlePanel;
 
-       
-        
-
-        // 選択フレーム
         selectFrame = AddUI<sf::ui::Image>();
         selectFrame->transform.SetPosition(Vector3(CENTER_X, CENTER_Y, 1));
         selectFrame->transform.SetScale(Vector3(2.0f, 2.0f, 1.0f));
         selectFrame->material.texture = &textureSelectFrame;
 
-        // CCパネル
         CC = AddUI<sf::ui::Image>();
         CC->transform.SetPosition(Vector3(400, -200, 0));
         CC->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
         CC->material.texture = &textureCC;
 
-        // ジャケットUIプール生成（固定個数で再利用）
         RebuildJacketPool();
-
-        // 初期並び
         UpdateJacketPositions();
+
+        // ★ 曲タイトルテキストを1枚だけ作成
+        auto* dx11 = sf::dx::DirectX11::Instance();
+        songTitleText = AddUI<sf::ui::TextImage>();
+        songTitleText->transform.SetPosition(Vector3(-150, -100, 0));
+        songTitleText->transform.SetScale(Vector3(5.0f, 1.8f, 1.0f));
+        songTitleText->Create(
+            dx11->GetMainDevice().GetDevice(),
+            L"", L"メイリオ",
+            64.0f,
+            D2D1::ColorF(D2D1::ColorF::White),
+            1024, 256);
     }
 
-    // ===== プール再構築 =====
+    // ===== ジャケット再構築 =====
     void SelectCanvas::RebuildJacketPool() {
         for (auto* img : jacketPool) {
             if (img) img->SetVisible(false);
@@ -181,22 +172,17 @@ namespace app::test {
     // ===== Update =====
     void SelectCanvas::Update(const sf::command::ICommand& command) {
         animationTime += sf::Time::DeltaTime();
-
-        // 入力クールダウン
-        if (inputCooldown > 0) {
-            inputCooldown -= sf::Time::DeltaTime();
-        }
+        if (inputCooldown > 0) inputCooldown -= sf::Time::DeltaTime();
 
         UpdateInput();
-        UpdateAnimation();       // currentIndex ← targetIndex へ最短経路で補間
-        UpdateJacketPositions(); // 位置/スケール/深度を更新
-        UpdateSelectedFrame();   // 枠は中央スロットへ
+        UpdateAnimation();
+        UpdateJacketPositions();
+        UpdateSelectedFrame();
     }
 
     // ===== 入力 =====
     void SelectCanvas::UpdateInput() {
         if (inputCooldown > 0) return;
-
         SInput& input = SInput::Instance();
 
         if (input.GetKeyDown(Key::KEY_RIGHT) || input.GetKeyDown(Key::KEY_D)) {
@@ -217,20 +203,17 @@ namespace app::test {
         }
     }
 
-    // ===== アニメーション（リング最短補間） =====
+    // ===== アニメーション =====
     void SelectCanvas::UpdateAnimation() {
-        // 枠のパルス (Yoyoイージングで往復)
         const float pulsePhase = std::fmod(animationTime * 0.8f, 1.0f);
         const float pulse = (float)Easing(pulsePhase, EASE::EaseYoyo);
         const float pulseScale = 1.0f + 0.04f * pulse;
-        if (selectFrame) {
+        if (selectFrame)
             selectFrame->transform.SetScale(Vector3(2.1f * pulseScale, 2.1f * pulseScale, 1.0f));
-        }
 
         const int N = (int)songs.size();
         if (N <= 0) return;
 
-        // slideStartIdx から見た「最短の終点」を毎フレーム決定
         const float endPos = slideStartIdx + ShortestDeltaOnRing(slideStartIdx, (float)targetIndex, (float)N);
         const float dist = std::fabs(endPos - slideStartIdx);
 
@@ -241,34 +224,27 @@ namespace app::test {
             currentIndex = slideStartIdx + (endPos - slideStartIdx) * eased;
 
             if (alpha >= 1.0f) {
-                // 終了時は畳んでズレをなくす
                 currentIndex = WrapFloat(endPos, (float)N);
                 slideStartIdx = currentIndex;
                 slideTimer = 0.0f;
-
-                // 選択インデックスも揃える
                 selectedIndex = (int)std::round(currentIndex) % N;
                 if (selectedIndex < 0) selectedIndex += N;
                 targetIndex = selectedIndex;
             }
         }
         else {
-            // 動いていないときもレンジ内に畳んでおく
             currentIndex = WrapFloat(currentIndex, (float)N);
             slideStartIdx = currentIndex;
             slideTimer = 0.0f;
         }
     }
 
-    // ===== 並び（位置/スケール/深度） =====
+    // ===== ジャケット配置更新 =====
     void SelectCanvas::UpdateJacketPositions() {
         if (songs.empty() || jacketPool.empty()) return;
-
         const int N = (int)songs.size();
         const int pool = (int)jacketPool.size();
         const int half = pool / 2;
-
-        // 描画用は currentIndex の小数部でスムーズにスクロール
         const int leftInt = (int)std::floor(currentIndex) - half;
 
         for (int i = 0; i < pool; ++i) {
@@ -280,7 +256,6 @@ namespace app::test {
 
             float slotCenterIndex = (float)(leftInt + i);
             float dist = std::fabs(slotCenterIndex - currentIndex);
-
             float rel = (float)(i - half) - (currentIndex - std::floor(currentIndex));
             float x = CENTER_X + rel * BASE_SPACING;
             float y = CENTER_Y;
@@ -294,7 +269,7 @@ namespace app::test {
         }
     }
 
-    // ===== 選択フレーム =====
+    // ===== 枠更新 =====
     void SelectCanvas::UpdateSelectedFrame() {
         if (songs.empty() || jacketPool.empty()) {
             if (selectFrame) selectFrame->SetVisible(false);
@@ -306,47 +281,53 @@ namespace app::test {
         selectFrame->SetVisible(true);
     }
 
-    // ===== インデックス操作 =====
+    // ===== 次へ =====
     void SelectCanvas::SelectNext() {
         if (songs.empty()) return;
         const int N = (int)songs.size();
 
-        // 論理的な選択は 0..N-1 で回す
         targetIndex = (targetIndex + 1) % N;
         selectedIndex = targetIndex;
-
-        // 今の位置を起点に新しい移動を開始
-        // 途中で連打されても、都度「いまの見た目位置」から最短で次へ
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
+
+        // ★ 曲タイトル更新
+        if (songTitleText) {
+            std::wstring title = Utf8ToWstring(songs[targetIndex].title);
+            songTitleText->SetText(title);
+        }
 
         sf::debug::Debug::Log("Selected: " + songs[targetIndex].title);
     }
 
+    // ===== 前へ =====
     void SelectCanvas::SelectPrevious() {
         if (songs.empty()) return;
         const int N = (int)songs.size();
 
         targetIndex = (targetIndex - 1 + N) % N;
         selectedIndex = targetIndex;
-
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
+
+        // ★ 曲タイトル更新
+        if (songTitleText) {
+            std::wstring title = Utf8ToWstring(songs[targetIndex].title);
+            songTitleText->SetText(title);
+        }
 
         sf::debug::Debug::Log("Selected: " + songs[targetIndex].title);
     }
 
-    // ===== キャンセル =====
+    // ===== キャンセル・決定 =====
     void SelectCanvas::CancelSelection() {
         sf::debug::Debug::Log("Cancel selection - returning to previous screen");
     }
 
-    // ===== 決定 =====
     void SelectCanvas::ConfirmSelection() {
         if (songs.empty()) return;
-
         const SongInfo& selected = songs[targetIndex];
-        sf::debug::Debug::Log("選択しました: " + selected.title + " by " + selected.artist + " 譜面情報:" + selected.chartPath);
+        sf::debug::Debug::Log("選択しました: " + selected.title + " by " + selected.artist);
 
         if (scene->StandbyThisScene()) {
             if (auto* testScene = dynamic_cast<app::test::TestScene*>(scene.Get())) {
@@ -361,7 +342,6 @@ namespace app::test {
         }
     }
 
-    // ===== getter =====
     const SongInfo& SelectCanvas::GetSelectedSong() const {
         if (songs.empty()) {
             static SongInfo empty = { "", "", "" };

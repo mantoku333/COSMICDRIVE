@@ -23,10 +23,10 @@ void app::test::TitleCanvas::Begin()
 
     titleText->Create(
         dx11->GetMainDevice().GetDevice(),
-        L"茶色いアクエリ",
-        L"メイリオ",
+        L"HAL大阪 萬徳倫功mantokuriku",
+        L"叛逆明朝",
         120.0f,
-        D2D1::ColorF(D2D1::ColorF::Brown),
+        D2D1::ColorF(D2D1::ColorF::Tomato),
         1024, 256);
 
 
@@ -55,20 +55,6 @@ void app::test::TitleCanvas::Begin()
     editButton->transform.SetScale(Vector3(3, 1, 0));
     editButton->material.texture = &textureEditButton;
 
-    //// ▼ タイトル文字を追加（ここが今回の実装）
-    //{
-    //    auto titleText = AddUI<sf::ui::Text>();
-    //    titleText->transform.SetPosition(Vector3(0, 0, 0));
-    //    titleText->transform.SetScale(Vector3(1, 1, 1));
-    //    titleText->width = 1200;   // 描画領域幅（UI座標系）
-    //    titleText->height = 200;   // 描画領域高さ
-    //    titleText->SetFont(L"Meiryo UI");
-    //    titleText->SetSize(100.0f);       // フォントサイズ
-    //    titleText->SetColor(D2D1::ColorF(D2D1::ColorF::Orange, 1.0f));
-    //    titleText->SetAlign(DWRITE_TEXT_ALIGNMENT_CENTER,
-    //        DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-    //    titleText->SetText(L"TESTTESTTEST");
-    //}
 
     // 初期選択状態の設定
     selectedButton = 0; // 0: エディット, 1: プレイ

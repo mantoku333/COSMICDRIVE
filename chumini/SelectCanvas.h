@@ -1,7 +1,7 @@
 #pragma once
 #include "App.h"
 #include "SongInfo.h"
-
+#include "TextImage.h"
 
 
 namespace app {
@@ -24,7 +24,7 @@ namespace app {
             int GetSelectedSongIndex() const { return targetIndex; }
             const SongInfo& GetSelectedSong() const;
 
-
+            sf::ui::TextImage* songTitleText = nullptr; // 現在選択中の曲タイトル表示用
 
         private:
             // =========================
@@ -62,6 +62,8 @@ namespace app {
 
             // 新：プール方式（画面に出すUIは一定数で再利用）
             std::vector<sf::ui::Image*> jacketPool;
+
+
 
             // =========================
             // レイアウト / 見た目

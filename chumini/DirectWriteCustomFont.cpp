@@ -328,7 +328,7 @@ HRESULT DirectWriteCustomFont::SetFont(WCHAR const* fontname, DWRITE_FONT_WEIGHT
 }
 
 //====================================
-// 文字描画
+// 文字描画文字列
 // string：文字列
 // pos：描画ポジション
 // options：テキストの整形
