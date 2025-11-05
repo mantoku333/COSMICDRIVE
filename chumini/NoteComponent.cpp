@@ -1,109 +1,82 @@
 #include "NoteComponent.h"
-#include "Time.h" 
-#include <functional> 
-#include <fstream>
-#include <sstream>
-#include <iostream>
-
+#include "Time.h"
 #include "TestScene.h"
+#include <cmath>
+#include <functional>
 
-namespace app {
-    namespace test {
+namespace app::test {
 
-        NoteComponent::NoteComponent() : sf::Component(), isActive(false) {}
+    NoteComponent::NoteComponent() : sf::Component(), isActive(false) {}
 
-        void NoteComponent::Begin() {
+    void NoteComponent::Begin() {
+        auto actor = actorRef.Target();
+        if (!actor) return;
+        auto* scene = &actor->GetScene();
+        auto* testScene = dynamic_cast<TestScene*>(scene);
+        if (!testScene) return;
 
-            // 所有アクターと対応シーン取得
-            auto actor = actorRef.Target();
-            if (!actor) return;
-            auto* scene = &actor->GetScene();
+        // ===== レーン情報を取得 =====
+        lanes = testScene->lanes;
+        laneW = testScene->laneW;
+        laneH = testScene->laneH;
+        rotX = testScene->rotX;
+        baseY = testScene->baseY;
+        barRatio = testScene->barRatio;
 
-			// TestScene にキャストして panelPos からパネルの位置を取得
-            if (auto* testScene = dynamic_cast<TestScene*>(scene)) {
-                startY = testScene->panelPos.y + testScene->panelH / 2.f; // パネルの上端
-                hitY = testScene->barY;                                   // パネルの下端
-            }
+        // ===== ノーツの初期位置を算出 =====
+        slopeRad = rotX * 3.14159265f / 180.0f;
+        startZ = laneH * 0.5f;                      // 出現位置（奥）
+        endZ = -laneH * 0.5f + laneH * barRatio;  // 判定バー位置（手前）
+        startY = baseY - std::tan(slopeRad) * startZ;
+        endY = baseY - std::tan(slopeRad) * endZ;
 
-            // スポーン時刻と経過時間初期化
-            spawnTime = info.hittime - leadTime;
+        // lane index から X座標を計算
+        float x = (info.lane - lanes * 0.5f + 0.5f) * laneW;
 
-            /* デバッグ用出力
-            std::ostringstream oss;
-            oss << " leadTime=" <<   leadTime;
-			oss << ", spawnTime=" << spawnTime;
-            sf::debug::Debug::Log(oss.str()); */
+        actor->transform.SetPosition({ x, startY, startZ });
+        actor->transform.SetRotation({ rotX, 0, 0 });
+        actor->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
 
-            // 初期位置をセット
-            if (actor = actorRef.Target()) {
-                auto pos = actor->transform.GetPosition();
+        spawnTime = info.hittime - leadTime;
+        elapsed = 0.f;
 
-                // シーンから情報を持ってくる
-                auto& scene = actor->GetScene();
-                if (auto* testScene = dynamic_cast<TestScene*>(&scene)) {
-                    float panelWidth_ = testScene->panelW;
-                    int   lanes_ = testScene->lanes;
-                    float laneW = panelWidth_ / lanes_;
-                    float originX = testScene->panelPos.x;
-                    pos.x = originX + (-panelWidth_ / 2.f + laneW * (info.lane + 0.5f));
-                }
+        updateCommand.Bind(std::bind(&NoteComponent::Update, this, std::placeholders::_1));
+    }
 
-                // Y 座標をスタート位置に
-                pos.y = startY;
-                pos.z = 9.9f;
-                actor->transform.SetPosition(pos);
+    void NoteComponent::Update(const sf::command::ICommand&) {
+        if (!isActive) return;
+        auto actor = actorRef.Target();
+        if (!actor) return;
 
-                // スケールをレーン分割数にあわせる
-                auto actorScale = actor->transform.GetScale();
-                float laneW = (dynamic_cast<TestScene*>(&scene))->panelW / (dynamic_cast<TestScene*>(&scene))->lanes;
-                actor->transform.SetScale({ laneW - 0.1f, actorScale.y, actorScale.z });
-            }
+        elapsed += sf::Time::DeltaTime();
+        if (elapsed < spawnTime) return;
 
-            spawnTime = info.hittime - leadTime;
-            elapsed = spawnTime;
+        float timeSinceSpawn = elapsed - spawnTime;
 
-            // 毎フレーム Update を呼び出すようにバインド
-            updateCommand.Bind(std::bind(&NoteComponent::Update, this, std::placeholders::_1));
+        // ===== Z方向へ等速移動 =====
+        float z = startZ - noteSpeed * timeSinceSpawn;
+        float y = baseY - std::tan(slopeRad) * z; // 傾斜に沿ってY補正
+
+        auto pos = actor->transform.GetPosition();
+        pos.y = y;
+        pos.z = z;
+        actor->transform.SetPosition(pos);
+        
+    }
+
+    void NoteComponent::Activate() {
+        if (skipFirstActivate) {
+            skipFirstActivate = false;
+            return;
         }
+        isActive = true;
+        elapsed = spawnTime;
+        updateCommand.Bind(std::bind(&NoteComponent::Update, this, std::placeholders::_1));
+    }
 
-        void NoteComponent::Update(const sf::command::ICommand&) {
-            auto actor = actorRef.Target();
-            if (!actor) return;
-            if (!isActive) return;
+    void NoteComponent::DeActivate() {
+        isActive = false;
+        updateCommand.UnBind();
+    }
 
-            // 開始からの時間を加算（秒）
-            float delta = sf::Time::DeltaTime();
-            elapsed += delta;
-
-            // spawnTime より前は処理しない
-            if (elapsed < spawnTime) {
-                return;
-            }
-
-            // ノーツの出現後経過時間（秒）
-            float timeSinceSpawn = elapsed - spawnTime;
-
-            // 等速で落下させる
-            auto pos = actor->transform.GetPosition();
-            pos.y = startY - noteSpeed * timeSinceSpawn;
-            actor->transform.SetPosition(pos);
-        }
-
-
-        void NoteComponent::Activate() {
-            if (skipFirstActivate) {
-                skipFirstActivate = false;
-                return;
-            }
-
-            isActive = true;
-            updateCommand.Bind(std::bind(&NoteComponent::Update, this, std::placeholders::_1));
-        }
-
-        void NoteComponent::DeActivate() {
-            isActive = false;
-            updateCommand.UnBind();
-        }
-
-    } // namespace test
-} // namespace app
+} // namespace app::test

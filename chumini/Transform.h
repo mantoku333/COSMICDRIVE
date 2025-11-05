@@ -21,6 +21,10 @@ namespace sf
 		void SetScale(const Vector3& other);
 		const Vector3& GetScale()const { return scale; }
 
+		Vector3 GetForward() const;
+		Vector3 GetRight() const;
+		Vector3 GetUp() const;
+
 	private:
 		void CalcMatrix();
 

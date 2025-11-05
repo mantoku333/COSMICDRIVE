@@ -23,19 +23,12 @@ void app::test::TestScene::Init()
         managerActor.Target()->AddComponent<TestCanvas>();
         managerActor.Target()->AddComponent<app::test::PlayerComponent>();
         managerActor.Target()->AddComponent<app::test::SoundComponent>();
+       
         bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
     }
 
     // ===== レーン配置 =====
     {
-        const int lanes = 5;           // レーン数
-        const float laneW = 3.0f;      // レーン幅
-        const float laneH = 50.0f;    // 奥行き（Z方向）
-        const float rotX = -10.0f;     // 傾き（チュウニズム風の角度）
-        const float baseY = 0.0f;      // 高さの基準
-
-        const float barRatio = 0.15f;
-
         lanePanels.clear();
 
         // ── レーン生成 ──
@@ -102,6 +95,11 @@ void app::test::TestScene::Init()
 
             mBar->material.SetColor({ 1, 0, 1, 1 });
         }
+    }
+
+    if (auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>())
+    {
+        noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio);
     }
 }
 

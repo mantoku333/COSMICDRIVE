@@ -66,7 +66,24 @@ namespace app::test {
         float GetSongTime() const { return songTime; }
         int   GetCurrentCombo() const;
 
+        //シーンからレーンのパラメータを取得
+        void SetLaneParams(
+            const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
+            float laneW_, float laneH_, float rotX_,
+            float baseY_, float barRatio_);
+
     private:
+
+        // TestScene から受け取るレーン情報
+        std::vector<sf::ref::Ref<sf::Actor>> laneRefs;
+
+        float laneW;     // レーン幅
+        float laneH;     // 奥行き
+        float rotX;      // 傾斜角
+        float baseY;     // 高さ基準
+        float barRatio;  // バーの比率位置
+        float judgeZ;    // 判定Z位置
+
         // 更新コマンド
         sf::command::Command<> updateCommand;
 

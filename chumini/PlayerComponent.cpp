@@ -65,7 +65,6 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 // ‹óŒ‚‚¿
                 auto* sound = managerActor->GetComponent<app::test::SoundComponent>();
                 if (sound) sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
-                return;
             }else {
                 // ƒqƒbƒg
                 auto* sound = managerActor->GetComponent<app::test::SoundComponent>();

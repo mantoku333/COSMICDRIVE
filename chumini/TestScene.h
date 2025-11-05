@@ -28,19 +28,21 @@ namespace app
 
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
-			const float panelW = 20.0f;
+			//--------------
+			/*const float panelW = 20.0f;
 			const float panelH = 30.0f;
-			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f };  // ← ここだけ使う
+			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f }; 
 
-	        int   lanes = 5;
-			const float laneW = panelW / lanes;
+			const float laneW = panelW / lanes;*/
+			//-------------------------------------------これらを排除して新しい設定にする
 
-			const float noteW = laneW * 0.9f;
-			const float noteH = 0.2f;
-			const float noteD = 0.1f;
+			const int lanes = 5;           // レーン数
+			const float laneW = 3.0f;      // レーン幅
+			const float laneH = 50.0f;    // 奥行き（Z方向）
+			const float rotX = -10.0f;     // 傾き（チュウニズム風の角度）
+			const float baseY = 0.0f;      // 高さの基準
 
-			float barY;
-			const float barH = 0.1f;
+			const float barRatio = 0.15f;
 
 			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;
 

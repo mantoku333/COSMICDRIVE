@@ -2,49 +2,40 @@
 #include "Component.h"
 #include "NoteData.h"
 
-namespace app
-{
-    namespace test
-    {
-        class NoteComponent : public sf::Component {
+namespace app::test {
 
-        public:
+    class NoteComponent : public sf::Component {
+    public:
+        NoteComponent();
 
-            NoteComponent();
+        void Begin() override;
+        void Activate() override;
+        void DeActivate() override;
+        void Update(const sf::command::ICommand& command);
 
-            void Begin() override;
-			void Activate() override;
-            void DeActivate() override;
-            void Update(const sf::command::ICommand& command);
+        NoteData info;
+        float leadTime = 0.f;
+        float noteSpeed = 10.f;
+        float spawnTime = 0.f;
+        float elapsed = 0.f;
 
-            // 外部からセットする譜面情報
-            NoteData info;
-            float    leadTime;         // dropTime から startY までのリード秒
-            float    spawnTime;        // info.dropTime - leadTime
-            float    elapsed = 0.f;          // 生成後の経過秒
+    private:
+        sf::command::Command<> updateCommand;
 
-            const float basenoteSpeed = 1.0f;              // 基本のノーツ速度
-            float HiSpeed = 7.0f;                          // HiSpeed倍率
+        int lanes = 0;
+        float laneW = 0.f;
+        float laneH = 0.f;
+        float rotX = 0.f;
+        float baseY = 0.f;
+        float barRatio = 0.f;
 
-            float noteSpeed = basenoteSpeed * HiSpeed;     // 最終的なノーツ速度
-        private:
+        float slopeRad = 0.f;
+        float startZ = 0.f;
+        float endZ = 0.f;
+        float startY = 0.f;
+        float endY = 0.f;
 
-            // 毎フレーム呼び出すコマンド
-            sf::command::Command<> updateCommand;
-
-            int lanes;
-            float panelWidth;
-            float startY;
-            float hitY;
-
-           
-          
-
-            // 初回読み込みを制限
-            bool skipFirstActivate = true;
-
-			bool isActive = false;
-
-        };
-    }
+        bool isActive = false;
+        bool skipFirstActivate = true;
+    };
 }
