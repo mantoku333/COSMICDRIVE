@@ -38,6 +38,10 @@ namespace app::test {
         if (auto* sv = player->GetSourceVoice()) sv->SetVolume(v);
 
         sf::debug::Debug::Log(std::string("[BGM] Play: ") + path + " vol=" + std::to_string(v));
+        char cwd[MAX_PATH];
+        GetCurrentDirectoryA(MAX_PATH, cwd);
+        sf::debug::Debug::Log(std::string("[CWD] ") + cwd);
+        sf::debug::Debug::Log(std::string("[BGM] TryPlay: ") + path);
     }
 
     void BGMComponent::Stop() {

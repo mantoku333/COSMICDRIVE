@@ -42,7 +42,7 @@ namespace app
 			const float rotX = -10.0f;     // 傾き（チュウニズム風の角度）
 			const float baseY = 0.0f;      // 高さの基準
 
-			const float barRatio = 0.15f;
+			const float barRatio = 0.1f;
 
 			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;
 

@@ -40,7 +40,7 @@ namespace app::test {
 
         // ノーツ速度（= basenoteSpeed * HiSpeed）
         const float basenoteSpeed = 1.0f;  // 基本速度
-        const float HiSpeed = 7.0f;  // 倍率
+        const float HiSpeed = 15.0f;  // 倍率
         float       noteSpeed = basenoteSpeed * HiSpeed;
 
         // 判定API（単レーン）
@@ -73,6 +73,9 @@ namespace app::test {
             float baseY_, float barRatio_);
 
     private:
+
+        // 曲のオフセット（譜面ファイルの #OFFSET で設定される）
+        double noteOffset = 0.0;
 
         // TestScene から受け取るレーン情報
         std::vector<sf::ref::Ref<sf::Actor>> laneRefs;

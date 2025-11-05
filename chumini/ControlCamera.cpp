@@ -26,8 +26,8 @@ void app::ControlCamera::Begin()
 	// ===== ‰ŠúˆÊ’u‚Æ‰ñ“]‚ðÝ’è =====
 	if (auto actor = actorRef.Target())
 	{
-		actor->transform.SetPosition(Vector3(0.0f, 5.0f, -20.0f));
-		actor->transform.SetRotation(Vector3(45.0f, 0.0f, 0.0f));
+		actor->transform.SetPosition(Vector3(0.0f, 1.5f, -20.0f));
+		actor->transform.SetRotation(Vector3(50.0f, 0.0f, 0.0f));
 	}
 
 	del += &ControlCamera::Rotation;
