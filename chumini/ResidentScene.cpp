@@ -25,9 +25,9 @@ void app::ResidentScene::Init()
 void app::ResidentScene::LoadLoadingScene()
 {
 	//初期シーンはメインスレッド内でロード、アクティベートさせる
-	auto scene = test::TitleScene::StandbyScene();
+	//auto scene = test::TitleScene::StandbyScene();
 	//auto scene = test::SelectScene::StandbyScene();
-	//auto scene = test::TestScene::StandbyScene();
+	auto scene = test::TestScene::StandbyScene();
 
 	while (1)
 	{

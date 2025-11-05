@@ -67,6 +67,7 @@ namespace app
 			size_t nextIndex = 0;
 			//float leadTime = 1.5f;
 
+
 			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
 		};
 	}

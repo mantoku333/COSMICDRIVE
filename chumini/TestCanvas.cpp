@@ -37,7 +37,7 @@ void app::test::TestCanvas::Begin()
 	textureMiss.LoadTextureFromFile("Assets\\Texture\\miss.png");
 
 	judgeImage = AddUI<sf::ui::Image>();
-	judgeImage->transform.SetPosition(Vector3(400, 100, 0));
+	judgeImage->transform.SetPosition(Vector3(800, 100, 0));
 	judgeImage->transform.SetScale(Vector3(3, 1, 0));
 	judgeImage->material.texture = &textureOk; // 初期画像
 

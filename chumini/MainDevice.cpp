@@ -21,6 +21,8 @@ HRESULT sf::dx::MainDevice::Create(HWND hwnd)
 	swapChainDesc.SampleDesc.Count = 1;
 	swapChainDesc.SampleDesc.Quality = 0;
 	swapChainDesc.Windowed = TRUE;
+
+	//画面比率おかしくなったときはここをコメントアウト消して戻す
 	//swapChainDesc.Windowed = FALSE;
 
 	//DirectX11を使用
