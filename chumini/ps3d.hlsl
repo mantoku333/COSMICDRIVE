@@ -68,7 +68,7 @@ PS3D_Out main(PS3D_In input) : SV_TARGET
 float4 ParallelLighting(float3 normal)
 {
     //光の向きベクトル
-    float3 lightVector = float3(0.5f, 1, -0.25f);
+    float3 lightVector = normalize(float3(0, 1, 0));
 
     //2つのベクトルを単位ベクトル化する
     lightVector = normalize(lightVector);

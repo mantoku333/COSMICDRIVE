@@ -56,6 +56,7 @@ namespace app
 		private:
 			
 			SongInfo selectedSong; // 選択楽曲情報
+			std::vector<sf::ref::Ref<sf::Actor>> laneEdges;
 
 			// 更新コマンド
 			sf::command::Command<> updateCommand;

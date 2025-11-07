@@ -70,15 +70,15 @@ namespace app {
             // =========================
             // 画面に出す最大スロット数（奇数推奨：中央スロットを持つため）
             int   MAX_VISIBLE = 7;
-            float BASE_SPACING = 240.0f;   // スロット間隔(px)
-            float SCALE_CENTER = 2.0f;     // 中央スケール
-            float SCALE_EDGE = 1.2f;     // 端スケール
+            float BASE_SPACING = 350.0f;   // スロット間隔(px)
+            float SCALE_CENTER = 3.0f;     // 中央スケール
+            float SCALE_EDGE = 0.5f;     // 端スケール
             float DEPTH_NEAR = 0.0f;     // 手前Z
             float DEPTH_FAR = -2.0f;    // 奥Z
 
             // 画面中央座標（既存定義と合わせる）
-            static constexpr float CENTER_X = -170.0f;
-            static constexpr float CENTER_Y = 100.0f;
+            static constexpr float CENTER_X = 0.0f;
+            static constexpr float CENTER_Y = 50.0f;
 
             // =========================
             // 選択 / アニメ

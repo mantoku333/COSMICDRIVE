@@ -40,7 +40,7 @@ namespace app::test {
 
         // ノーツ速度（= basenoteSpeed * HiSpeed）
         const float basenoteSpeed = 1.0f;  // 基本速度
-        const float HiSpeed = 15.0f;  // 倍率
+        const float HiSpeed = 18.0f;  // 倍率
         float       noteSpeed = basenoteSpeed * HiSpeed;
 
         // 判定API（単レーン）

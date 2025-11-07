@@ -952,12 +952,6 @@
     <Filter Include="App\Scene\ResidentScene">
       <UniqueIdentifier>{ddd74777-ace8-4cf8-9913-1f4c50b7f213}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Scene\SelectScene">
-      <UniqueIdentifier>{a2f47f1f-1311-4b6f-8236-473192468b1d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="App\Scene\SelectScene\SelectCanvas">
-      <UniqueIdentifier>{3c240543-c4f6-4880-9a6d-ec14f41122b9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="App\Scene\ResultScene\ResultCanvas">
       <UniqueIdentifier>{8c8ec35f-e2b0-459c-bbf7-446d921e003b}</UniqueIdentifier>
     </Filter>
@@ -996,6 +990,12 @@
     </Filter>
     <Filter Include="App\UItext">
       <UniqueIdentifier>{88861654-a063-48e9-b4a9-d378eb481db4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\SelectScene">
+      <UniqueIdentifier>{a2f47f1f-1311-4b6f-8236-473192468b1d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\SelectScene\SelectCanvas">
+      <UniqueIdentifier>{3c240543-c4f6-4880-9a6d-ec14f41122b9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

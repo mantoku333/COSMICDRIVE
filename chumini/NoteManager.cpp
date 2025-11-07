@@ -310,6 +310,9 @@ namespace app::test {
         noteSequence[idx].result = res;
         UpdateCombo(res);
 
+        act->DeActivate();
+        act->Destroy();      // 次のDestroyActors()でdeleteされる
+
         if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
             sound->Play(GetHitSfxPath(noteSequence[idx].type));
         }
@@ -349,6 +352,12 @@ namespace app::test {
 
                     //コンボリセット
                     UpdateCombo(JudgeResult::Miss);
+
+                    //ミスしたノーツを削除予約
+                    if (auto* act = noteActors[i].Target()) {
+                        act->DeActivate();  
+                        act->Destroy();     // 削除予約（呼ぶだけ）
+                    }
 
                     std::ostringstream oss;
                     oss << "[Missed] lane=" << l

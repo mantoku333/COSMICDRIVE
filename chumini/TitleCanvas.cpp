@@ -7,7 +7,7 @@
 #include "Text.h"            // sf::ui::Text
 #include "TextImage.h"   
 #include "DWriteContext.h"   // D2D/DirectWrite共有コンテキスト
-#include "DirectX11.h"       // SwapChain取得（あなたの環境に合わせて）
+#include "DirectX11.h"       // SwapChain取得
 
 void app::test::TitleCanvas::Begin()
 {
@@ -39,19 +39,19 @@ void app::test::TitleCanvas::Begin()
 
     // タイトルロゴの追加
     titleLogo = AddUI<sf::ui::Image>();
-    titleLogo->transform.SetPosition(Vector3(-200, 350, 0));
+    titleLogo->transform.SetPosition(Vector3(0, 300, 0));
     titleLogo->transform.SetScale(Vector3(9, 2, 0));
     titleLogo->material.texture = &textureTitleLogo;
 
     // プレイボタンの追加
     playButton = AddUI<sf::ui::Image>();
-    playButton->transform.SetPosition(Vector3(0, 100, 0));
+    playButton->transform.SetPosition(Vector3(0, 0, 0));
     playButton->transform.SetScale(Vector3(3, 1, 0));
     playButton->material.texture = &texturePlayButton;
 
     // エディットボタンの追加
     editButton = AddUI<sf::ui::Image>();
-    editButton->transform.SetPosition(Vector3(0, -50, 0));
+    editButton->transform.SetPosition(Vector3(0, -200, 0));
     editButton->transform.SetScale(Vector3(3, 1, 0));
     editButton->material.texture = &textureEditButton;
 

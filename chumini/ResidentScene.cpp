@@ -15,7 +15,7 @@ void app::ResidentScene::Init()
 	//影カメラ
 	sf::ref::Ref<sf::Actor> shadowActor = Instantiate();
 	shadowActor.Target()->transform.SetPosition(Vector3(0, 5, 0));
-	shadowActor.Target()->transform.SetRotation(Vector3(90, 0, 0));
+	shadowActor.Target()->transform.SetRotation(Vector3(0, 0, 0));
 	sf::SafePtr<sf::Camera> shadowCamera = shadowActor.Target()->AddComponent<sf::Camera>();
 	sf::Camera::shadow = shadowCamera.Get();
 
@@ -25,8 +25,8 @@ void app::ResidentScene::Init()
 void app::ResidentScene::LoadLoadingScene()
 {
 	//初期シーンはメインスレッド内でロード、アクティベートさせる
-	auto scene = test::TitleScene::StandbyScene();
-	//auto scene = test::SelectScene::StandbyScene();
+	//auto scene = test::TitleScene::StandbyScene();
+	auto scene = test::SelectScene::StandbyScene();
 	//auto scene = test::TestScene::StandbyScene();
 
 	while (1)

@@ -13,7 +13,7 @@ void app::test::TestCanvas::Begin()
 	//テクスチャの読み込み
     textureJacket.LoadTextureFromFile("Assets\\Texture\\GOODTEK.png");
 	textureDefaultJacket.LoadTextureFromFile("Assets\\Texture\\DefaultJacket.png");
-	textureOk.LoadTextureFromFile("Assets\\Texture\\ok.png");
+	textureOk.LoadTextureFromFile("Assets\\Texture\\none.png");
 	textureCombo.LoadTextureFromFile("Assets\\Texture\\combo.png");
 
 	//UIの追加
@@ -21,7 +21,7 @@ void app::test::TestCanvas::Begin()
 	//auto Combo = AddUI<sf::ui::Image>();
 
 	//座標の設定
-	Jacket->transform.SetPosition(Vector3(430, 400, 0));
+	Jacket->transform.SetPosition(Vector3(810, 400, 0));
 	Jacket->transform.SetScale(Vector3(3, 3, 0));
 	Jacket->material.texture = &textureJacket;
 	//Jacket->material.texture = &textureDefaultJacket;
@@ -37,7 +37,7 @@ void app::test::TestCanvas::Begin()
 	textureMiss.LoadTextureFromFile("Assets\\Texture\\miss.png");
 
 	judgeImage = AddUI<sf::ui::Image>();
-	judgeImage->transform.SetPosition(Vector3(800, 100, 0));
+	judgeImage->transform.SetPosition(Vector3(810, 100, 0));
 	judgeImage->transform.SetScale(Vector3(3, 1, 0));
 	judgeImage->material.texture = &textureOk; // 初期画像
 
@@ -64,8 +64,8 @@ void app::test::TestCanvas::InitializeTimerDisplay()
 	// 必要な桁数分のImageオブジェクトを事前作成
 	for (int i = 0; i < MAX_TIMER_DIGITS; ++i) {
 		auto img = AddUI<sf::ui::Image>();
-		img->transform.SetPosition(Vector3(300 + i * (digitWidth - 60), -200, 0));
-		img->transform.SetScale(Vector3(0.3f, 0.3f, 0));
+		img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), -100, 0));
+		img->transform.SetScale(Vector3(0.5f, 0.5f, 0));
 		img->material.texture = &textureNumber;
 		img->SetVisible(false); // 初期は非表示
 		timerDigits.push_back(img);
@@ -77,8 +77,8 @@ void app::test::TestCanvas::InitializeComboDisplay()
 	// コンボ表示用のImageオブジェクトを4桁分作成
 	for (int i = 0; i < MAX_COMBO_DIGITS; ++i) {
 		auto img = AddUI<sf::ui::Image>();
-		img->transform.SetPosition(Vector3(250 + i * (digitWidth - 60), -100, 0)); // コンボ表示位置
-		img->transform.SetScale(Vector3(0.5f, 0.5f, 0)); // タイマーより少し大きく
+		img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), 0, 0)); // コンボ表示位置
+		img->transform.SetScale(Vector3(0.7f, 0.7f, 0)); // タイマーより少し大きく
 		img->material.texture = &textureNumber;
 		img->SetVisible(false); // 初期は非表示
 		comboDigits.push_back(img);
@@ -205,16 +205,16 @@ void app::test::TestCanvas::DrawNumber(int number, float x, float y, float digit
 {
 	std::string str = std::to_string(number);
 	for (size_t i = 0; i < str.size(); ++i) {
-		// 1. 桁ごとの数字を取得
+		// 桁ごとの数字を取得
 		int digit = str[i] - '0'; // 0～9
 
-		// 2. スプライトシート上の UV 算出（正規化範囲 0.0 ～ 1.0）
+		// スプライトシート上の UV 算出（正規化範囲 0.0 ～ 1.0）
 		float u0 = (digit * digitWidth) / sheetWidth;       // 左端のU
 		float u1 = ((digit + 1) * digitWidth) / sheetWidth; // 右端のU
 		float v0 = 0.0f;                                    // 上端のV
 		float v1 = digitHeight / sheetHeight;               // 下端のV（今回は 100/100 = 1.0）
 
-		// 3. Image を作成して位置/スケール/テクスチャを設定
+		// Image を作成して位置/スケール/テクスチャを設定
 		auto img = AddUI<sf::ui::Image>();
 		img->transform.SetPosition(Vector3(
 			x + i * (digitWidth - 60),   // 横並びの間隔
@@ -224,7 +224,7 @@ void app::test::TestCanvas::DrawNumber(int number, float x, float y, float digit
 		img->transform.SetScale(Vector3(0.3f, 0.3f, 0));  // 適切なスケール
 		img->material.texture = numberTexture;
 
-		// 4. 正しい順序で UV座標を設定: (左, 上, 右, 下)
+		// 正しい順序で UV座標を設定: (左, 上, 右, 下)
 
 		std::ostringstream oss;
 		oss

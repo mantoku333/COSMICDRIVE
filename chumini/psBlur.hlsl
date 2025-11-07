@@ -1,14 +1,14 @@
 Texture2D luminance : register(t0);
 SamplerState mySampler : register(s0); //ƒTƒ“ƒvƒ‰[
 
-static const float v0 = 0.124450631;
-static const float v1 = 0.116910554;
-static const float v2 = 0.0969222561;
-static const float v3 = 0.0709098354;
-static const float v4 = 0.0457828306;
-static const float v5 = 0.0260862708;
-static const float v6 = 0.0131170005;
-static const float v7 = 0.00582063338;
+static const float v0 = 0.14;
+static const float v1 = 0.11;
+static const float v2 = 0.08;
+static const float v3 = 0.05;
+static const float v4 = 0.03;
+static const float v5 = 0.015;
+static const float v6 = 0.007;
+static const float v7 = 0.003;
 
 struct In
 {
