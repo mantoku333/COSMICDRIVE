@@ -1,9 +1,10 @@
 ﻿#include "TestCanvas.h"
 #include <sstream>
-#include <iomanip> // 追加
+#include <iomanip>
 #include "Time.h"
 #include "NoteManager.h"
 #include "TestScene.h"
+#include "JudgeStatsService.h"
 
 void app::test::TestCanvas::Begin()
 {
@@ -13,8 +14,10 @@ void app::test::TestCanvas::Begin()
 	//テクスチャの読み込み
     textureJacket.LoadTextureFromFile("Assets\\Texture\\GOODTEK.png");
 	textureDefaultJacket.LoadTextureFromFile("Assets\\Texture\\DefaultJacket.png");
-	textureOk.LoadTextureFromFile("Assets\\Texture\\none.png");
+	textureNone.LoadTextureFromFile("Assets\\Texture\\none.png");
 	textureCombo.LoadTextureFromFile("Assets\\Texture\\combo.png");
+
+	texturePanel.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
 
 	//UIの追加
 	Jacket = AddUI<sf::ui::Image>();
@@ -39,12 +42,19 @@ void app::test::TestCanvas::Begin()
 	judgeImage = AddUI<sf::ui::Image>();
 	judgeImage->transform.SetPosition(Vector3(810, 100, 0));
 	judgeImage->transform.SetScale(Vector3(3, 1, 0));
-	judgeImage->material.texture = &textureOk; // 初期画像
+	judgeImage->material.texture = &textureNone; // 初期画像
 
 	textureNumber.LoadTextureFromFile("Assets/Texture/numbers.png"); // スプライトシート
 
+	judgePanel = AddUI<sf::ui::Image>();
+	judgePanel->transform.SetPosition(Vector3(0, 500, 0));  // 画面上部中央あたり
+	judgePanel->transform.SetScale(Vector3(5.0f, 1.0f, 0));   // 横長帯（必要に応じて調整）
+	judgePanel->material.texture = &texturePanel;
+	judgePanel->material.SetColor({ 1.0f, 1.0f, 1.0f, 0.9f });
+
 	InitializeTimerDisplay();
 	InitializeComboDisplay();
+	InitializeJudgeCountDisplay();
 
 	//DrawNumber(678, 300, -200, digitWidth, digitHeight, sheetWidth, sheetHeight, &textureNumber);
 
@@ -85,6 +95,66 @@ void app::test::TestCanvas::InitializeComboDisplay()
 	}
 }
 
+void app::test::TestCanvas::InitializeJudgeCountDisplay()
+{
+	const float startX = -255;  // 左端の座標
+	const float baseY = 500;  // 上の高さ
+	const float gapX = 100;    // 各カテゴリ間隔
+
+	auto createDigitSet = [&](float x) {
+		std::vector<sf::ui::Image*> digits;
+		for (int i = 0; i < 4; ++i) {
+			auto img = AddUI<sf::ui::Image>();
+			img->transform.SetPosition(Vector3(x + i * (digitWidth - 60), baseY, 0));
+			img->transform.SetScale(Vector3(0.3f, 0.3f, 0));
+			img->material.texture = &textureNumber;
+			img->SetVisible(false);
+			digits.push_back(img);
+		}
+		return digits;
+		};
+
+	judgeCountDigitsPerfect = createDigitSet(startX + gapX * 0);
+	judgeCountDigitsGreat = createDigitSet(startX + gapX * 1);
+	judgeCountDigitsGood = createDigitSet(startX + gapX * 2);
+	judgeCountDigitsMiss = createDigitSet(startX + gapX * 3);
+}
+
+void app::test::TestCanvas::UpdateJudgeCountDisplay()
+{
+	struct Entry { JudgeResult type; std::vector<sf::ui::Image*>& digits; };
+	std::vector<Entry> entries = {
+		{ JudgeResult::Perfect, judgeCountDigitsPerfect },
+		{ JudgeResult::Great,   judgeCountDigitsGreat },
+		{ JudgeResult::Good,    judgeCountDigitsGood },
+		{ JudgeResult::Miss,    judgeCountDigitsMiss },
+	};
+
+	for (auto& e : entries)
+	{
+		int value = JudgeStatsService::GetCount(e.type);
+		std::string str = std::to_string(value);
+		int len = (int)str.size();
+		int maxLen = (int)e.digits.size();
+		for (int i = 0; i < maxLen; ++i)
+			e.digits[i]->SetVisible(false);
+
+		int start = maxLen - len;
+		for (int i = 0; i < len; ++i)
+		{
+			int digit = str[i] - '0';
+			float u0 = (digit * digitWidth) / sheetWidth;
+			float u1 = ((digit + 1) * digitWidth) / sheetWidth;
+			float v0 = 0.0f, v1 = digitHeight / sheetHeight;
+
+			int index = start + i;
+			e.digits[index]->SetUV(u0, v0, u1, v1);
+			e.digits[index]->SetVisible(true);
+		}
+	}
+}
+
+
 void app::test::TestCanvas::Update(const sf::command::ICommand&)
 {
 	countUpTimer += sf::Time::DeltaTime();
@@ -97,24 +167,15 @@ void app::test::TestCanvas::Update(const sf::command::ICommand&)
 	// 既存のImageオブジェクトを更新（新規作成しない）
 	UpdateTimerDisplay(timerStr);
 
-	if (noteManager) {
-		int combo = noteManager->GetCurrentCombo();
-		static int lastCombo = -1; // 前回のコンボを記録
+	int combo = JudgeStatsService::GetCombo();
+	JudgeResult last = JudgeStatsService::GetLastResult();
+	// コンボ表示更新
+	UpdateComboDisplay(combo);
 
-		// コンボが変わった時だけログ出力
-		if (combo != lastCombo) {
-			std::ostringstream comboOss;
-			comboOss << "Canvas Update: Combo=" << combo << " (was " << lastCombo << ")";
-			sf::debug::Debug::Log(comboOss.str());
-			lastCombo = combo;
-		}
+	// 判定画像更新
+	SetJudgeImage(last);
 
-		UpdateComboDisplay(combo);
-	}
-	else {
-		// NoteManagerが取得できていない場合
-		sf::debug::Debug::Log("Canvas Update: noteManager is null!");
-	}
+	UpdateJudgeCountDisplay();
 }
 
 

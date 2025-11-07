@@ -26,9 +26,11 @@ namespace app
 
 			void InitializeTimerDisplay();
 			void InitializeComboDisplay();
+			void InitializeJudgeCountDisplay();
 
 			void UpdateTimerDisplay(const std::string& str);
 			void UpdateComboDisplay(int combo);
+			void UpdateJudgeCountDisplay();
 
 			// NoteManager参照
 			NoteManager* noteManager = nullptr;
@@ -42,8 +44,18 @@ namespace app
 
 			//テクスチャ
 			sf::Texture textureJacket;
-			sf::Texture textureOk;
+			sf::Texture textureNone;
 			sf::Texture textureNumber; // 数字のスプライトシート
+
+			sf::Texture texturePanel;
+			sf::ui::Image* judgePanel = nullptr; // 追加
+
+			// 判定カウント表示UI
+			std::vector<sf::ui::Image*> judgeCountDigitsPerfect;
+			std::vector<sf::ui::Image*> judgeCountDigitsGreat;
+			std::vector<sf::ui::Image*> judgeCountDigitsGood;
+			std::vector<sf::ui::Image*> judgeCountDigitsMiss;
+
 
 			sf::Texture textureCombo;
 

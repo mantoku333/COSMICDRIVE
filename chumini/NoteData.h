@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdint>
+
 // lane, measure, beat, tick16, type
 namespace app::test {
     // ƒm[ƒcí—Ş

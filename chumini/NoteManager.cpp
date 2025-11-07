@@ -11,6 +11,7 @@
 #include "SongInfo.h"
 #include <numeric>
 #include <cmath>
+#include "JudgeStatsService.h"
 
 namespace app::test {
 
@@ -308,7 +309,9 @@ namespace app::test {
         JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
         noteSequence[idx].judged = true;
         noteSequence[idx].result = res;
-        UpdateCombo(res);
+        //UpdateCombo(res);
+
+        JudgeStatsService::AddResult(res);
 
         act->DeActivate();
         act->Destroy();      // 次のDestroyActors()でdeleteされる
@@ -351,21 +354,13 @@ namespace app::test {
                     noteSequence[i].result = JudgeResult::Miss;
 
                     //コンボリセット
-                    UpdateCombo(JudgeResult::Miss);
+                    JudgeStatsService::AddResult(JudgeResult::Miss);
 
                     //ミスしたノーツを削除予約
                     if (auto* act = noteActors[i].Target()) {
                         act->DeActivate();  
                         act->Destroy();     // 削除予約（呼ぶだけ）
                     }
-
-                    std::ostringstream oss;
-                    oss << "[Missed] lane=" << l
-                        << " idx=" << i
-                        << " t=" << songTime
-                        << " hit=" << noteSequence[i].hittime;
-                    sf::debug::Debug::Log(oss.str());
-
                     ++head;
                 }
                 else {

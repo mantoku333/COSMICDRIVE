@@ -205,6 +205,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="JobSystem.cpp" />
+    <ClCompile Include="JudgeStatsService.cpp" />
     <ClCompile Include="LookAtComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainDevice.cpp" />
@@ -317,6 +318,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="JobSystem.h" />
+    <ClInclude Include="JudgeStatsService.h" />
     <ClInclude Include="LookAtComponent.h" />
     <ClInclude Include="MainDevice.h" />
     <ClInclude Include="Material.h" />
