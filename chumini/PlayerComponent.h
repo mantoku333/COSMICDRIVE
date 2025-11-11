@@ -1,6 +1,7 @@
 // PlayerComponent.h
 #pragma once
 #include "Component.h"
+#include <Windows.h>  
 
 namespace app {
     namespace test {
@@ -12,6 +13,10 @@ namespace app {
 
         private:
             sf::command::Command<> updateCommand;
+
+            POINT prevMouse = { 0, 0 };
+            bool mouseInitialized = false;
+            float leverX = 0.0f; // -1(ç∂) Å` +1(âE)
         };
 
     } // namespace test

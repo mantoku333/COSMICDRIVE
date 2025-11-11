@@ -89,6 +89,9 @@ void sf::debug::Debug::DrawLine(Vector3 p1, Vector3 p2, DirectX::XMFLOAT4 color)
 #if !DEBUG_LINE
 	return;
 #endif
+
+	//sf::debug::Debug::Log("DrawLine called!");
+
 	//ƒXƒŒƒbƒh“¯Šú‹æŠÔ
 	{
 		std::lock_guard<std::mutex> lock(mtx);

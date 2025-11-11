@@ -137,7 +137,7 @@ namespace app::test {
         RebuildJacketPool();
         UpdateJacketPositions();
 
-        // ★ 曲タイトルテキストを1枚だけ作成
+        // 曲タイトルテキストを1枚だけ作成
         auto* dx11 = sf::dx::DirectX11::Instance();
         songTitleText = AddUI<sf::ui::TextImage>();
         songTitleText->transform.SetPosition(Vector3(0, -100, 0));

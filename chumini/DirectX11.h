@@ -103,6 +103,8 @@ namespace sf
 			void SetViewPort();
 			void SetViewPort(int w, int h);
 
+			HWND GetHWND() const { return hwnd; }
+
 		private:
 			void LoadShader();
 

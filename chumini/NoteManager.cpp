@@ -192,7 +192,7 @@ namespace app::test {
             }
         }
 
-        // BPMが未定義ならデフォルトを使用
+        // BPMが未定義ならデフォルトを使用 （ よくない ）
         if (!sawAnyTempoMeta)
             tempoMap.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
         BuildTempoMap(tempoMap);
@@ -286,7 +286,7 @@ namespace app::test {
     }
 
     // ==================================================
-    // レーン単体判定（Z座標＋時間）
+    // レーン単体との判定（Z座標＋時間）
     // ==================================================
     JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
         if (lane < 0 || lane >= (int)laneOrder.size()) return JudgeResult::Skip;
@@ -387,7 +387,7 @@ namespace app::test {
 
     int NoteManager::GetCurrentCombo() const { return currentCombo; }
 
-    // ==================================================
+// ==================================================
 // レーン設定：TestScene 側から呼ばれて情報を渡す
 // ==================================================
     void NoteManager::SetLaneParams(

@@ -45,10 +45,11 @@ namespace app
 			const float barRatio = 0.1f;
 
 			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;
+			std::vector<sf::ref::Ref<sf::Actor>> clickLanes;
 
 			sf::ref::Ref<sf::Actor> managerActor;
 
-			
+			sf::ref::Ref<sf::Actor> judgeBar;  // ”»’èƒ‰ƒCƒ“QÆ—p
 
 			void SetSelectedSong(const SongInfo& song) { selectedSong = song; }
 			const SongInfo& GetSelectedSong() const { return selectedSong; }
@@ -72,6 +73,7 @@ namespace app
 
 
 			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
+			
 		};
 	}
 }

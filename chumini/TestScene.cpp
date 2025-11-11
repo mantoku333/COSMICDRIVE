@@ -12,19 +12,31 @@
 #include "NoteManager.h"
 #include "SongInfo.h"
 
+
 void app::test::TestScene::Init()
 {
     sf::debug::Debug::Log("TestSceneのInitです");
+    ShowCursor(FALSE);
 
     // ── マネージャを生成 ──
     {
         managerActor = Instantiate();
         managerActor.Target()->AddComponent<app::test::NoteManager>();
         managerActor.Target()->AddComponent<TestCanvas>();
-        managerActor.Target()->AddComponent<app::test::PlayerComponent>();
+        //managerActor.Target()->AddComponent<app::test::PlayerComponent>();
         managerActor.Target()->AddComponent<app::test::SoundComponent>();
        
         bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
+
+        // プレイヤー
+        auto player = Instantiate();
+        auto mesh = player.Target()->AddComponent<sf::Mesh>();
+        mesh->SetGeometry(g_cube); // Cubeメッシュ
+        player.Target()->transform.SetScale({ 0.5f, 0.5f, 0.5f });
+        mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 0.3f });
+        player.Target()->AddComponent<PlayerComponent>(); // ←ここに移動処理含む
+
+        
     }
 
     // ===== レーン配置 =====
@@ -108,26 +120,57 @@ void app::test::TestScene::Init()
             }
         }
 
+       
+
         // ── ジャッジバー（手前ライン）──
         {
             const float slopeRad = rotX * 3.14159265f / 180.0f;
 
-            // laneH の範囲（-half ～ +half）を使って位置を算出
             const float halfH = laneH * 0.5f;
-            float zPos = -halfH + laneH * barRatio; // 下端(-half)からratio分だけ進む
-
-            // 傾斜角に合わせてYを補正
+            float zPos = -halfH + laneH * barRatio;
             float yPos = -std::tan(slopeRad) * zPos;
 
-            auto bar = Instantiate();
-            auto mBar = bar.Target()->AddComponent<sf::Mesh>();
+            judgeBar = Instantiate();  // ★ メンバに保持！
+            auto mBar = judgeBar.Target()->AddComponent<sf::Mesh>();
             mBar->SetGeometry(g_cube);
 
-            bar.Target()->transform.SetScale({ lanes * laneW, 0.1f, 0.05f });
-            bar.Target()->transform.SetPosition({ 0.0f, baseY + yPos + 0.06f, zPos });
-            bar.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
+            judgeBar.Target()->transform.SetScale({ lanes * laneW, 0.1f, 0.05f });
+            judgeBar.Target()->transform.SetPosition({ 0.0f, baseY + yPos + 0.06f, zPos });
+            judgeBar.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
 
             mBar->material.SetColor({ 1, 0, 1, 1 });
+        }
+
+         // ===== Clickノーツ用レーン配置 =====
+        {
+            clickLanes.clear();
+
+            const float clickLaneOffsetZ = -0.5f;   // 少し奥に配置（手前=マウス側）
+            const float clickLaneOffsetY = 3.0f;    // 少し上に浮かせる（見た目）
+            const float clickLaneHeight = 0.1f;
+
+            for (int i = 0; i < lanes; ++i)
+            {
+                float localX = (i - lanes * 0.5f + 0.5f) * laneW;
+
+                auto lane = Instantiate();
+                auto mLane = lane.Target()->AddComponent<sf::Mesh>();
+                mLane->SetGeometry(g_cube);
+
+                // 通常レーンと同じ傾きで、ちょい上＆奥に配置
+                lane.Target()->transform.SetScale({ laneW, clickLaneHeight, laneH });
+                lane.Target()->transform.SetPosition({
+                    localX,
+                    baseY + clickLaneOffsetY,
+                    clickLaneOffsetZ
+                    });
+                lane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
+
+                // ちょっと薄めの色
+                mLane->material.SetColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+
+                clickLanes.push_back(lane);
+            }
         }
     }
 
@@ -140,6 +183,9 @@ void app::test::TestScene::Init()
 
     updateCommand.Bind(std::bind(&TestScene::Update, this, std::placeholders::_1));
 }
+
+
+
 
 void app::test::TestScene::Update(const sf::command::ICommand& command)
 {
