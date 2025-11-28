@@ -36,7 +36,7 @@ namespace app
 			const float laneW = panelW / lanes;*/
 			//-------------------------------------------これらを排除して新しい設定にする
 
-			const int lanes = 5;           // レーン数
+			const int lanes = 4;           // レーン数
 			const float laneW = 3.0f;      // レーン幅
 			const float laneH = 50.0f;    // 奥行き（Z方向）
 			const float rotX = -10.0f;     // 傾き（チュウニズム風の角度）

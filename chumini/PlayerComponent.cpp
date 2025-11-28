@@ -108,11 +108,10 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     // -----------------------------
     struct LaneKey { int idx; Key key; };
     LaneKey laneKeys[] = {
-        {0, Key::KEY_A},
-        {1, Key::KEY_S},
-        {2, Key::SPACE},
-        {3, Key::KEY_K},
-        {4, Key::KEY_L},
+        {0, Key::KEY_A},   // レーン 0
+        {1, Key::KEY_S},   // レーン 1
+        {2, Key::KEY_D},   // レーン 2
+        {3, Key::KEY_F},   // レーン 3
     };
 
     for (const auto& lk : laneKeys) {
