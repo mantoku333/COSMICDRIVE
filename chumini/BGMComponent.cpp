@@ -55,4 +55,30 @@ namespace app::test {
         }
     }
 
+    float BGMComponent::GetCurrentTime() const {
+        // プレイヤーが存在しない場合は0秒
+        if (player.isNull()) return 0.0f;
+
+        // 1. 生のSourceVoiceを取得 (IXAudio2SourceVoice*)
+        auto* sv = player->GetSourceVoice();
+        if (!sv) return 0.0f;
+
+        // 2. 現在の再生状態（累計再生サンプル数）を取得
+        XAUDIO2_VOICE_STATE state;
+        // 第1引数にNULL以外を指定しないと少し重いが、正確さを取るならこのままでOK
+        sv->GetState(&state);
+
+        // 3. ボイスの詳細情報（サンプリングレート）を取得
+        // これを使えば waveFormat 変数がなくてもレートがわかります
+        XAUDIO2_VOICE_DETAILS details;
+        sv->GetVoiceDetails(&details);
+
+        // 4. 計算： 再生サンプル数 / サンプリングレート(Hz) = 現在時刻(秒)
+        if (details.InputSampleRate > 0) {
+            return (double)state.SamplesPlayed / (double)details.InputSampleRate;
+        }
+
+        return 0.0f;
+    }
+
 }

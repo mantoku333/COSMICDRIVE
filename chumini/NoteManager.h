@@ -51,7 +51,7 @@ namespace app::test {
         // 同一フレームで押下されたレーン一覧を渡すと、それぞれ最適なノーツに割り当てて判定
         void JudgeBatch(const std::vector<int>& pressedLanes, float inputTime);
 
-        // デバッグ表示などに便利
+        // デバッグ表示
         std::string judgeResultToString(app::test::JudgeResult result) {
             switch (result) {
             case app::test::JudgeResult::None:    return "None";
@@ -72,7 +72,13 @@ namespace app::test {
             float laneW_, float laneH_, float rotX_,
             float baseY_, float barRatio_);
 
+        void StartGame();
+
+        void SetCurrentSongTime(float time);
+
     private:
+
+        bool isPlaying = false;
 
         // 曲のオフセット（譜面ファイルの #OFFSET で設定される）
         double noteOffset = 0.0;

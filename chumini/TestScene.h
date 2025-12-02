@@ -56,6 +56,10 @@ namespace app
 
 		private:
 			
+			bool isPlaying = false; // ゲーム中かどうかのフラグ
+
+			void StartGame();
+
 			SongInfo selectedSong; // 選択楽曲情報
 			std::vector<sf::ref::Ref<sf::Actor>> laneEdges;
 

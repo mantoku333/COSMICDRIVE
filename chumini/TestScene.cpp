@@ -189,37 +189,88 @@ void app::test::TestScene::Init()
 
 void app::test::TestScene::Update(const sf::command::ICommand& command)
 {
-    static float time = 0.0f;
-    time += sf::Time::DeltaTime();
 
-    for (auto& edge : laneEdges)
-    {
-        if (edge.Target() == nullptr) continue;
-        auto mesh = edge.Target()->GetComponent<sf::Mesh>();
-        if (!mesh) continue;
+    if (!isPlaying){
 
-        // Z位置を基準に色を変化させる
-        float z = edge.Target()->transform.GetPosition().z;
-        float scroll = time * 2.0f;              // 流れる速度
-        float t = (sin(z * 0.3f + scroll) * 0.5f) + 0.5f; // 上下グラデ＋時間経過
+        if (SInput::Instance().GetMouseDown(0))
+        {
+            StartGame();
+        }
+        else
+        {
+            if (!bgmPlayer.isNull() && managerActor.Target())
+            {
+                // BGMから「絶対的な正解の時間」を取得
+                float musicTime = bgmPlayer->GetCurrentTime();
 
-        // グラデーション色（上が赤→下がオレンジ寄り）
-        float r = 1.0f;
-        float g = 0.3f + 0.4f * t;
-        float b = 0.3f + 0.2f * (1.0f - t);
-        float a = 1.0f;
+                // NoteManagerに渡して同期させる
+                auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
+                if (noteMgr) {
+                    noteMgr->SetCurrentSongTime(musicTime);
+                }
+            }
+        }
 
-        mesh->material.SetColor({ r, g, b, a });
+        static float time = 0.0f;
+        time += sf::Time::DeltaTime();
+
+        for (auto& edge : laneEdges)
+        {
+            if (edge.Target() == nullptr) continue;
+            auto mesh = edge.Target()->GetComponent<sf::Mesh>();
+            if (!mesh) continue;
+
+            // Z位置を基準に色を変化させる
+            float z = edge.Target()->transform.GetPosition().z;
+            float scroll = time * 2.0f;              // 流れる速度
+            float t = (sin(z * 0.3f + scroll) * 0.5f) + 0.5f; // 上下グラデ＋時間経過
+
+            // グラデーション色（上が赤→下がオレンジ寄り）
+            float r = 1.0f;
+            float g = 0.3f + 0.4f * t;
+            float b = 0.3f + 0.2f * (1.0f - t);
+            float a = 1.0f;
+
+            mesh->material.SetColor({ r, g, b, a });
+        }
+
     }
 }
 
 void app::test::TestScene::OnActivated()
 {
+    isPlaying = false;
+
     if (selectedSong.musicPath.empty() || bgmPlayer.isNull()) {
         sf::debug::Debug::Log("[BGM] OnActivated: path empty or bgmPlayer null");
         return;
     }
 
     bgmPlayer->SetPath(selectedSong.musicPath);
-    bgmPlayer->Play();
+
+    //bgmPlayer->Play();
+}
+
+void app::test::TestScene::StartGame()
+{
+    // 二重起動防止
+    if (isPlaying) return;
+
+    sf::debug::Debug::Log("Game Start");
+
+    isPlaying = true;
+
+    // 1. NoteManager を動かす
+    if (managerActor.Target()) {
+        auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
+        if (noteMgr) {
+            noteMgr->StartGame();
+        }
+    }
+
+    // BGM再生開始
+    if (!bgmPlayer.isNull()) {
+        bgmPlayer->Play();
+    }
+
 }

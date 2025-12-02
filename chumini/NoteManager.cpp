@@ -93,6 +93,9 @@ namespace app::test {
     // 初期化：譜面読み込み・ノーツ生成
     // ==================================================
     void NoteManager::Begin() {
+
+        isPlaying = false;
+
         auto owner = actorRef.Target(); if (!owner) return;
         auto* scene = &owner->GetScene();
 
@@ -236,6 +239,11 @@ namespace app::test {
     // フレーム更新：ノーツ出現制御＋ミスチェック
     // ==================================================
     void NoteManager::Update(const sf::command::ICommand&) {
+
+        if (!isPlaying) {
+            return;
+        }
+
         songTime += sf::Time::DeltaTime();
 
         // 出現タイミングに達したノーツをActivate
@@ -381,5 +389,18 @@ namespace app::test {
 
         // 判定ラインZ座標を計算（バーの位置）
         judgeZ = -laneH * 0.5f + laneH * barRatio;
+    }
+
+
+    void NoteManager::StartGame() {
+        isPlaying = true;
+
+        songTime = 0.0f;
+    }
+
+    void NoteManager::SetCurrentSongTime(float time) {
+        // 必要ならここで「譜面オフセット」などを足し引きする
+        // 例: this->songTime = time - noteOffset;
+        this->songTime = time;
     }
 } // namespace app::test
