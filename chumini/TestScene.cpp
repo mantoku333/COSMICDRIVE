@@ -141,37 +141,37 @@ void app::test::TestScene::Init()
             mBar->material.SetColor({ 1, 0, 1, 1 });
         }
 
-         // ===== Clickノーツ用レーン配置 =====
-        {
-            clickLanes.clear();
+        // // ===== Clickノーツ用レーン配置 =====
+        //{
+        //    clickLanes.clear();
 
-            const float clickLaneOffsetZ = -0.5f;   // 少し奥に配置（手前=マウス側）
-            const float clickLaneOffsetY = 3.0f;    // 少し上に浮かせる（見た目）
-            const float clickLaneHeight = 0.1f;
+        //    const float clickLaneOffsetZ = -0.5f;   // 少し奥に配置（手前=マウス側）
+        //    const float clickLaneOffsetY = 3.0f;    // 少し上に浮かせる（見た目）
+        //    const float clickLaneHeight = 0.1f;
 
-            for (int i = 0; i < lanes; ++i)
-            {
-                float localX = (i - lanes * 0.5f + 0.5f) * laneW;
+        //    for (int i = 0; i < lanes; ++i)
+        //    {
+        //        float localX = (i - lanes * 0.5f + 0.5f) * laneW;
 
-                auto lane = Instantiate();
-                auto mLane = lane.Target()->AddComponent<sf::Mesh>();
-                mLane->SetGeometry(g_cube);
+        //        auto lane = Instantiate();
+        //        auto mLane = lane.Target()->AddComponent<sf::Mesh>();
+        //        mLane->SetGeometry(g_cube);
 
-                // 通常レーンと同じ傾きで、ちょい上＆奥に配置
-                lane.Target()->transform.SetScale({ laneW, clickLaneHeight, laneH });
-                lane.Target()->transform.SetPosition({
-                    localX,
-                    baseY + clickLaneOffsetY,
-                    clickLaneOffsetZ
-                    });
-                lane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
+        //        // 通常レーンと同じ傾きで、ちょい上＆奥に配置
+        //        lane.Target()->transform.SetScale({ laneW, clickLaneHeight, laneH });
+        //        lane.Target()->transform.SetPosition({
+        //            localX,
+        //            baseY + clickLaneOffsetY,
+        //            clickLaneOffsetZ
+        //            });
+        //        lane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
 
-                // ちょっと薄めの色
-                mLane->material.SetColor({ 0.0f, 0.0f, 0.0f, 0.0f });
+        //        // ちょっと薄めの色
+        //        mLane->material.SetColor({ 0.0f, 0.0f, 0.0f, 0.0f });
 
-                clickLanes.push_back(lane);
-            }
-        }
+        //        clickLanes.push_back(lane);
+        //    }
+        //}
     }
 
 

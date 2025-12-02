@@ -85,7 +85,7 @@ namespace app::test {
         songs = {
             {"GOODTEK", "ebimayo",
              "Assets\\Texture\\Jacket\\GOODTEK.png",
-             "Save\\chart\\goodtek.chart",
+             "Save\\chart\\GOODTEK.sus",
              "Save\\music\\GOODTEK.wav",
              "190"},
 

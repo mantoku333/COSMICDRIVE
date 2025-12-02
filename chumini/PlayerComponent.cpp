@@ -100,8 +100,8 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     pos.x = playerX;                     // ← Xだけ動かす
     actor->transform.SetPosition(pos);   // ← 再セット！
 
-    sf::debug::Debug::Log("LeverX: " + std::to_string(leverX) +
-        "  Xpos: " + std::to_string(pos.x));
+    //sf::debug::Debug::Log("LeverX: " + std::to_string(leverX) +
+    //    "  Xpos: " + std::to_string(pos.x));
 
     // -----------------------------
     // 各レーンのキー処理
@@ -164,6 +164,6 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     {
         POINT mp; GetCursorPos(&mp); ScreenToClient(hwnd, &mp);
         Vector3 pos = ScreenToWorldOnPlane((float)mp.x, (float)mp.y, 0.0f);
-        sf::debug::Debug::Log("mouse: " + std::to_string(mp.x) + ", " + std::to_string(mp.y));
+       // sf::debug::Debug::Log("mouse: " + std::to_string(mp.x) + ", " + std::to_string(mp.y));
     }
 }

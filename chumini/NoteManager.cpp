@@ -12,6 +12,9 @@
 #include <numeric>
 #include <cmath>
 #include "JudgeStatsService.h"
+#include "ChedParser.h"
+
+
 
 namespace app::test {
 
@@ -110,85 +113,59 @@ namespace app::test {
         // 譜面ファイル読み込み
         // ----------------------------------
         {
-            std::ifstream file(chartPath);
-            if (!file) {
-                sf::debug::Debug::Log("譜面ファイルが見つかりません: " + chartPath);
-                return;
+            ChedParser parser;
+            parser.Load(chartPath);
+
+
+
+            // いったんクリア
+            noteSequence.clear();
+            tempoMap.clear();
+            sawAnyTempoMeta = false;
+            noteOffset = 0.0; // SUS側でWAVEOFFSET対応するならここで加味する
+
+            // --------- テンポイベントをChedParserからコピー ---------
+            // ChedTempoEvent: { double absBeat; double bpm; }
+            for (const auto& te : parser.tempos) {
+                TempoEvent e;
+                e.atBeat = te.absBeat;          // この拍から有効
+                e.bpm = te.bpm;
+                e.spb = 60.0 / e.bpm;
+                e.atSec = 0.0;                // 後で BuildTempoMap() が埋める
+                tempoMap.push_back(e);
+            }
+            sawAnyTempoMeta = !tempoMap.empty();
+
+            // --------- ノーツをChedParserからコピー ---------
+            // ChedNote: { int lane; int measure; double beat; double absBeat; ... }
+            for (const auto& cn : parser.notes) {
+                NoteData nd;
+
+                // SUSレーン(0,4,8,12) → ゲームレーン(0,1,2,3)
+                nd.lane = std::clamp(cn.lane / 4, 0, 3);
+
+                nd.mbt.measure = cn.measure;
+
+                double beatInMeasure = cn.beat;
+                nd.mbt.beat = static_cast<int>(std::floor(beatInMeasure));
+                nd.mbt.tick16 = static_cast<int>(
+                    std::round((beatInMeasure - nd.mbt.beat) * 16.0)
+                    );
+                nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
+                nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
+
+                nd.type = NoteType::Tap;
+                nd.absBeat = cn.absBeat;
+                nd.judged = false;
+                nd.result = JudgeResult::None;
+
+                noteSequence.push_back(nd);
             }
 
-            std::string line;
-            auto trim = [](std::string& s) {
-                s.erase(0, s.find_first_not_of(" \t\r\n"));
-                if (!s.empty()) s.erase(s.find_last_not_of(" \t\r\n") + 1);
-                };
-
-            while (std::getline(file, line)) {
-                trim(line);
-                if (line.empty() || line.rfind("//", 0) == 0) continue;
-
-                // ------------------------------
-                // メタ情報 (#BPM, #BPMCHANGE, #OFFSET)
-                // ------------------------------
-                if (line[0] == '#') {
-                    std::istringstream ms(line);
-                    std::string tok; std::vector<std::string> m;
-                    while (std::getline(ms, tok, ',')) { trim(tok); if (!tok.empty()) m.push_back(tok); }
-
-                    if (!m.empty()) {
-                        const std::string& tag = m[0];
-                        if (tag == "#BPM" && m.size() >= 2) {
-                            double bpm = std::stod(m[1]);
-                            tempoMap.push_back({ 0.0, bpm, 60.0 / bpm, 0.0 });
-                            sawAnyTempoMeta = true;
-                            continue;
-                        }
-                        if (tag == "#BPMCHANGE" && m.size() >= 3) {
-                            double atBeat = std::stod(m[1]);
-                            double bpm = std::stod(m[2]);
-                            tempoMap.push_back({ atBeat, bpm, 60.0 / bpm, 0.0 });
-                            sawAnyTempoMeta = true;
-                            continue;
-                        }
-                        if (tag == "#OFFSET" && m.size() >= 2) {
-                            noteOffset = std::stod(m[1]);
-                            continue;
-                        }
-                    }
-                    continue;
-                }
-
-                // ------------------------------
-                // ノーツ行 (lane, measure, beat, tick16, type)
-                // ------------------------------
-                std::istringstream ss(line);
-                std::string tok; std::vector<std::string> t;
-                while (std::getline(ss, tok, ',')) { trim(tok); if (!tok.empty()) t.push_back(tok); }
-                if (t.size() != 5) continue;
-
-                try {
-                    NoteData nd;
-                    nd.lane = std::stoi(t[0]);
-                    nd.mbt.measure = std::stoi(t[1]);
-                    nd.mbt.beat = std::stoi(t[2]);
-                    nd.mbt.tick16 = std::stoi(t[3]);
-                    nd.type = static_cast<NoteType>(std::stoi(t[4]));
-
-                    // 範囲クランプ
-                    nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
-                    nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
-
-                    // 拍数換算
-                    double absBeat =
-                        static_cast<double>(nd.mbt.measure) * K_BEATS_PER_MEASURE +
-                        static_cast<double>(nd.mbt.beat) +
-                        static_cast<double>(nd.mbt.tick16) / 16.0;
-
-                    nd.absBeat = absBeat;
-                    noteSequence.push_back(nd);
-                }
-                catch (...) {
-                    sf::debug::Debug::Log("譜面行パース失敗: " + chartPath);
-                }
+            sf::debug::Debug::Log("===== AFTER lane mapping =====");
+            for (const auto& nd : noteSequence) {
+                sf::debug::Debug::Log("mapped lane=" + std::to_string(nd.lane)
+                    + " absBeat=" + std::to_string(nd.absBeat));
             }
         }
 
