@@ -15,6 +15,11 @@ namespace app::test {
         auto* testScene = dynamic_cast<TestScene*>(scene);
         if (!testScene) return;
 
+        if (auto mgrActor = testScene->managerActor.Target()) {
+            noteManager = mgrActor->GetComponent<NoteManager>();
+        }
+
+
         // ===== レーン情報を取得 =====
         lanes = testScene->lanes;
         laneW = testScene->laneW;
@@ -45,23 +50,38 @@ namespace app::test {
 
     void NoteComponent::Update(const sf::command::ICommand&) {
         if (!isActive) return;
+
+        // マネージャがいなければ時間を知れないので動かない
+        if (!noteManager) return;
+
         auto actor = actorRef.Target();
         if (!actor) return;
 
-        elapsed += sf::Time::DeltaTime();
-        if (elapsed < spawnTime) return;
+        // --------------------------------------------------------
+        // ★修正箇所: 経過時間ではなく「絶対時間」で位置を決める
+        // --------------------------------------------------------
 
-        float timeSinceSpawn = elapsed - spawnTime;
+        // 1. マネージャから「現在の正確なBGM時間」をもらう
+        float currentSongTime = noteManager->GetSongTime();
 
-        // ===== Z方向へ等速移動 =====
-        float z = startZ - noteSpeed * timeSinceSpawn;
-        float y = baseY - std::tan(slopeRad) * z; // 傾斜に沿ってY補正
+        // 2. 着弾までの残り時間を計算
+        //    (着弾予定時刻 - 現在時刻)
+        //    プラスなら手前、0なら着弾、マイナスなら通り過ぎた後
+        float timeUntilHit = info.hittime - currentSongTime;
 
+        // 3. 位置を決定
+        //    「判定ライン(endZ)」から「速度 × 残り時間」ぶん奥(Z+)に配置
+        //    ※残り時間が減るほど endZ に近づいていく
+        float z = endZ + (timeUntilHit * noteSpeed);
+
+        // 4. 傾斜に合わせてY座標を補正
+        float y = baseY - std::tan(slopeRad) * z;
+
+        // 5. 座標更新
         auto pos = actor->transform.GetPosition();
         pos.y = y;
         pos.z = z;
         actor->transform.SetPosition(pos);
-        
     }
 
     void NoteComponent::Activate() {

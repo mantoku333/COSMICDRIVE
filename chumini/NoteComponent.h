@@ -2,6 +2,8 @@
 #include "Component.h"
 #include "NoteData.h"
 
+namespace app::test { class NoteManager; }
+
 namespace app::test {
 
     class NoteComponent : public sf::Component {
@@ -20,6 +22,8 @@ namespace app::test {
         float elapsed = 0.f;
 
     private:
+        NoteManager* noteManager = nullptr;
+
         sf::command::Command<> updateCommand;
 
         int lanes = 0;

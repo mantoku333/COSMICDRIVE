@@ -64,6 +64,7 @@ namespace app::test {
         }
 
         float GetSongTime() const { return songTime; }
+        void SetCurrentSongTime(float time);
         int   GetCurrentCombo() const;
 
         //シーンからレーンのパラメータを取得
@@ -74,8 +75,8 @@ namespace app::test {
 
         void StartGame();
 
-        void SetCurrentSongTime(float time);
-
+  
+       
     private:
 
         bool isPlaying = false;
