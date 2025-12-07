@@ -5,71 +5,107 @@
 
 void app::test::SoundComponent::Begin()
 {
-	//Update関数の設定
-    updateCommand.Bind(std::bind(&SoundComponent::Update, this));
+	// Update関数の設定
+	updateCommand.Bind(std::bind(&SoundComponent::Update, this));
 
-    // 再生用プレイヤ生成
-    if (auto actor = actorRef.Target()) {
-        Player = actor->AddComponent<sf::sound::SoundPlayer>();
-    }
+	// 再生用プレイヤ生成
+	if (auto actor = actorRef.Target()) {
+		Player = actor->AddComponent<sf::sound::SoundPlayer>();
+	}
+
+	// ★ここで使う音をすべてプリロード（メモリに確保）しておく
+	// これにより、再生中にディスク読み込みやメモリ再確保が走らなくなります
+	LoadAndCache(Sfx::Tap);
+	LoadAndCache(Sfx::EmptyTap);
+	// LoadAndCache(Sfx::HoldStart); // 必要に応じてコメント解除
+	// LoadAndCache(Sfx::HoldEnd);
+	// LoadAndCache(Sfx::SongEnd);
 }
 
+// ★新規追加: 指定したIDの音をロードしてマップに保持する
+void app::test::SoundComponent::LoadAndCache(Sfx id)
+{
+	const char* path = ResolvePath(id);
+	if (path) {
+		// マップの [] 演算子は、キーが存在しない場合に新規作成します
+		// 既にロード済みなら何もしない、あるいは上書きロードになります
+		soundResources[id].LoadSound(path);
+	}
+}
+
+// 文字列指定での再生
+// ※注意: ヘッダーから `Resource` 変数を消したので、
+// 以前のコードのままだとコンパイルエラーになります。
+// 必要でなければ削除するか、デバッグ用として割り切るなら以下のように実装できますが、
+// 基本的には Play(Sfx) を使うことを推奨します。
 void app::test::SoundComponent::Play(const std::string& path)
 {
-    if (Player.isNull()) return;
+	if (Player.isNull()) return;
 
-    // 読み込み → セット → 再生
-    Resource.LoadSound(path.c_str());
-    Player->SetResource(Resource);
-    Player->Play();
+	// (デバッグ用: 毎回ロードするので連打すると危険ですが、一旦動くように書くならこうです)
+	// 本来は文字列用のマップも用意すべきです
+	/*
+	static sf::sound::SoundResource tempRes;
+	tempRes.LoadSound(path.c_str());
+	Player->SetResource(tempRes);
+	Player->Play();
+	*/
 }
 
 const char* app::test::SoundComponent::ResolvePath(Sfx id) const {
-    switch (id) {
-    case Sfx::Tap:       return "Assets\\sound\\tap.wav";
-    case Sfx::EmptyTap:  return "Assets\\sound\\emptytap.wav";
-    //case Sfx::HoldStart: return "Assets\\sound\\hold_start.wav"; // あれば
-    //case Sfx::HoldEnd:   return "Assets\\sound\\hold_end.wav";   // あれば
-   // case Sfx::SongEnd:   return "Assets\\sound\\clear.wav";      // あれば
-    default:             return nullptr;
-    }
+	switch (id) {
+	case Sfx::Tap:       return "Assets\\sound\\tap.wav";
+	case Sfx::EmptyTap:  return "Assets\\sound\\emptytap.wav";
+		// case Sfx::HoldStart: return "Assets\\sound\\hold_start.wav";
+		// case Sfx::HoldEnd:   return "Assets\\sound\\hold_end.wav";
+		// case Sfx::SongEnd:   return "Assets\\sound\\clear.wav";
+	default:             return nullptr;
+	}
 }
 
 float app::test::SoundComponent::ResolveVolume(Sfx id) const {
-    using namespace app::test;
-    float v = gAudioVolume.master;
-    switch (id) {
-    case Sfx::Tap:       v *= gAudioVolume.tap; break;
-    case Sfx::EmptyTap:  v *= gAudioVolume.emptyTap; break;
-   // case Sfx::HoldStart: v *= gAudioVolume.holdStart; break;
-    //case Sfx::HoldEnd:   v *= gAudioVolume.holdEnd; break;
-   // case Sfx::SongEnd:   v *= gAudioVolume.bgm; break; // 仮
-    }
-    return v;
+	using namespace app::test;
+	float v = gAudioVolume.master;
+	switch (id) {
+	case Sfx::Tap:       v *= gAudioVolume.tap; break;
+	case Sfx::EmptyTap:  v *= gAudioVolume.emptyTap; break;
+		// case Sfx::HoldStart: v *= gAudioVolume.holdStart; break;
+		// case Sfx::HoldEnd:   v *= gAudioVolume.holdEnd; break;
+		// case Sfx::SongEnd:   v *= gAudioVolume.bgm; break;
+	}
+	return v;
 }
 
 void app::test::SoundComponent::Play(Sfx id) {
-    if (Player.isNull()) {
-        if (auto actor = actorRef.Target()) {
-            Player = actor->AddComponent<sf::sound::SoundPlayer>();
-        }
-    }
-    if (Player.isNull()) return;
+	// プレイヤーがない、またはプレイヤー生成を試みる
+	if (Player.isNull()) {
+		if (auto actor = actorRef.Target()) {
+			Player = actor->AddComponent<sf::sound::SoundPlayer>();
+		}
+	}
+	if (Player.isNull()) return;
 
-    if (const char* path = ResolvePath(id)) {
-        Resource.LoadSound(path);
-        Player->SetResource(Resource);
+	// ★ここが修正のメインです
+	// findを使って「ロード済みのリソースがあるか」を確認します
+	auto it = soundResources.find(id);
+	if (it != soundResources.end()) {
+		// ロードはせず、マップ内のリソース(it->second)をセットするだけ
+		// これならメモリのアドレスが変わらないのでXAudio2が参照し続けても安全です
+		Player->SetResource(it->second);
 
-        float vol = ResolveVolume(id);
-       // sf::debug::Debug::Log("Play " + std::string(path) + " vol=" + std::to_string(vol));
+		float vol = ResolveVolume(id);
 
-        Player->Play();
-        Player->SetVolume(vol); // ←後から
-    }
+		Player->Play();
+		Player->SetVolume(vol);
+	}
+	else {
+		// まだロードされていない場合（Beginに追加し忘れた場合など）
+		// 必要であればここで LoadAndCache(id); して再生することも可能です
+	}
 }
 
-void app::test::SoundComponent::Update(){
-
+void app::test::SoundComponent::Update() {
+	// 必要な更新処理があれば
 }
 
 //

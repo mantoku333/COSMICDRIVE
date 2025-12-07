@@ -13,6 +13,7 @@
 #include <cmath>
 #include "JudgeStatsService.h"
 #include "ChedParser.h"
+#include "ResultScene.h"
 
 
 
@@ -94,7 +95,14 @@ namespace app::test {
     // ==================================================
     void NoteManager::Begin() {
 
+
+        if (resultScene.isNull()) {
+            // ResultScene::StandbyScene() が定義されている前提です
+            resultScene = ResultScene::StandbyScene();
+        }
+
         isPlaying = false;
+
 
         auto owner = actorRef.Target(); if (!owner) return;
         auto* scene = &owner->GetScene();
@@ -157,7 +165,7 @@ namespace app::test {
                 nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
                 nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
 
-                nd.type = NoteType::Tap;
+                nd.type = cn.type;
                 nd.absBeat = cn.absBeat;
                 nd.judged = false;
                 nd.result = JudgeResult::None;
@@ -205,6 +213,12 @@ namespace app::test {
 
         for (size_t i = 0; i < noteSequence.size(); ++i) {
             const auto& nd = noteSequence[i];
+
+            if (nd.type == NoteType::SongEnd) {
+                noteActors.push_back({}); // インデックスを合わせるために空のActorRefを入れる
+                continue;
+            }
+
             float laneX = (nd.lane - lanes * 0.5f + 0.5f) * laneW;
 
             auto noteActor = scene->Instantiate();
@@ -250,6 +264,11 @@ namespace app::test {
         while (nextIndex < noteSequence.size()
             && songTime + leadTime >= noteSequence[nextIndex].hittime)
         {
+            if (noteSequence[nextIndex].type == NoteType::SongEnd) {
+                ++nextIndex;
+                continue;
+            }
+
             auto* act = noteActors[nextIndex].Target();
             if (act) act->Activate();
             ++nextIndex;
@@ -335,6 +354,34 @@ namespace app::test {
 
                 // 判定窓超過 → Miss
                 if (songTime > noteSequence[i].hittime + J_WIN_GOOD) {
+
+                    // ▼▼▼ SongEnd判定と遷移処理 ▼▼▼
+                    if (noteSequence[i].type == NoteType::SongEnd) {
+
+                        // シーンの準備完了確認
+                        if (resultScene->StandbyThisScene()) {
+
+                            sf::debug::Debug::Log("リザルトへ遷移します");
+
+                            // ★ここでスコアを渡す処理を入れるならこのタイミング
+                            // 例: auto* res = dynamic_cast<ResultScene*>(resultScene.get());
+                            //     res->SetScore(...);
+
+                            // 次のシーンを有効化
+                            resultScene->Activate();
+
+                            // 今のシーン（インゲーム）を無効化
+                            auto owner = actorRef.Target();
+                            if (owner) {
+                                owner->GetScene().DeActivate();
+                            }
+                        }
+
+                        // 2回呼ばれないように処理済みにしてリターン
+                        noteSequence[i].judged = true;
+                        return;
+                    }
+
                     noteSequence[i].judged = true;
                     noteSequence[i].result = JudgeResult::Miss;
 

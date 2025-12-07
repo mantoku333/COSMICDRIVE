@@ -3,10 +3,12 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "NoteData.h"
 
 namespace app::test {
 
     struct ChedNote {
+        NoteType type;
         int lane = 0;
         int measure = 0;
         int tick = 0;

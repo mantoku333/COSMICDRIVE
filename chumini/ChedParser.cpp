@@ -270,7 +270,6 @@ namespace app::test {
 
             // ----------------------------------------
             // タップノート (#mmm1x: DATA)
-            // （他の種類は今は無視 or 後で拡張）
             // ----------------------------------------
             if (kind == '1' && head.size() >= 5) {
 
@@ -286,14 +285,22 @@ namespace app::test {
                     std::string token = data.substr(i * 2, 2);
                     if (token == "00") continue;
 
-                    char typeChar = token[0];
-                    char widthChar = token[1];
+                    NoteType currentType = NoteType::Tap; // 基本はTapとする
 
-                    int noteType = DecodeBase36Char(typeChar);
-                    int width = DecodeBase36Char(widthChar);
+                    //  "44" ダメージノーツは SongEnd として扱う
+                    if (token == "44") {
+                        currentType = NoteType::SongEnd;
+                    }
+                    else {
+                        // 通常の処理
+                        char widthChar = token[1];
+                        int width = DecodeBase36Char(widthChar);
 
-                    if (width <= 0)
-                        continue; // 幅0はノート無し
+                        // 幅が0以下なら無効なデータとしてスキップ
+                        if (width <= 0)
+                            continue;
+                    }
+
 
                     int localTick = (i * tpm) / total;
                     int globalTick = barStartTick + localTick;
@@ -302,6 +309,7 @@ namespace app::test {
                     double absBeat = globalTick / static_cast<double>(ticksPerBeat);
 
                     ChedNote n;
+                    n.type = currentType;
                     n.lane = lane;
                     n.measure = mm;
                     n.tick = localTick;   // 小節頭からのtick
@@ -310,8 +318,10 @@ namespace app::test {
 
                     notes.push_back(n);
 
-                    sf::debug::Debug::Log("ノート lane=" + std::to_string(n.lane) +
-                        " absBeat=" + std::to_string(n.absBeat));
+                    // デバッグ用：SongEndが見つかったらログを出す
+                    if (n.type == NoteType::SongEnd) {
+                        sf::debug::Debug::Log("SongEndノーツ検出: beat=" + std::to_string(n.absBeat));
+                    }
                 }
 
                 continue;

@@ -78,6 +78,7 @@ namespace app::test {
   
        
     private:
+        sf::SafePtr<sf::IScene> resultScene;
 
         bool isPlaying = false;
 
