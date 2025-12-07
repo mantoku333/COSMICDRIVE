@@ -71,11 +71,13 @@ namespace app::test {
         void SetLaneParams(
             const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
             float laneW_, float laneH_, float rotX_,
-            float baseY_, float barRatio_);
+            float baseY_, float barRatio_,
+            float sideLeftX_, float sideRightX_);
 
         void StartGame();
 
-  
+        float sideLaneX_Left = -2.5f;  
+        float sideLaneX_Right = 2.5f;
        
     private:
         sf::SafePtr<sf::IScene> resultScene;

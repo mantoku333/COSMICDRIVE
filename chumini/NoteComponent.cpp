@@ -28,6 +28,10 @@ namespace app::test {
         baseY = testScene->baseY;
         barRatio = testScene->barRatio;
 
+        if (info.lane >= 4) {
+            baseY += 1.0f;
+        }
+
         // ===== ノーツの初期位置を算出 =====
         slopeRad = rotX * 3.14159265f / 180.0f;
         startZ = laneH * 0.5f;                      // 出現位置（奥）
@@ -36,9 +40,8 @@ namespace app::test {
         endY = baseY - std::tan(slopeRad) * endZ;
 
         // lane index から X座標を計算
-        float x = (info.lane - lanes * 0.5f + 0.5f) * laneW;
-
-        actor->transform.SetPosition({ x, startY, startZ });
+        float currentX = actor->transform.GetPosition().x;
+        actor->transform.SetPosition({ currentX, startY, startZ });
         actor->transform.SetRotation({ rotX, 0, 0 });
         actor->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
 

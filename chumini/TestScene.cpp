@@ -60,6 +60,39 @@ void app::test::TestScene::Init()
             lanePanels.push_back(lane);
         }
 
+        // ▼▼▼ 追加: 特殊ギミック用サイドレーン（左右） ▼▼▼
+        {
+            // メインレーン群の端の座標を計算
+            // lanes * laneW が全体の幅。その半分が中心からの距離。
+            float mainHalfWidth = (lanes * laneW) * 0.5f;
+
+            // 追加するサイドレーンの幅（とりあえずメインと同じ幅にする）
+            float sideLaneW = laneW;
+
+            // 左右のX座標：メインの端 + サイドレーンの半径
+            float leftSideX = -mainHalfWidth - (sideLaneW * 0.5f);
+            float rightSideX = mainHalfWidth + (sideLaneW * 0.5f);
+
+            // 左右の座標を配列に入れてループ処理で生成
+            float sidePositions[] = { leftSideX, rightSideX };
+
+            for (float posX : sidePositions)
+            {
+                auto sideLane = Instantiate();
+                auto mesh = sideLane.Target()->AddComponent<sf::Mesh>();
+                mesh->SetGeometry(g_cube);
+
+                // メインレーンと同じ傾き・高さ設定
+                sideLane.Target()->transform.SetScale({ sideLaneW, 0.1f, laneH });
+                sideLane.Target()->transform.SetPosition({ posX, baseY + 1, 0.0f });
+                sideLane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
+
+                mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+
+                lanePanels.push_back(sideLane);
+            }
+        }
+
         // ── 区切り線 ──
         {
             const float lineThickness = 0.05f;
@@ -141,44 +174,23 @@ void app::test::TestScene::Init()
             mBar->material.SetColor({ 1, 0, 1, 1 });
         }
 
-        // // ===== Clickノーツ用レーン配置 =====
-        //{
-        //    clickLanes.clear();
-
-        //    const float clickLaneOffsetZ = -0.5f;   // 少し奥に配置（手前=マウス側）
-        //    const float clickLaneOffsetY = 3.0f;    // 少し上に浮かせる（見た目）
-        //    const float clickLaneHeight = 0.1f;
-
-        //    for (int i = 0; i < lanes; ++i)
-        //    {
-        //        float localX = (i - lanes * 0.5f + 0.5f) * laneW;
-
-        //        auto lane = Instantiate();
-        //        auto mLane = lane.Target()->AddComponent<sf::Mesh>();
-        //        mLane->SetGeometry(g_cube);
-
-        //        // 通常レーンと同じ傾きで、ちょい上＆奥に配置
-        //        lane.Target()->transform.SetScale({ laneW, clickLaneHeight, laneH });
-        //        lane.Target()->transform.SetPosition({
-        //            localX,
-        //            baseY + clickLaneOffsetY,
-        //            clickLaneOffsetZ
-        //            });
-        //        lane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
-
-        //        // ちょっと薄めの色
-        //        mLane->material.SetColor({ 0.0f, 0.0f, 0.0f, 0.0f });
-
-        //        clickLanes.push_back(lane);
-        //    }
-        //}
+        
     }
 
 
 
     if (auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>())
     {
-        noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio);
+        // ★修正: サイドレーンの座標計算
+         // (lanePanelsの生成時に使った計算と同じもの)
+        float mainHalfWidth = (4 * laneW) * 0.5f; // メイン4レーン分
+        float sideLaneW = laneW;
+
+        float leftX = -mainHalfWidth - (sideLaneW * 0.5f);
+        float rightX = mainHalfWidth + (sideLaneW * 0.5f);
+
+        // ★修正: 引数に leftX, rightX を追加して渡す
+        noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio, leftX, rightX);
     }
 
     updateCommand.Bind(std::bind(&TestScene::Update, this, std::placeholders::_1));

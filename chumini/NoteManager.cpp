@@ -95,6 +95,7 @@ namespace app::test {
     // ==================================================
     void NoteManager::Begin() {
 
+        while (ShowCursor(FALSE) >= 0);
 
         if (resultScene.isNull()) {
             // ResultScene::StandbyScene() が定義されている前提です
@@ -102,6 +103,9 @@ namespace app::test {
         }
 
         isPlaying = false;
+
+        // ゲーム開始時にスコア情報をリセットする
+        JudgeStatsService::Reset();
 
 
         auto owner = actorRef.Target(); if (!owner) return;
@@ -152,8 +156,7 @@ namespace app::test {
             for (const auto& cn : parser.notes) {
                 NoteData nd;
 
-                // SUSレーン(0,4,8,12) → ゲームレーン(0,1,2,3)
-                nd.lane = std::clamp(cn.lane / 4, 0, 3);
+                nd.lane = std::clamp(cn.lane, 0, 5);
 
                 nd.mbt.measure = cn.measure;
 
@@ -219,14 +222,30 @@ namespace app::test {
                 continue;
             }
 
-            float laneX = (nd.lane - lanes * 0.5f + 0.5f) * laneW;
+            float laneX = 0.0f;
+            float laneYOffset = 0.0f;
+
+            if (nd.lane == 4) {
+                // 左サイドレーン (固定座標を使う)
+                laneX = sideLaneX_Left;
+                float laneYOffset = 0.0f;
+            }
+            else if (nd.lane == 5) {
+                // 右サイドレーン (固定座標を使う)
+                laneX = sideLaneX_Right;
+                float laneYOffset = 0.0f;
+            }
+            else {
+                // 通常レーン (0～3) 計算式
+                laneX = (nd.lane - 4 * 0.5f + 0.5f) * laneW;
+            }
 
             auto noteActor = scene->Instantiate();
             auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
             mesh->SetGeometry(g_cube);
             mesh->material.SetColor({ 1, 1, 1, 1 });
             noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
-            noteActor.Target()->transform.SetPosition({ laneX, startY, startZ });
+            noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
             noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
 
             auto comp = noteActor.Target()->AddComponent<NoteComponent>();
@@ -363,9 +382,7 @@ namespace app::test {
 
                             sf::debug::Debug::Log("リザルトへ遷移します");
 
-                            // ★ここでスコアを渡す処理を入れるならこのタイミング
-                            // 例: auto* res = dynamic_cast<ResultScene*>(resultScene.get());
-                            //     res->SetScore(...);
+                            ShowCursor(TRUE);
 
                             // 次のシーンを有効化
                             resultScene->Activate();
@@ -425,7 +442,8 @@ namespace app::test {
     void NoteManager::SetLaneParams(
         const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
         float laneW_, float laneH_, float rotX_,
-        float baseY_, float barRatio_)
+        float baseY_, float barRatio_,
+        float sideLeftX_, float sideRightX_)
     {
         laneRefs = lanes;
         laneW = laneW_;
@@ -433,6 +451,9 @@ namespace app::test {
         rotX = rotX_;
         baseY = baseY_;
         barRatio = barRatio_;
+
+        sideLaneX_Left = sideLeftX_;
+        sideLaneX_Right = sideRightX_;
 
         // 判定ラインZ座標を計算（バーの位置）
         judgeZ = -laneH * 0.5f + laneH * barRatio;

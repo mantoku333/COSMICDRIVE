@@ -274,7 +274,9 @@ namespace app::test {
             if (kind == '1' && head.size() >= 5) {
 
                 char laneChar = head[4];
-                int lane = DecodeBase36Char(laneChar);
+                int rawLane = DecodeBase36Char(laneChar);
+
+                int standardLane = std::clamp(rawLane / 4, 0, 3);
 
                 const BarInfo& bar = findBar(mm);
                 int tpm = bar.ticksPerMeasure;
@@ -286,10 +288,18 @@ namespace app::test {
                     if (token == "00") continue;
 
                     NoteType currentType = NoteType::Tap; // 基本はTapとする
+                    int targetLane = standardLane;
 
                     //  "44" ダメージノーツは SongEnd として扱う
                     if (token == "44") {
                         currentType = NoteType::SongEnd;
+                    }
+                    else if (token == "24") {
+                        // データが "24" ならサイドレーン(4)へ送る
+                        // (左の赤いレーン)
+                        sf::debug::Debug::Log("特殊ノーツ(24)検出: Lane=4");
+                        targetLane = 4;
+                        //ここで4.5の判断を追加しなければ
                     }
                     else {
                         // 通常の処理
@@ -310,7 +320,7 @@ namespace app::test {
 
                     ChedNote n;
                     n.type = currentType;
-                    n.lane = lane;
+                    n.lane = targetLane;
                     n.measure = mm;
                     n.tick = localTick;   // 小節頭からのtick
                     n.beat = beatInMeasure;
