@@ -10,18 +10,45 @@
 #include "TextImage.h"
 #include "DWriteContext.h"
 #include "DirectX11.h"
-#include <Windows.h> // UTF-8→UTF-16変換で使用
+#include <Windows.h> 
+
+#include <filesystem>
+#include "ChedParser.h" 
 
 namespace app::test {
 
-    // ===== UTF-8 → UTF-16 変換ユーティリティ =====
-    static std::wstring Utf8ToWstring(const std::string& str)
-    {
+    // 既存のヘルパー
+    static std::string WstringToUtf8(const std::wstring& wstr) {
+        if (wstr.empty()) return "";
+        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string str(sizeNeeded, 0);
+        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
+        if (!str.empty() && str.back() == '\0') str.pop_back();
+        return str;
+    }
+
+    static std::wstring Utf8ToWstring(const std::string& str) {
         if (str.empty()) return L"";
         int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
         std::wstring wstr(sizeNeeded, 0);
         MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
         return wstr;
+    }
+
+    // ★★★ 追加: UTF-8 -> Shift-JIS (ログ表示 & 古いAPI用) ★★★
+    // これを通さないと、日本語パスの画像読み込みやログ出力が失敗します
+    static std::string Utf8ToShiftJis(const std::string& utf8Str) {
+        // 1. UTF-8 -> Unicode (wstring)
+        std::wstring wstr = Utf8ToWstring(utf8Str);
+        if (wstr.empty()) return "";
+
+        // 2. Unicode -> Shift-JIS (CP_ACP)
+        int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+        std::string str(sizeNeeded, 0);
+        WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
+
+        if (!str.empty() && str.back() == '\0') str.pop_back();
+        return str;
     }
 
     // ===== ユーティリティ =====
@@ -82,30 +109,89 @@ namespace app::test {
 
     // ===== 楽曲初期化 =====
     void SelectCanvas::InitializeSongs() {
-        songs = {
-            {"GOODTEK", "ebimayo",
-             "Assets\\Texture\\Jacket\\GOODTEK.png",
-             "Save\\chart\\GOODTEK.sus",
-             "Save\\music\\GOODTEK.wav",
-             "190"},
+        songs.clear();
+        namespace fs = std::filesystem;
 
-            {"Queen Millennia", "しらいし",
-             "Assets\\Texture\\Jacket\\sinsennen.png",
-             "Save\\chart\\sinsen.chart",
-             "Save\\music\\sinsen.wav",
-             "160"},
+        std::string rootPath = "Songs";
 
-            {"Chronomia", "Lime/Kankitsu",
-             "Assets\\Texture\\Jacket\\Chronomia.png",
-             "Save\\chart\\chronomia.chart",
-             "Save\\music\\chronomia.wav",
-             "227"},
-        };
+        if (fs::exists(rootPath) && fs::is_directory(rootPath)) {
+            for (const auto& dirEntry : fs::directory_iterator(rootPath)) {
+                if (!dirEntry.is_directory()) continue;
 
+                for (const auto& fileEntry : fs::directory_iterator(dirEntry.path())) {
+                    if (!fileEntry.is_regular_file()) continue;
+
+                    std::wstring ext = fileEntry.path().extension().wstring();
+
+                    if (ext == L".sus" || ext == L".ched") {
+                        app::test::ChedParser parser;
+
+                        if (parser.Load(fileEntry.path().wstring(), true)) {
+
+                            SongInfo info;
+                            info.title = parser.title.empty() ? "No Title" : parser.title;
+                            info.artist = parser.artist.empty() ? "No Artist" : parser.artist;
+                            info.chartPath = WstringToUtf8(fileEntry.path().wstring());
+
+                            fs::path parentDir = fileEntry.path().parent_path();
+
+                            // ジャケットパス結合
+                            if (!parser.jacketFile.empty()) {
+                                std::wstring jacketW = Utf8ToWstring(parser.jacketFile);
+                                fs::path fullJacketPath = parentDir / jacketW;
+                                info.jacketPath = WstringToUtf8(fullJacketPath.wstring());
+                            }
+                            else {
+                                info.jacketPath = "";
+                            }
+
+                            // 音声パス結合
+                            if (!parser.waveFile.empty()) {
+                                std::wstring waveW = Utf8ToWstring(parser.waveFile);
+                                fs::path fullWavePath = parentDir / waveW;
+                                info.musicPath = WstringToUtf8(fullWavePath.wstring());
+                            }
+
+                            info.bpm = "???";
+                            songs.push_back(info);
+
+                            // ★ログ文字化け対策: Shift-JISに変換して表示
+                            sf::debug::Debug::Log("Load OK: " + Utf8ToShiftJis(info.title));
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            sf::debug::Debug::Log("Songs directory not found: " + rootPath);
+        }
+
+        if (songs.empty()) {
+            songs.push_back({ "No Music Found", "System", "", "", "", "0" });
+        }
+
+        // ----------------------------------------------------
+        // ジャケットテクスチャのロード (★修正箇所)
+        // ----------------------------------------------------
         jacketTextures.resize(songs.size());
         for (size_t i = 0; i < songs.size(); ++i) {
-            const std::string& jacketPath = songs[i].jacketPath;
-            if (!jacketTextures[i].LoadTextureFromFile(jacketPath)) {
+            bool loaded = false;
+            if (!songs[i].jacketPath.empty()) {
+
+                // ★修正: WindowsAPI (LoadTextureFromFile) に渡すために Shift-JIS に変換する
+                // UTF-8 のままだと「指定されたファイルが見つかりません」になります
+                std::string sjisPath = Utf8ToShiftJis(songs[i].jacketPath);
+
+                if (jacketTextures[i].LoadTextureFromFile(sjisPath)) {
+                    loaded = true;
+                }
+                else {
+                    // ロード失敗ログもShift-JISで出すと文字化けしない
+                    sf::debug::Debug::Log("Jacket Load Failed: " + sjisPath);
+                }
+            }
+
+            if (!loaded) {
                 jacketTextures[i] = textureDefaultJacket;
             }
         }
@@ -137,7 +223,6 @@ namespace app::test {
         RebuildJacketPool();
         UpdateJacketPositions();
 
-        // 曲タイトルテキストを1枚だけ作成
         auto* dx11 = sf::dx::DirectX11::Instance();
         songTitleText = AddUI<sf::ui::TextImage>();
         songTitleText->transform.SetPosition(Vector3(0, -100, 0));
@@ -206,17 +291,14 @@ namespace app::test {
 
     // ===== アニメーション =====
     void SelectCanvas::UpdateAnimation() {
-        // --- パルスアニメーション ---
         const float pulsePhase = std::fmod(animationTime * 0.8f, 1.0f);
         const float pulse = (float)Easing(pulsePhase, EASE::EaseYoyo);
-        const float pulseScale = 1.0f + 0.04f * pulse; // 拡縮倍率（±4%）
+        const float pulseScale = 1.0f + 0.04f * pulse;
 
-        // --- 選択枠スケールを選択中ジャケットに追従させる ---
         if (selectFrame && !jacketPool.empty()) {
             const int half = (int)jacketPool.size() / 2;
-            const Vector3 jacketScale = jacketPool[half]->transform.GetScale(); // 中央（選択中）のスケール
+            const Vector3 jacketScale = jacketPool[half]->transform.GetScale();
 
-            // スケール＋パルス
             selectFrame->transform.SetScale(Vector3(
                 jacketScale.x * 1.05f * pulseScale,
                 jacketScale.y * 1.05f * pulseScale,
@@ -224,16 +306,14 @@ namespace app::test {
             ));
         }
 
-        // --- アルファを脈動に合わせて変化 ---
         if (selectFrame)
         {
-            float alpha = 0.5f + 0.5f * pulse;  // pulseが0〜1 → alphaが0.5〜1
+            float alpha = 0.5f + 0.5f * pulse;
             auto color = selectFrame->material.GetColor();
-            color.w = alpha;                    // wがアルファ
+            color.w = alpha;
             selectFrame->material.SetColor(color);
         }
 
-        // --- スライドアニメーション（左右移動） ---
         const int N = (int)songs.size();
         if (N <= 0) return;
 
@@ -246,7 +326,6 @@ namespace app::test {
             float eased = (float)Easing(alpha, EASE::EaseInOutCubic);
             currentIndex = slideStartIdx + (endPos - slideStartIdx) * eased;
 
-            // スライド完了時
             if (alpha >= 1.0f) {
                 currentIndex = WrapFloat(endPos, (float)N);
                 slideStartIdx = currentIndex;
@@ -315,13 +394,13 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // 曲タイトル更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
 
-        sf::debug::Debug::Log("Selected: " + songs[targetIndex].title);
+        // ★文字化け対策: Shift-JIS変換してログ出力
+        sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
     }
 
     // ===== 前へ =====
@@ -334,16 +413,15 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // 曲タイトル更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
 
-        sf::debug::Debug::Log("Selected: " + songs[targetIndex].title);
+        // ★文字化け対策
+        sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
     }
 
-    // ===== キャンセル・決定 =====
     void SelectCanvas::CancelSelection() {
         sf::debug::Debug::Log("Cancel selection - returning to previous screen");
     }
@@ -351,7 +429,9 @@ namespace app::test {
     void SelectCanvas::ConfirmSelection() {
         if (songs.empty()) return;
         const SongInfo& selected = songs[targetIndex];
-        sf::debug::Debug::Log("選択しました: " + selected.title + " by " + selected.artist);
+
+        // ★文字化け対策
+        sf::debug::Debug::Log("選択しました: " + Utf8ToShiftJis(selected.title));
 
         if (scene->StandbyThisScene()) {
             if (auto* testScene = dynamic_cast<app::test::TestScene*>(scene.Get())) {

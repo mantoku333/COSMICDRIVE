@@ -15,6 +15,8 @@ namespace app::test {
         int ticksPerBeat = 480;
         double beat = 0.0;
         double absBeat = 0.0;
+
+        double time = 0.0;
     };
 
     struct ChedTempoEvent {
@@ -27,7 +29,16 @@ namespace app::test {
     public:
         void Begin() override {} // 今は空
         // void Update(const sf::command::ICommand&) override {}
-        bool Load(const std::string& path);
+        
+        bool Load(const std::wstring& path, bool headerOnly = false);
+
+        // 読み取ったヘッダ情報を外部から参照できるようにする
+        std::string title;
+        std::string artist;
+        std::string jacketFile;
+        std::string waveFile;
+        int level = 0;
+        int difficulty = 0;
 
         int ticksPerBeat = 480;
 

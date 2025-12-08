@@ -15,7 +15,7 @@
 #include "ChedParser.h"
 #include "ResultScene.h"
 
-
+#include <filesystem> // ★追加: パス変換のために必要
 
 namespace app::test {
 
@@ -51,7 +51,7 @@ namespace app::test {
     // BPM変化対応用の構造体
     // -----------------------------
     struct TempoEvent {
-        double atBeat = 0.0;       // この拍から有効
+        double atBeat = 0.0;        // この拍から有効
         double bpm = K_DEFAULT_BPM;
         double spb = 60.0 / K_DEFAULT_BPM; // 秒/拍
         double atSec = 0.0;        // この拍が始まる時刻（秒）
@@ -129,9 +129,9 @@ namespace app::test {
         // ----------------------------------
         {
             ChedParser parser;
-            parser.Load(chartPath);
 
-
+            // ★修正: std::string (UTF-8) -> std::wstring (UTF-16) に変換して渡す
+            parser.Load(std::filesystem::path(chartPath).wstring());
 
             // いったんクリア
             noteSequence.clear();
@@ -146,7 +146,7 @@ namespace app::test {
                 e.atBeat = te.absBeat;          // この拍から有効
                 e.bpm = te.bpm;
                 e.spb = 60.0 / e.bpm;
-                e.atSec = 0.0;                // 後で BuildTempoMap() が埋める
+                e.atSec = 0.0;                 // 後で BuildTempoMap() が埋める
                 tempoMap.push_back(e);
             }
             sawAnyTempoMeta = !tempoMap.empty();
@@ -189,6 +189,8 @@ namespace app::test {
         BuildTempoMap(tempoMap);
 
         // 各ノーツのヒット時刻を計算
+        // Note: ChedParser側で note.time を計算済みならそれを使う手もあるが、
+        // ここでは念のため再計算している（ロジックの統一のため）
         for (auto& nd : noteSequence)
             nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset);
 
@@ -407,7 +409,7 @@ namespace app::test {
 
                     //ミスしたノーツを削除予約
                     if (auto* act = noteActors[i].Target()) {
-                        act->DeActivate();  
+                        act->DeActivate();
                         act->Destroy();     // 削除予約（呼ぶだけ）
                     }
                     ++head;
@@ -436,9 +438,9 @@ namespace app::test {
 
     int NoteManager::GetCurrentCombo() const { return currentCombo; }
 
-// ==================================================
-// レーン設定：TestScene 側から呼ばれて情報を渡す
-// ==================================================
+    // ==================================================
+    // レーン設定：TestScene 側から呼ばれて情報を渡す
+    // ==================================================
     void NoteManager::SetLaneParams(
         const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
         float laneW_, float laneH_, float rotX_,
