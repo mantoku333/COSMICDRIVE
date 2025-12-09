@@ -21,6 +21,8 @@ namespace sf
 		static void DrawAll();
 		static void DrawShadowAll();
 
+		static void ClearAllRegistered();
+
 	protected:
 		virtual DirectX::XMMATRIX WorldMatrix()const;
 

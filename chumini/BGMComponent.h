@@ -13,6 +13,7 @@ namespace app::test {
     public:
         void Begin() override;
        // void Update(const sf::command::ICommand&) override {}
+        virtual ~BGMComponent();
 
         // API
         void SetPath(const std::string& p);

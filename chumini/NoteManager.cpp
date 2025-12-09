@@ -14,463 +14,431 @@
 #include "JudgeStatsService.h"
 #include "ChedParser.h"
 #include "ResultScene.h"
+#include "TestCanvas.h" // ★これが必要
 
-#include <filesystem> // ★追加: パス変換のために必要
+#include <filesystem> 
 
 namespace app::test {
 
-    // ノーツタイプごとの効果音パス
-    namespace {
-        const char* GetHitSfxPath(NoteType t) {
-            switch (t) {
-            case NoteType::Tap: return "Assets\\sound\\tap.wav";
-            default:            return "Assets\\sound\\tap.wav";
-            }
-        }
-    }
-
-    // -----------------------------
-    // 定数定義
-    // -----------------------------
-    static constexpr int    K_BEATS_PER_MEASURE = 4;       // 小節あたり拍数
-    static constexpr double K_DEFAULT_BPM = 120.0;         // デフォルトBPM
-    static constexpr double K_OFFSET_SEC = 0.0;            // 曲全体の開始オフセット
-    static constexpr float  INPUT_OFFSET_SEC = 0.0f;       // 入力遅延補正
-
-    // 判定ウィンドウ（秒）
-    static constexpr float J_WIN_PERFECT = 0.050f;
-    static constexpr float J_WIN_GREAT = J_WIN_PERFECT + 0.030f;
-    static constexpr float J_WIN_GOOD = J_WIN_GREAT + 0.030f;
-
-    // 判定挙動補助
-    static constexpr int   J_LOOKAHEAD_NOTES = 5;          // 同時押し先読み数
-    static constexpr float J_ASSIGN_EARLY_BIAS = 0.005f;   // 早押し優遇時間補正
-    static constexpr float J_POS_TOL_MULT = 2.0f;          // 判定許容範囲倍率
-
-    // -----------------------------
-    // BPM変化対応用の構造体
-    // -----------------------------
-    struct TempoEvent {
-        double atBeat = 0.0;        // この拍から有効
-        double bpm = K_DEFAULT_BPM;
-        double spb = 60.0 / K_DEFAULT_BPM; // 秒/拍
-        double atSec = 0.0;        // この拍が始まる時刻（秒）
-    };
-
-    // テンポイベントを拍順に並び替え、拍→秒の累積時間を構築
-    static void BuildTempoMap(std::vector<TempoEvent>& tm) {
-        if (tm.empty()) {
-            tm.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
-            return;
-        }
-
-        std::sort(tm.begin(), tm.end(), [](const TempoEvent& a, const TempoEvent& b) {
-            return a.atBeat < b.atBeat;
-            });
-
-        tm[0].spb = 60.0 / tm[0].bpm;
-        tm[0].atSec = 0.0;
-
-        for (size_t i = 1; i < tm.size(); ++i) {
-            tm[i].spb = 60.0 / tm[i].bpm;
-            const double beatsSpan = tm[i].atBeat - tm[i - 1].atBeat;
-            tm[i].atSec = tm[i - 1].atSec + beatsSpan * tm[i - 1].spb;
-        }
-    }
-
-    // 絶対拍(absBeat)から秒に変換
-    static double BeatToSeconds(double absBeat, const std::vector<TempoEvent>& tm) {
-        size_t lo = 0, hi = tm.size();
-        while (lo + 1 < hi) {
-            size_t mid = (lo + hi) / 2;
-            if (tm[mid].atBeat <= absBeat) lo = mid; else hi = mid;
-        }
-        const TempoEvent& seg = tm[lo];
-        const double dBeat = absBeat - seg.atBeat;
-        return seg.atSec + dBeat * seg.spb;
-    }
-
-    // ==================================================
-    // 初期化：譜面読み込み・ノーツ生成
-    // ==================================================
-    void NoteManager::Begin() {
-
-        while (ShowCursor(FALSE) >= 0);
-
-        if (resultScene.isNull()) {
-            // ResultScene::StandbyScene() が定義されている前提です
-            resultScene = ResultScene::StandbyScene();
-        }
-
-        isPlaying = false;
-
-        // ゲーム開始時にスコア情報をリセットする
-        JudgeStatsService::Reset();
-
-
-        auto owner = actorRef.Target(); if (!owner) return;
-        auto* scene = &owner->GetScene();
-
-        // 譜面パス取得
-        std::string chartPath = "Save/chart/Sample.chart";
-        if (auto* testScene = dynamic_cast<TestScene*>(scene)) {
-            const SongInfo& selectedSong = testScene->GetSelectedSong();
-            if (!selectedSong.chartPath.empty())
-                chartPath = selectedSong.chartPath;
-        }
-
-        noteSequence.clear();
-        std::vector<TempoEvent> tempoMap;
-        bool sawAnyTempoMeta = false;
-        noteOffset = 0.0;
-
-        // ----------------------------------
-        // 譜面ファイル読み込み
-        // ----------------------------------
-        {
-            ChedParser parser;
-
-            // ★修正: std::string (UTF-8) -> std::wstring (UTF-16) に変換して渡す
-            parser.Load(std::filesystem::path(chartPath).wstring());
-
-            // いったんクリア
-            noteSequence.clear();
-            tempoMap.clear();
-            sawAnyTempoMeta = false;
-            noteOffset = 0.0; // SUS側でWAVEOFFSET対応するならここで加味する
-
-            // --------- テンポイベントをChedParserからコピー ---------
-            // ChedTempoEvent: { double absBeat; double bpm; }
-            for (const auto& te : parser.tempos) {
-                TempoEvent e;
-                e.atBeat = te.absBeat;          // この拍から有効
-                e.bpm = te.bpm;
-                e.spb = 60.0 / e.bpm;
-                e.atSec = 0.0;                 // 後で BuildTempoMap() が埋める
-                tempoMap.push_back(e);
-            }
-            sawAnyTempoMeta = !tempoMap.empty();
-
-            // --------- ノーツをChedParserからコピー ---------
-            // ChedNote: { int lane; int measure; double beat; double absBeat; ... }
-            for (const auto& cn : parser.notes) {
-                NoteData nd;
-
-                nd.lane = std::clamp(cn.lane, 0, 5);
-
-                nd.mbt.measure = cn.measure;
-
-                double beatInMeasure = cn.beat;
-                nd.mbt.beat = static_cast<int>(std::floor(beatInMeasure));
-                nd.mbt.tick16 = static_cast<int>(
-                    std::round((beatInMeasure - nd.mbt.beat) * 16.0)
-                    );
-                nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
-                nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
-
-                nd.type = cn.type;
-                nd.absBeat = cn.absBeat;
-                nd.judged = false;
-                nd.result = JudgeResult::None;
-
-                noteSequence.push_back(nd);
-            }
-
-            sf::debug::Debug::Log("===== AFTER lane mapping =====");
-            for (const auto& nd : noteSequence) {
-                sf::debug::Debug::Log("mapped lane=" + std::to_string(nd.lane)
-                    + " absBeat=" + std::to_string(nd.absBeat));
-            }
-        }
-
-        // BPMが未定義ならデフォルトを使用 （ よくない ）
-        if (!sawAnyTempoMeta)
-            tempoMap.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
-        BuildTempoMap(tempoMap);
-
-        // 各ノーツのヒット時刻を計算
-        // Note: ChedParser側で note.time を計算済みならそれを使う手もあるが、
-        // ここでは念のため再計算している（ロジックの統一のため）
-        for (auto& nd : noteSequence)
-            nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset);
-
-        // ----------------------------------
-        // レーンパラメータ・傾斜算出
-        // ----------------------------------
-        float slopeRad = rotX * 3.14159265f / 180.0f;
-        float startZ = laneH * 0.5f;
-        float hitZ = -laneH * 0.5f + laneH * barRatio;
-        float startY = baseY - std::tan(slopeRad) * startZ;
-        float hitY = baseY - std::tan(slopeRad) * hitZ;
-
-        int lanes = std::max(1, (int)laneRefs.size());
-        float totalDistance = std::abs(startZ - hitZ);
-
-        leadTime = (noteSpeed != 0.f) ? (totalDistance / noteSpeed) : 0.f;
-        songTime = -leadTime;
-
-        // ----------------------------------
-        // ノーツ生成
-        // ----------------------------------
-        noteActors.clear();
-        nextIndex = 0;
-        currentCombo = 0;
-
-        for (size_t i = 0; i < noteSequence.size(); ++i) {
-            const auto& nd = noteSequence[i];
-
-            if (nd.type == NoteType::SongEnd) {
-                noteActors.push_back({}); // インデックスを合わせるために空のActorRefを入れる
-                continue;
-            }
-
-            float laneX = 0.0f;
-            float laneYOffset = 0.0f;
-
-            if (nd.lane == 4) {
-                // 左サイドレーン (固定座標を使う)
-                laneX = sideLaneX_Left;
-                float laneYOffset = 0.0f;
-            }
-            else if (nd.lane == 5) {
-                // 右サイドレーン (固定座標を使う)
-                laneX = sideLaneX_Right;
-                float laneYOffset = 0.0f;
-            }
-            else {
-                // 通常レーン (0～3) 計算式
-                laneX = (nd.lane - 4 * 0.5f + 0.5f) * laneW;
-            }
-
-            auto noteActor = scene->Instantiate();
-            auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
-            mesh->SetGeometry(g_cube);
-            mesh->material.SetColor({ 1, 1, 1, 1 });
-            noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
-            noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
-            noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
-
-            auto comp = noteActor.Target()->AddComponent<NoteComponent>();
-            comp->info = nd;
-            comp->leadTime = leadTime;
-            comp->noteSpeed = noteSpeed;
-
-            noteActor.Target()->DeActivate();
-            noteActors.push_back(noteActor);
-        }
-
-        // レーンごとにノーツを分類して順序管理
-        laneOrder.assign(lanes, {});
-        laneHeads.assign(lanes, 0);
-        for (int i = 0; i < (int)noteSequence.size(); ++i) {
-            int l = std::clamp(noteSequence[i].lane, 0, lanes - 1);
-            laneOrder[l].push_back(i);
-        }
-
-        updateCommand.Bind(std::bind(&NoteManager::Update, this, std::placeholders::_1));
-    }
-
-    // ==================================================
-    // フレーム更新：ノーツ出現制御＋ミスチェック
-    // ==================================================
-    void NoteManager::Update(const sf::command::ICommand&) {
-
-        if (!isPlaying) {
-            return;
-        }
-
-        songTime += sf::Time::DeltaTime();
-
-        // 出現タイミングに達したノーツをActivate
-        while (nextIndex < noteSequence.size()
-            && songTime + leadTime >= noteSequence[nextIndex].hittime)
-        {
-            if (noteSequence[nextIndex].type == NoteType::SongEnd) {
-                ++nextIndex;
-                continue;
-            }
-
-            auto* act = noteActors[nextIndex].Target();
-            if (act) act->Activate();
-            ++nextIndex;
-        }
-
-        CheckMissedNotes();
-    }
-
-    // ==================================================
-    // 単一ノーツの時間判定
-    // ==================================================
-    JudgeResult NoteManager::JudgeNote(NoteType, float noteTime, float inputTime) {
-        inputTime += INPUT_OFFSET_SEC;
-        float diff = std::abs(noteTime - inputTime);
-        if (diff <= J_WIN_PERFECT) return JudgeResult::Perfect;
-        if (diff <= J_WIN_GREAT)   return JudgeResult::Great;
-        if (diff <= J_WIN_GOOD)    return JudgeResult::Good;
-        return JudgeResult::Miss;
-    }
-
-    // ==================================================
-    // レーン単体との判定（Z座標＋時間）
-    // ==================================================
-    JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
-        if (lane < 0 || lane >= (int)laneOrder.size()) return JudgeResult::Skip;
-
-        auto& order = laneOrder[lane];
-        size_t& head = laneHeads[lane];
-        while (head < order.size() && noteSequence[order[head]].judged) ++head;
-        if (head >= order.size()) return JudgeResult::Skip;
-
-        int idx = order[head];
-        if (idx >= (int)nextIndex) return JudgeResult::Skip;
-
-        auto* act = noteActors[idx].Target();
-        if (!act) return JudgeResult::Skip;
-
-        float noteZ = act->transform.GetPosition().z;
-        float diffZ = std::abs(noteZ - judgeZ);
-        if (diffZ > judgeRange * J_POS_TOL_MULT) return JudgeResult::Skip;
-
-        JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
-        noteSequence[idx].judged = true;
-        noteSequence[idx].result = res;
-        //UpdateCombo(res);
-
-        JudgeStatsService::AddResult(res);
-
-        act->DeActivate();
-        act->Destroy();      // 次のDestroyActors()でdeleteされる
-
-        if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
-            sound->Play(GetHitSfxPath(noteSequence[idx].type));
-        }
-
-        ++head;
-        return res;
-    }
-
-    // ==================================================
-    // 同時押し判定：複数レーンをまとめて処理
-    // ==================================================
-    void NoteManager::JudgeBatch(const std::vector<int>& pressedLanes, float inputTime) {
-        for (int l : pressedLanes) {
-            JudgeLane(l, inputTime);
-        }
-    }
-
-    // ==================================================
-    // ミス判定：一定時間経過した未処理ノーツをMiss扱い
-    // ==================================================
-    void NoteManager::CheckMissedNotes() {
-        for (int l = 0; l < (int)laneOrder.size(); ++l) {
-            auto& order = laneOrder[l];
-            size_t& head = laneHeads[l];
-
-            while (head < order.size()) {
-                int i = order[head];
-                if (noteSequence[i].judged) { ++head; continue; }
-
-                // 未Activateは対象外
-                if (i >= (int)nextIndex) break;
-
-                // 判定窓超過 → Miss
-                if (songTime > noteSequence[i].hittime + J_WIN_GOOD) {
-
-                    // ▼▼▼ SongEnd判定と遷移処理 ▼▼▼
-                    if (noteSequence[i].type == NoteType::SongEnd) {
-
-                        // シーンの準備完了確認
-                        if (resultScene->StandbyThisScene()) {
-
-                            sf::debug::Debug::Log("リザルトへ遷移します");
-
-                            ShowCursor(TRUE);
-
-                            // 次のシーンを有効化
-                            resultScene->Activate();
-
-                            // 今のシーン（インゲーム）を無効化
-                            auto owner = actorRef.Target();
-                            if (owner) {
-                                owner->GetScene().DeActivate();
-                            }
-                        }
-
-                        // 2回呼ばれないように処理済みにしてリターン
-                        noteSequence[i].judged = true;
-                        return;
-                    }
-
-                    noteSequence[i].judged = true;
-                    noteSequence[i].result = JudgeResult::Miss;
-
-                    //コンボリセット
-                    JudgeStatsService::AddResult(JudgeResult::Miss);
-
-                    //ミスしたノーツを削除予約
-                    if (auto* act = noteActors[i].Target()) {
-                        act->DeActivate();
-                        act->Destroy();     // 削除予約（呼ぶだけ）
-                    }
-                    ++head;
-                }
-                else {
-                    break;
-                }
-            }
-        }
-    }
-
-    // ==================================================
-    // コンボ更新処理
-    // ==================================================
-    void NoteManager::UpdateCombo(JudgeResult result) {
-        switch (result) {
-        case JudgeResult::Perfect:
-        case JudgeResult::Great:
-        case JudgeResult::Good:
-            ++currentCombo; break;
-        case JudgeResult::Miss:
-            currentCombo = 0; break;
-        default: break;
-        }
-    }
-
-    int NoteManager::GetCurrentCombo() const { return currentCombo; }
-
-    // ==================================================
-    // レーン設定：TestScene 側から呼ばれて情報を渡す
-    // ==================================================
-    void NoteManager::SetLaneParams(
-        const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
-        float laneW_, float laneH_, float rotX_,
-        float baseY_, float barRatio_,
-        float sideLeftX_, float sideRightX_)
-    {
-        laneRefs = lanes;
-        laneW = laneW_;
-        laneH = laneH_;
-        rotX = rotX_;
-        baseY = baseY_;
-        barRatio = barRatio_;
-
-        sideLaneX_Left = sideLeftX_;
-        sideLaneX_Right = sideRightX_;
-
-        // 判定ラインZ座標を計算（バーの位置）
-        judgeZ = -laneH * 0.5f + laneH * barRatio;
-    }
-
-
-    void NoteManager::StartGame() {
-        isPlaying = true;
-
-        songTime = 0.0f;
-    }
-
-    void NoteManager::SetCurrentSongTime(float time) {
-        // 必要ならここで「譜面オフセット」などを足し引きする
-        // 例: this->songTime = time - noteOffset;
-        this->songTime = time;
-    }
+	// ノーツタイプごとの効果音パス
+	namespace {
+		const char* GetHitSfxPath(NoteType t) {
+			switch (t) {
+			case NoteType::Tap: return "Assets\\sound\\tap.wav";
+			default:            return "Assets\\sound\\tap.wav";
+			}
+		}
+	}
+
+	// -----------------------------
+	// 定数定義
+	// -----------------------------
+	static constexpr int    K_BEATS_PER_MEASURE = 4;
+	static constexpr double K_DEFAULT_BPM = 120.0;
+	static constexpr double K_OFFSET_SEC = 0.0;
+	static constexpr float  INPUT_OFFSET_SEC = 0.0f;
+
+	// 判定ウィンドウ（秒）
+	static constexpr float J_WIN_PERFECT = 0.050f;
+	static constexpr float J_WIN_GREAT = J_WIN_PERFECT + 0.030f;
+	static constexpr float J_WIN_GOOD = J_WIN_GREAT + 0.030f;
+
+	// 判定挙動補助
+	static constexpr float J_POS_TOL_MULT = 2.0f;
+
+	// -----------------------------
+	// BPM変化対応用の構造体
+	// -----------------------------
+	struct TempoEvent {
+		double atBeat = 0.0;
+		double bpm = K_DEFAULT_BPM;
+		double spb = 60.0 / K_DEFAULT_BPM;
+		double atSec = 0.0;
+	};
+
+	static void BuildTempoMap(std::vector<TempoEvent>& tm) {
+		if (tm.empty()) {
+			tm.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
+			return;
+		}
+
+		std::sort(tm.begin(), tm.end(), [](const TempoEvent& a, const TempoEvent& b) {
+			return a.atBeat < b.atBeat;
+			});
+
+		tm[0].spb = 60.0 / tm[0].bpm;
+		tm[0].atSec = 0.0;
+
+		for (size_t i = 1; i < tm.size(); ++i) {
+			tm[i].spb = 60.0 / tm[i].bpm;
+			const double beatsSpan = tm[i].atBeat - tm[i - 1].atBeat;
+			tm[i].atSec = tm[i - 1].atSec + beatsSpan * tm[i - 1].spb;
+		}
+	}
+
+	static double BeatToSeconds(double absBeat, const std::vector<TempoEvent>& tm) {
+		size_t lo = 0, hi = tm.size();
+		while (lo + 1 < hi) {
+			size_t mid = (lo + hi) / 2;
+			if (tm[mid].atBeat <= absBeat) lo = mid; else hi = mid;
+		}
+		const TempoEvent& seg = tm[lo];
+		const double dBeat = absBeat - seg.atBeat;
+		return seg.atSec + dBeat * seg.spb;
+	}
+
+	// ==================================================
+	// 初期化：譜面読み込み・ノーツ生成
+	// ==================================================
+	void NoteManager::Begin() {
+
+		while (ShowCursor(FALSE) >= 0);
+
+		if (resultScene.isNull()) {
+			resultScene = ResultScene::StandbyScene();
+		}
+
+		isPlaying = false;
+		JudgeStatsService::Reset();
+
+		auto owner = actorRef.Target(); if (!owner) return;
+		auto* scene = &owner->GetScene();
+
+		std::string chartPath = "Save/chart/Sample.chart";
+		if (auto* testScene = dynamic_cast<TestScene*>(scene)) {
+			const SongInfo& selectedSong = testScene->GetSelectedSong();
+			if (!selectedSong.chartPath.empty())
+				chartPath = selectedSong.chartPath;
+		}
+
+		noteSequence.clear();
+		std::vector<TempoEvent> tempoMap;
+		bool sawAnyTempoMeta = false;
+		noteOffset = 0.0;
+
+		// ----------------------------------
+		// 譜面ファイル読み込み
+		// ----------------------------------
+		{
+			ChedParser parser;
+			// UTF-8 -> wstring変換
+			parser.Load(std::filesystem::path(chartPath).wstring());
+
+			noteSequence.clear();
+			tempoMap.clear();
+			sawAnyTempoMeta = false;
+			noteOffset = 0.0;
+
+			for (const auto& te : parser.tempos) {
+				TempoEvent e;
+				e.atBeat = te.absBeat;
+				e.bpm = te.bpm;
+				e.spb = 60.0 / e.bpm;
+				e.atSec = 0.0;
+				tempoMap.push_back(e);
+			}
+			sawAnyTempoMeta = !tempoMap.empty();
+
+			for (const auto& cn : parser.notes) {
+				NoteData nd;
+				nd.lane = std::clamp(cn.lane, 0, 5);
+				nd.mbt.measure = cn.measure;
+
+				double beatInMeasure = cn.beat;
+				nd.mbt.beat = static_cast<int>(std::floor(beatInMeasure));
+				nd.mbt.tick16 = static_cast<int>(std::round((beatInMeasure - nd.mbt.beat) * 16.0));
+				nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
+				nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
+
+				nd.type = cn.type;
+				nd.absBeat = cn.absBeat;
+				nd.judged = false;
+				nd.result = JudgeResult::None;
+
+				noteSequence.push_back(nd);
+			}
+
+			sf::debug::Debug::Log("===== AFTER lane mapping =====");
+			for (const auto& nd : noteSequence) {
+				sf::debug::Debug::Log("mapped lane=" + std::to_string(nd.lane)
+					+ " absBeat=" + std::to_string(nd.absBeat));
+			}
+		}
+
+		if (!sawAnyTempoMeta)
+			tempoMap.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
+		BuildTempoMap(tempoMap);
+
+		for (auto& nd : noteSequence)
+			nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset);
+
+		// ----------------------------------
+		// レーンパラメータ
+		// ----------------------------------
+		float slopeRad = rotX * 3.14159265f / 180.0f;
+		float startZ = laneH * 0.5f;
+		float hitZ = -laneH * 0.5f + laneH * barRatio;
+		float startY = baseY - std::tan(slopeRad) * startZ;
+		float hitY = baseY - std::tan(slopeRad) * hitZ; // ※ローカル変数としては使っていないが計算式として
+
+		int lanes = std::max(1, (int)laneRefs.size());
+		float totalDistance = std::abs(startZ - hitZ);
+
+		leadTime = (noteSpeed != 0.f) ? (totalDistance / noteSpeed) : 0.f;
+		songTime = -leadTime;
+
+		// ----------------------------------
+		// ノーツ生成
+		// ----------------------------------
+		noteActors.clear();
+		nextIndex = 0;
+		currentCombo = 0;
+
+		for (size_t i = 0; i < noteSequence.size(); ++i) {
+			const auto& nd = noteSequence[i];
+
+			if (nd.type == NoteType::SongEnd) {
+				noteActors.push_back({});
+				continue;
+			}
+
+			float laneX = 0.0f;
+			float laneYOffset = 0.0f; // ※Warning回避のため
+
+			if (nd.lane == 4) {
+				laneX = sideLaneX_Left;
+			}
+			else if (nd.lane == 5) {
+				laneX = sideLaneX_Right;
+			}
+			else {
+				laneX = (nd.lane - 4 * 0.5f + 0.5f) * laneW;
+			}
+
+			auto noteActor = scene->Instantiate();
+			auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
+			mesh->SetGeometry(g_cube);
+			mesh->material.SetColor({ 1, 1, 1, 1 });
+			noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
+			noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
+			noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
+
+			auto comp = noteActor.Target()->AddComponent<NoteComponent>();
+			comp->info = nd;
+			comp->leadTime = leadTime;
+			comp->noteSpeed = noteSpeed;
+
+			noteActor.Target()->DeActivate();
+			noteActors.push_back(noteActor);
+		}
+
+		laneOrder.assign(lanes, {});
+		laneHeads.assign(lanes, 0);
+		for (int i = 0; i < (int)noteSequence.size(); ++i) {
+			int l = std::clamp(noteSequence[i].lane, 0, lanes - 1);
+			laneOrder[l].push_back(i);
+		}
+
+		updateCommand.Bind(std::bind(&NoteManager::Update, this, std::placeholders::_1));
+	}
+
+	// ==================================================
+	// Update
+	// ==================================================
+	void NoteManager::Update(const sf::command::ICommand&) {
+
+		if (!isPlaying) return;
+
+		songTime += sf::Time::DeltaTime();
+
+		while (nextIndex < noteSequence.size()
+			&& songTime + leadTime >= noteSequence[nextIndex].hittime)
+		{
+			if (noteSequence[nextIndex].type == NoteType::SongEnd) {
+				++nextIndex;
+				continue;
+			}
+
+			auto* act = noteActors[nextIndex].Target();
+			if (act) act->Activate();
+			++nextIndex;
+		}
+
+		CheckMissedNotes();
+	}
+
+	// ==================================================
+	// 判定ロジック
+	// ==================================================
+	JudgeResult NoteManager::JudgeNote(NoteType, float noteTime, float inputTime) {
+		inputTime += INPUT_OFFSET_SEC;
+		float diff = std::abs(noteTime - inputTime);
+		if (diff <= J_WIN_PERFECT) return JudgeResult::Perfect;
+		if (diff <= J_WIN_GREAT)   return JudgeResult::Great;
+		if (diff <= J_WIN_GOOD)    return JudgeResult::Good;
+		return JudgeResult::Miss;
+	}
+
+	// ==================================================
+	// レーン判定
+	// ==================================================
+	JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
+		if (lane < 0 || lane >= (int)laneOrder.size()) return JudgeResult::Skip;
+
+		auto& order = laneOrder[lane];
+		size_t& head = laneHeads[lane];
+		while (head < order.size() && noteSequence[order[head]].judged) ++head;
+		if (head >= order.size()) return JudgeResult::Skip;
+
+		int idx = order[head];
+		if (idx >= (int)nextIndex) return JudgeResult::Skip;
+
+		auto* act = noteActors[idx].Target();
+		if (!act) return JudgeResult::Skip;
+
+		float noteZ = act->transform.GetPosition().z;
+		float diffZ = std::abs(noteZ - judgeZ);
+		if (diffZ > judgeRange * J_POS_TOL_MULT) return JudgeResult::Skip;
+
+		JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
+		noteSequence[idx].judged = true;
+		noteSequence[idx].result = res;
+
+		JudgeStatsService::AddResult(res);
+
+		act->DeActivate();
+		act->Destroy();
+
+		if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
+			sound->Play(GetHitSfxPath(noteSequence[idx].type));
+		}
+
+		// ★★★ エフェクト生成 (座標・色・サイズの決定) ★★★
+		if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
+
+			if (auto* canvas = actorRef.Target()->GetComponent<TestCanvas>()) {
+
+				// 座標計算パラメータ
+				float hitY = -130.0f; // UI上の判定ライン高さ
+				float uiLaneWidth = 300.0f;
+				float sideOffset = 250.0f;
+				float hitX = 0.0f;
+
+				// X座標決定
+				if (lane <= 3) {
+					hitX = (lane - 1.5f) * uiLaneWidth;
+				}
+				else if (lane == 4) {
+					hitX = (-1.5f * uiLaneWidth) - sideOffset;
+				}
+				else if (lane == 5) {
+					hitX = (1.5f * uiLaneWidth) + sideOffset;
+				}
+
+				// 判定ごとの演出パラメータ
+				float scale = (uiLaneWidth / 100.0f) * 1.5f; // 基本サイズ
+				float duration = 0.4f;
+				Color color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+
+				// Canvas(EffectManager)へ生成依頼
+				canvas->SpawnHitEffect(hitX, hitY, scale, duration, color);
+			}
+		}
+		// ★★★★★★★★★★★★★★★★★★★
+
+		++head;
+		return res;
+	}
+
+	void NoteManager::JudgeBatch(const std::vector<int>& pressedLanes, float inputTime) {
+		for (int l : pressedLanes) {
+			JudgeLane(l, inputTime);
+		}
+	}
+
+	void NoteManager::CheckMissedNotes() {
+		for (int l = 0; l < (int)laneOrder.size(); ++l) {
+			auto& order = laneOrder[l];
+			size_t& head = laneHeads[l];
+
+			while (head < order.size()) {
+				int i = order[head];
+				if (noteSequence[i].judged) { ++head; continue; }
+				if (i >= (int)nextIndex) break;
+
+				if (songTime > noteSequence[i].hittime + J_WIN_GOOD) {
+					if (noteSequence[i].type == NoteType::SongEnd) {
+						if (resultScene->StandbyThisScene()) {
+							sf::debug::Debug::Log("リザルトへ遷移します");
+							sf::Mesh::ClearAllRegistered();
+
+							ShowCursor(TRUE);
+							resultScene->Activate();
+							auto owner = actorRef.Target();
+							if (owner) {
+								owner->GetScene().DeActivate();
+							}
+						}
+						noteSequence[i].judged = true;
+						return;
+					}
+
+					noteSequence[i].judged = true;
+					noteSequence[i].result = JudgeResult::Miss;
+					JudgeStatsService::AddResult(JudgeResult::Miss);
+
+					if (auto* act = noteActors[i].Target()) {
+						act->DeActivate();
+						act->Destroy();
+					}
+					++head;
+				}
+				else {
+					break;
+				}
+			}
+		}
+	}
+
+	void NoteManager::UpdateCombo(JudgeResult result) {
+		switch (result) {
+		case JudgeResult::Perfect:
+		case JudgeResult::Great:
+		case JudgeResult::Good:
+			++currentCombo; break;
+		case JudgeResult::Miss:
+			currentCombo = 0; break;
+		default: break;
+		}
+	}
+
+	int NoteManager::GetCurrentCombo() const { return currentCombo; }
+
+	void NoteManager::SetLaneParams(
+		const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
+		float laneW_, float laneH_, float rotX_,
+		float baseY_, float barRatio_,
+		float sideLeftX_, float sideRightX_)
+	{
+		laneRefs = lanes;
+		laneW = laneW_;
+		laneH = laneH_;
+		rotX = rotX_;
+		baseY = baseY_;
+		barRatio = barRatio_;
+		sideLaneX_Left = sideLeftX_;
+		sideLaneX_Right = sideRightX_;
+		judgeZ = -laneH * 0.5f + laneH * barRatio;
+	}
+
+	void NoteManager::StartGame() {
+		isPlaying = true;
+		songTime = 0.0f;
+	}
+
+	void NoteManager::SetCurrentSongTime(float time) {
+		this->songTime = time;
+	}
+
 } // namespace app::test

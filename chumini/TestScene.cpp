@@ -12,6 +12,8 @@
 #include "NoteManager.h"
 #include "SongInfo.h"
 
+#include "EffectManager.h"
+
 
 void app::test::TestScene::Init()
 {
@@ -27,6 +29,8 @@ void app::test::TestScene::Init()
         managerActor.Target()->AddComponent<app::test::SoundComponent>();
        
         bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
+
+        auto effectMgr = managerActor.Target()->AddComponent<app::test::EffectManager>();
 
         // プレイヤー
         auto player = Instantiate();

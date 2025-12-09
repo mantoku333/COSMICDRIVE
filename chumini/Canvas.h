@@ -26,6 +26,7 @@ namespace sf
 
 			static void DrawCanvasies();
 
+
 		protected:
 			/// <summary>
 			/// UI‚Ì’Ç‰Á
@@ -41,6 +42,8 @@ namespace sf
 				return ret;
 			}
 
+			std::list<UI*> uis;
+
 		private:
 			void Draw();
 
@@ -51,7 +54,7 @@ namespace sf
 		private:
 			int layer = 0;
 
-			std::list<UI*> uis;
+			
 		};
 	}
 }

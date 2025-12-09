@@ -186,6 +186,7 @@
     <ClCompile Include="EditCanvas.cpp" />
     <ClCompile Include="EditorComponent.cpp" />
     <ClCompile Include="EditScene.cpp" />
+    <ClCompile Include="EffectManager.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FollowCameraComponent.cpp" />
     <ClCompile Include="Geometry.cpp" />
@@ -297,6 +298,7 @@
     <ClInclude Include="EditCanvas.h" />
     <ClInclude Include="EditorComponent.h" />
     <ClInclude Include="EditScene.h" />
+    <ClInclude Include="EffectManager.h" />
     <ClInclude Include="File.h" />
     <ClInclude Include="FileBase.h" />
     <ClInclude Include="FollowCameraComponent.h" />

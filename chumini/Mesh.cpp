@@ -62,6 +62,7 @@ DirectX::XMMATRIX sf::Mesh::WorldMatrix() const
 
 void sf::Mesh::Draw()
 {
+
 	sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
 	//ワールド変換行列を取得
@@ -95,3 +96,8 @@ void sf::Mesh::Draw()
 	geometryRef.Target()->Draw(material);
 }
 
+void sf::Mesh::ClearAllRegistered()
+{
+	// リストに残っているポインタを全て忘れさせる
+	meshes.clear();
+}

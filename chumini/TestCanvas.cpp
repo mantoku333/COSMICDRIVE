@@ -5,348 +5,338 @@
 #include "NoteManager.h"
 #include "TestScene.h"
 #include "JudgeStatsService.h"
+#include <algorithm> // std::min, std::max
 
-void app::test::TestCanvas::Begin()
-{
-	//基底クラスのBeginを必ず呼び出す必要があります
-	sf::ui::Canvas::Begin();
+namespace app::test {
 
-	//テクスチャの読み込み
-    textureJacket.LoadTextureFromFile("Assets\\Texture\\GOODTEK.png");
-	textureDefaultJacket.LoadTextureFromFile("Assets\\Texture\\DefaultJacket.png");
-	textureNone.LoadTextureFromFile("Assets\\Texture\\none.png");
-	textureCombo.LoadTextureFromFile("Assets\\Texture\\combo.png");
+	void TestCanvas::Begin()
+	{
+		// 基底クラスのBeginを必ず呼び出す
+		sf::ui::Canvas::Begin();
 
-	texturePanel.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
+		// =========================================================
+		// テクスチャの読み込み
+		// =========================================================
+		textureJacket.LoadTextureFromFile("Assets\\Texture\\GOODTEK.png");
+		textureDefaultJacket.LoadTextureFromFile("Assets\\Texture\\DefaultJacket.png");
+		textureNone.LoadTextureFromFile("Assets\\Texture\\none.png");
+		textureCombo.LoadTextureFromFile("Assets\\Texture\\combo.png");
+		texturePanel.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
 
-	//UIの追加
-	Jacket = AddUI<sf::ui::Image>();
-	//auto Combo = AddUI<sf::ui::Image>();
+		texturePerfect.LoadTextureFromFile("Assets\\Texture\\perfect.png");
+		textureGreat.LoadTextureFromFile("Assets\\Texture\\great.png");
+		textureGood.LoadTextureFromFile("Assets\\Texture\\good.png");
+		textureMiss.LoadTextureFromFile("Assets\\Texture\\miss.png");
 
-	//座標の設定
-	Jacket->transform.SetPosition(Vector3(810, 400, 0));
-	Jacket->transform.SetScale(Vector3(3, 3, 0));
-	Jacket->material.texture = &textureJacket;
-	//Jacket->material.texture = &textureDefaultJacket;
+		textureNumber.LoadTextureFromFile("Assets/Texture/numbers.png");
 
-	/*Combo->transform.SetPosition(Vector3(470,-100, 0));
-	Combo->transform.SetScale(Vector3(1.3, 0.8, 0));
-	Combo->material.texture = &textureCombo;*/
+		// エフェクト用テクスチャ (Canvasが所有権を持つ)
+		if (!textureHitEffect.LoadTextureFromFile("Assets\\Texture\\Effect-Tap.png")) {
+			sf::debug::Debug::LogError("TestCanvas: Failed to load Effect-Tap.png");
+		}
 
+		// =========================================================
+		// UIの生成と配置
+		// =========================================================
 
-	texturePerfect.LoadTextureFromFile("Assets\\Texture\\perfect.png");
-	textureGreat.LoadTextureFromFile("Assets\\Texture\\great.png");
-	textureGood.LoadTextureFromFile("Assets\\Texture\\good.png");
-	textureMiss.LoadTextureFromFile("Assets\\Texture\\miss.png");
+		// ジャケット画像
+		Jacket = AddUI<sf::ui::Image>();
+		Jacket->transform.SetPosition(Vector3(810, 400, 0));
+		Jacket->transform.SetScale(Vector3(3, 3, 0));
+		Jacket->material.texture = &textureJacket;
 
-	judgeImage = AddUI<sf::ui::Image>();
-	judgeImage->transform.SetPosition(Vector3(810, 100, 0));
-	judgeImage->transform.SetScale(Vector3(3, 1, 0));
-	judgeImage->material.texture = &textureNone; // 初期画像
+		// 判定画像
+		judgeImage = AddUI<sf::ui::Image>();
+		judgeImage->transform.SetPosition(Vector3(810, 100, 0));
+		judgeImage->transform.SetScale(Vector3(3, 1, 0));
+		judgeImage->material.texture = &textureNone;
 
-	textureNumber.LoadTextureFromFile("Assets/Texture/numbers.png"); // スプライトシート
+		// 判定パネル背景
+		judgePanel = AddUI<sf::ui::Image>();
+		judgePanel->transform.SetPosition(Vector3(0, 500, 0));
+		judgePanel->transform.SetScale(Vector3(5.0f, 1.0f, 0));
+		judgePanel->material.texture = &texturePanel;
+		judgePanel->material.SetColor({ 1.0f, 1.0f, 1.0f, 0.9f });
 
-	judgePanel = AddUI<sf::ui::Image>();
-	judgePanel->transform.SetPosition(Vector3(0, 500, 0));  // 画面上部中央あたり
-	judgePanel->transform.SetScale(Vector3(5.0f, 1.0f, 0));   // 横長帯（必要に応じて調整）
-	judgePanel->material.texture = &texturePanel;
-	judgePanel->material.SetColor({ 1.0f, 1.0f, 1.0f, 0.9f });
+		// =========================================================
+		// 各種表示の初期化
+		// =========================================================
+		InitializeTimerDisplay();
+		InitializeComboDisplay();
+		InitializeJudgeCountDisplay();
 
-	InitializeTimerDisplay();
-	InitializeComboDisplay();
-	InitializeJudgeCountDisplay();
+		if (auto actor = actorRef.Target()) {
 
-	//DrawNumber(678, 300, -200, digitWidth, digitHeight, sheetWidth, sheetHeight, &textureNumber);
+			// TestSceneでくっつけた EffectManager を探す
+			if (auto manager = actor->GetComponent<EffectManager>()) {
 
-	// 同じActorのNoteManagerを取得
-	if (auto actor = actorRef.Target()) {
-		noteManager = actor->GetComponent<NoteManager>();
+				// メンバ変数に保存
+				effectManager = manager;
+
+				// 初期化 (Canvasとテクスチャを渡す)
+				effectManager->Initialize(this, &textureHitEffect);
+			}
+		}
+
+		// 同じActorのNoteManagerを取得
+		if (auto actor = actorRef.Target()) {
+			noteManager = actor->GetComponent<NoteManager>();
+		}
+
+		UpdateJacketImage();
+
+		updateCommand.Bind(std::bind(&TestCanvas::Update, this, std::placeholders::_1));
 	}
 
+	// =========================================================
+	// Update
+	// =========================================================
+	void TestCanvas::Update(const sf::command::ICommand&)
+	{
+		countUpTimer += sf::Time::DeltaTime();
 
-	UpdateJacketImage();
+		// タイマー表示更新
+		std::ostringstream oss;
+		oss << std::fixed << std::setprecision(2) << countUpTimer;
+		UpdateTimerDisplay(oss.str());
 
-	updateCommand.Bind(std::bind(&TestCanvas::Update, this, std::placeholders::_1));
-}
+		// 判定情報の取得と表示更新
+		int combo = JudgeStatsService::GetCombo();
+		JudgeResult last = JudgeStatsService::GetLastResult();
 
-void app::test::TestCanvas::InitializeTimerDisplay()
-{
-	// 必要な桁数分のImageオブジェクトを事前作成
-	for (int i = 0; i < MAX_TIMER_DIGITS; ++i) {
-		auto img = AddUI<sf::ui::Image>();
-		img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), -100, 0));
-		img->transform.SetScale(Vector3(0.5f, 0.5f, 0));
-		img->material.texture = &textureNumber;
-		img->SetVisible(false); // 初期は非表示
-		timerDigits.push_back(img);
+		UpdateComboDisplay(combo);
+		SetJudgeImage(last);
+		UpdateJudgeCountDisplay();
+
 	}
-}
 
-void app::test::TestCanvas::InitializeComboDisplay()
-{
-	// コンボ表示用のImageオブジェクトを4桁分作成
-	for (int i = 0; i < MAX_COMBO_DIGITS; ++i) {
-		auto img = AddUI<sf::ui::Image>();
-		img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), 0, 0)); // コンボ表示位置
-		img->transform.SetScale(Vector3(0.7f, 0.7f, 0)); // タイマーより少し大きく
-		img->material.texture = &textureNumber;
-		img->SetVisible(false); // 初期は非表示
-		comboDigits.push_back(img);
+	// =========================================================
+	// エフェクト生成 (NoteManagerから呼ばれる)
+	// =========================================================
+	void TestCanvas::SpawnHitEffect(float x, float y, float scale, float duration, const Color& color)
+	{
+		if (!effectManager.isNull()) {
+			// そのままアロー演算子(->)でアクセス
+			effectManager->Spawn(x, y, scale, duration, color);
+		}
 	}
-}
 
-void app::test::TestCanvas::InitializeJudgeCountDisplay()
-{
-	const float startX = -255;  // 左端の座標
-	const float baseY = 500;  // 上の高さ
-	const float gapX = 100;    // 各カテゴリ間隔
+	// =========================================================
+	// 以下、省略されていたUI実装関数群
+	// =========================================================
 
-	auto createDigitSet = [&](float x) {
-		std::vector<sf::ui::Image*> digits;
-		for (int i = 0; i < 4; ++i) {
+	void TestCanvas::InitializeTimerDisplay()
+	{
+		for (int i = 0; i < MAX_TIMER_DIGITS; ++i) {
 			auto img = AddUI<sf::ui::Image>();
-			img->transform.SetPosition(Vector3(x + i * (digitWidth - 60), baseY, 0));
-			img->transform.SetScale(Vector3(0.3f, 0.3f, 0));
+			img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), -100, 0));
+			img->transform.SetScale(Vector3(0.5f, 0.5f, 0));
 			img->material.texture = &textureNumber;
 			img->SetVisible(false);
-			digits.push_back(img);
+			timerDigits.push_back(img);
 		}
-		return digits;
+	}
+
+	void TestCanvas::InitializeComboDisplay()
+	{
+		for (int i = 0; i < MAX_COMBO_DIGITS; ++i) {
+			auto img = AddUI<sf::ui::Image>();
+			img->transform.SetPosition(Vector3(800 + i * (digitWidth - 60), 0, 0));
+			img->transform.SetScale(Vector3(0.7f, 0.7f, 0));
+			img->material.texture = &textureNumber;
+			img->SetVisible(false);
+			comboDigits.push_back(img);
+		}
+	}
+
+	void TestCanvas::InitializeJudgeCountDisplay()
+	{
+		const float startX = -255;
+		const float baseY = 500;
+		const float gapX = 100;
+
+		auto createDigitSet = [&](float x) {
+			std::vector<sf::ui::Image*> digits;
+			for (int i = 0; i < 4; ++i) {
+				auto img = AddUI<sf::ui::Image>();
+				img->transform.SetPosition(Vector3(x + i * (digitWidth - 60), baseY, 0));
+				img->transform.SetScale(Vector3(0.3f, 0.3f, 0));
+				img->material.texture = &textureNumber;
+				img->SetVisible(false);
+				digits.push_back(img);
+			}
+			return digits;
+			};
+
+		judgeCountDigitsPerfect = createDigitSet(startX + gapX * 0);
+		judgeCountDigitsGreat = createDigitSet(startX + gapX * 1);
+		judgeCountDigitsGood = createDigitSet(startX + gapX * 2);
+		judgeCountDigitsMiss = createDigitSet(startX + gapX * 3);
+	}
+
+	void TestCanvas::UpdateTimerDisplay(const std::string& str)
+	{
+		for (auto* img : timerDigits) img->SetVisible(false);
+
+		size_t displayCount = std::min(str.size(), static_cast<size_t>(MAX_TIMER_DIGITS));
+
+		for (size_t i = 0; i < displayCount; ++i) {
+			char ch = str[i];
+			int digit = -1;
+			bool isDot = false;
+
+			if (ch >= '0' && ch <= '9') digit = ch - '0';
+			else if (ch == '.') isDot = true;
+			else continue;
+
+			float u0, u1, v0 = 0.0f, v1 = digitHeight / sheetHeight;
+			if (!isDot) {
+				u0 = (digit * digitWidth) / sheetWidth;
+				u1 = ((digit + 1) * digitWidth) / sheetWidth;
+			}
+			else {
+				int dotIndex = 10;
+				u0 = (dotIndex * digitWidth) / sheetWidth;
+				u1 = ((dotIndex + 1) * digitWidth) / sheetWidth;
+			}
+
+			timerDigits[i]->SetUV(u0, v0, u1, v1);
+			timerDigits[i]->SetVisible(true);
+		}
+	}
+
+	void TestCanvas::UpdateComboDisplay(int combo)
+	{
+		for (auto* img : comboDigits) img->SetVisible(false);
+		if (combo < 0) return;
+		if (combo > 9999) combo = 9999;
+
+		std::string comboStr = std::to_string(combo);
+		int startIndex = MAX_COMBO_DIGITS - (int)comboStr.size();
+
+		for (size_t i = 0; i < comboStr.size(); ++i) {
+			int digit = comboStr[i] - '0';
+			float u0 = (digit * digitWidth) / sheetWidth;
+			float u1 = ((digit + 1) * digitWidth) / sheetWidth;
+			float v0 = 0.0f;
+			float v1 = digitHeight / sheetHeight;
+
+			int displayIndex = startIndex + (int)i;
+			if (displayIndex >= 0 && displayIndex < MAX_COMBO_DIGITS) {
+				comboDigits[displayIndex]->SetUV(u0, v0, u1, v1);
+				comboDigits[displayIndex]->SetVisible(true);
+			}
+		}
+	}
+
+	void TestCanvas::UpdateJudgeCountDisplay()
+	{
+		struct Entry { JudgeResult type; std::vector<sf::ui::Image*>& digits; };
+		std::vector<Entry> entries = {
+			{ JudgeResult::Perfect, judgeCountDigitsPerfect },
+			{ JudgeResult::Great,   judgeCountDigitsGreat },
+			{ JudgeResult::Good,    judgeCountDigitsGood },
+			{ JudgeResult::Miss,    judgeCountDigitsMiss },
 		};
 
-	judgeCountDigitsPerfect = createDigitSet(startX + gapX * 0);
-	judgeCountDigitsGreat = createDigitSet(startX + gapX * 1);
-	judgeCountDigitsGood = createDigitSet(startX + gapX * 2);
-	judgeCountDigitsMiss = createDigitSet(startX + gapX * 3);
-}
-
-void app::test::TestCanvas::UpdateJudgeCountDisplay()
-{
-	struct Entry { JudgeResult type; std::vector<sf::ui::Image*>& digits; };
-	std::vector<Entry> entries = {
-		{ JudgeResult::Perfect, judgeCountDigitsPerfect },
-		{ JudgeResult::Great,   judgeCountDigitsGreat },
-		{ JudgeResult::Good,    judgeCountDigitsGood },
-		{ JudgeResult::Miss,    judgeCountDigitsMiss },
-	};
-
-	for (auto& e : entries)
-	{
-		int value = JudgeStatsService::GetCount(e.type);
-		std::string str = std::to_string(value);
-		int len = (int)str.size();
-		int maxLen = (int)e.digits.size();
-		for (int i = 0; i < maxLen; ++i)
-			e.digits[i]->SetVisible(false);
-
-		int start = maxLen - len;
-		for (int i = 0; i < len; ++i)
+		for (auto& e : entries)
 		{
+			int value = JudgeStatsService::GetCount(e.type);
+			std::string str = std::to_string(value);
+			int len = (int)str.size();
+			int maxLen = (int)e.digits.size();
+			for (int i = 0; i < maxLen; ++i)
+				e.digits[i]->SetVisible(false);
+
+			int start = maxLen - len;
+			for (int i = 0; i < len; ++i)
+			{
+				int digit = str[i] - '0';
+				float u0 = (digit * digitWidth) / sheetWidth;
+				float u1 = ((digit + 1) * digitWidth) / sheetWidth;
+				float v0 = 0.0f, v1 = digitHeight / sheetHeight;
+
+				int index = start + i;
+				if (index >= 0 && index < maxLen) {
+					e.digits[index]->SetUV(u0, v0, u1, v1);
+					e.digits[index]->SetVisible(true);
+				}
+			}
+		}
+	}
+
+	void TestCanvas::DrawNumber(int number, float x, float y, float digitWidth, float digitHeight, float sheetWidth, float sheetHeight, sf::Texture* numberTexture)
+	{
+		std::string str = std::to_string(number);
+		for (size_t i = 0; i < str.size(); ++i) {
 			int digit = str[i] - '0';
 			float u0 = (digit * digitWidth) / sheetWidth;
 			float u1 = ((digit + 1) * digitWidth) / sheetWidth;
-			float v0 = 0.0f, v1 = digitHeight / sheetHeight;
+			float v0 = 0.0f;
+			float v1 = digitHeight / sheetHeight;
 
-			int index = start + i;
-			e.digits[index]->SetUV(u0, v0, u1, v1);
-			e.digits[index]->SetVisible(true);
+			auto img = AddUI<sf::ui::Image>();
+			img->transform.SetPosition(Vector3(x + i * (digitWidth - 60), y, 0));
+			img->transform.SetScale(Vector3(0.3f, 0.3f, 0));
+			img->material.texture = numberTexture;
+			img->SetUV(u0, v0, u1, v1);
 		}
 	}
-}
 
-
-void app::test::TestCanvas::Update(const sf::command::ICommand&)
-{
-	countUpTimer += sf::Time::DeltaTime();
-
-	// 小数点第2位までの文字列に変換
-	std::ostringstream oss;
-	oss << std::fixed << std::setprecision(2) << countUpTimer;
-	std::string timerStr = oss.str();
-
-	// 既存のImageオブジェクトを更新（新規作成しない）
-	UpdateTimerDisplay(timerStr);
-
-	int combo = JudgeStatsService::GetCombo();
-	JudgeResult last = JudgeStatsService::GetLastResult();
-	// コンボ表示更新
-	UpdateComboDisplay(combo);
-
-	// 判定画像更新
-	SetJudgeImage(last);
-
-	UpdateJudgeCountDisplay();
-}
-
-
-void app::test::TestCanvas::UpdateTimerDisplay(const std::string& str)
-{
-	// まず全ての桁を非表示に
-	for (auto* img : timerDigits) {
-		img->SetVisible(false);
+	void TestCanvas::SetJudgeImage(JudgeResult result)
+	{
+		switch (result) {
+		case JudgeResult::Perfect:
+			judgeImage->material.texture = &texturePerfect;
+			break;
+		case JudgeResult::Great:
+			judgeImage->material.texture = &textureGreat;
+			break;
+		case JudgeResult::Good:
+			judgeImage->material.texture = &textureGood;
+			break;
+		case JudgeResult::Miss:
+			judgeImage->material.texture = &textureMiss;
+			break;
+		default:
+			judgeImage->material.texture = &textureMiss;
+			break;
+		}
 	}
 
-	// 文字列の長さ分だけ表示を更新
-	size_t displayCount = std::min(str.size(), static_cast<size_t>(MAX_TIMER_DIGITS));
+	void TestCanvas::UpdateJacketImage() {
+		auto actor = actorRef.Target();
+		if (!actor) return;
 
-	for (size_t i = 0; i < displayCount; ++i) {
-		char ch = str[i];
-		int digit = -1;
-		bool isDot = false;
+		auto& scene = actor->GetScene();
+		auto* testScene = dynamic_cast<TestScene*>(&scene);
+		if (!testScene) return;
 
-		if (ch >= '0' && ch <= '9') {
-			digit = ch - '0';
-		}
-		else if (ch == '.') {
-			isDot = true;
-		}
-		else {
-			continue;
+		const SongInfo& selectedSong = testScene->GetSelectedSong();
+
+		bool loadSuccess = false;
+		if (!selectedSong.jacketPath.empty()) {
+			loadSuccess = textureJacket.LoadTextureFromFile(selectedSong.jacketPath);
+			std::ostringstream oss;
+			oss << "Loading jacket: " << selectedSong.jacketPath << " - "
+				<< (loadSuccess ? "Success" : "Failed");
+			sf::debug::Debug::Log(oss.str());
 		}
 
-		// UV計算
-		float u0, u1, v0 = 0.0f, v1 = digitHeight / sheetHeight;
-		if (!isDot) {
-			u0 = (digit * digitWidth) / sheetWidth;
-			u1 = ((digit + 1) * digitWidth) / sheetWidth;
+		if (Jacket) {
+			Jacket->material.texture = loadSuccess ? &textureJacket : &textureDefaultJacket;
 		}
-		else {
-			int dotIndex = 10; // 小数点のインデックス
-			u0 = (dotIndex * digitWidth) / sheetWidth;
-			u1 = ((dotIndex + 1) * digitWidth) / sheetWidth;
-		}
-
-		// 既存のImageのUVを更新
-		timerDigits[i]->SetUV(u0, v0, u1, v1);
-		timerDigits[i]->SetVisible(true);
-	}
-}
-
-void app::test::TestCanvas::UpdateComboDisplay(int combo)
-{
-	// まず全ての桁を非表示に
-	for (auto* img : comboDigits) {
-		img->SetVisible(false);
 	}
 
-	// コンボが負の場合のみ何も表示しない
-	if (combo < 0) {
-		return;
+
+	void TestCanvas::DestroyEffect(sf::ui::Image* effect) {
+		if (!effect) return;
+
+		// 親クラスのリスト(uis)から削除
+		uis.remove(effect);
+
+		// メモリ解放
+		delete effect;
 	}
 
-	// コンボを4桁に制限
-	if (combo > 9999) {
-		combo = 9999;
-	}
-
-	// 数値を文字列に変換
-	std::string comboStr = std::to_string(combo);
-
-	// 右詰めで表示するため、開始位置を計算
-	int startIndex = MAX_COMBO_DIGITS - comboStr.size();
-
-	for (size_t i = 0; i < comboStr.size(); ++i) {
-		int digit = comboStr[i] - '0'; // 0～9
-
-		// UV計算
-		float u0 = (digit * digitWidth) / sheetWidth;
-		float u1 = ((digit + 1) * digitWidth) / sheetWidth;
-		float v0 = 0.0f;
-		float v1 = digitHeight / sheetHeight;
-
-		// 既存のImageのUVを更新
-		int displayIndex = startIndex + i;
-		comboDigits[displayIndex]->SetUV(u0, v0, u1, v1);
-		comboDigits[displayIndex]->SetVisible(true);
-	}
-}
-
-
-void app::test::TestCanvas::DrawNumber(int number, float x, float y, float digitWidth, float digitHeight, float sheetWidth, float sheetHeight, sf::Texture* numberTexture)
-{
-	std::string str = std::to_string(number);
-	for (size_t i = 0; i < str.size(); ++i) {
-		// 桁ごとの数字を取得
-		int digit = str[i] - '0'; // 0～9
-
-		// スプライトシート上の UV 算出（正規化範囲 0.0 ～ 1.0）
-		float u0 = (digit * digitWidth) / sheetWidth;       // 左端のU
-		float u1 = ((digit + 1) * digitWidth) / sheetWidth; // 右端のU
-		float v0 = 0.0f;                                    // 上端のV
-		float v1 = digitHeight / sheetHeight;               // 下端のV（今回は 100/100 = 1.0）
-
-		// Image を作成して位置/スケール/テクスチャを設定
-		auto img = AddUI<sf::ui::Image>();
-		img->transform.SetPosition(Vector3(
-			x + i * (digitWidth - 60),   // 横並びの間隔
-			y,
-			0
-		));
-		img->transform.SetScale(Vector3(0.3f, 0.3f, 0));  // 適切なスケール
-		img->material.texture = numberTexture;
-
-		// 正しい順序で UV座標を設定: (左, 上, 右, 下)
-
-		std::ostringstream oss;
-		oss
-			<< "DrawNumber: digit=" << digit
-			<< "  u0=" << u0
-			<< "  u1=" << u1
-			<< "  v0=" << v0
-			<< "  v1=" << v1;
-		sf::debug::Debug::Log(oss.str());
-
-		img->SetUV(u0, v0, u1, v1);
-		//img->SetUV(0.0f, 0.0f, 0.5f, 1.0f);
-	}
-}
-
-void app::test::TestCanvas::SetJudgeImage(JudgeResult result)
-{
-	switch (result) {
-	case JudgeResult::Perfect:
-		judgeImage->material.texture = &texturePerfect;
-		break;
-	case JudgeResult::Great:
-		judgeImage->material.texture = &textureGreat;
-		break;
-	case JudgeResult::Good:
-		judgeImage->material.texture = &textureGood;
-		break;
-	case JudgeResult::Miss:
-		judgeImage->material.texture = &textureMiss;
-		break;
-	default:
-		judgeImage->material.texture = &textureMiss;
-		break;
-	}
-}
-
-void app::test::TestCanvas::UpdateJacketImage() {
-    // 所有アクターからシーンを取得
-    auto actor = actorRef.Target();
-    if (!actor) return;
-    
-    auto& scene = actor->GetScene();
-    auto* testScene = dynamic_cast<TestScene*>(&scene);
-    if (!testScene) return;
-
-    // 選択された楽曲情報を取得
-    const SongInfo& selectedSong = testScene->GetSelectedSong();
-    
-    // ジャケット画像を読み込み
-    bool loadSuccess = false;
-    if (!selectedSong.jacketPath.empty()) {
-        loadSuccess = textureJacket.LoadTextureFromFile(selectedSong.jacketPath);
-        
-        std::ostringstream oss;
-        oss << "Loading jacket: " << selectedSong.jacketPath << " - " 
-            << (loadSuccess ? "Success" : "Failed");
-        sf::debug::Debug::Log(oss.str());
-    }
-
-    // ジャケット画像を更新
-    if (Jacket) {
-        Jacket->material.texture = loadSuccess ? &textureJacket : &textureDefaultJacket;
-    }
-}
+} // namespace app::test
