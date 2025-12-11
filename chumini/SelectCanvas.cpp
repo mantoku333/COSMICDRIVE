@@ -222,16 +222,60 @@ namespace app::test {
         RebuildJacketPool();
         UpdateJacketPositions();
 
+        // =========================================================
+     // ★ 1. ふち（アウトライン）の生成
+     // =========================================================
+
+     // ふちの太さ（3.0f くらいが丁度いいです）
+        float outlineSize = 3.0f;
+
+        // 4方向のズレを定義（左、右、下、上）
+        Vector3 offsets[4] = {
+            Vector3(-outlineSize, 0, 0),
+            Vector3(outlineSize, 0, 0),
+            Vector3(0, -outlineSize, 0),
+            Vector3(0,  outlineSize, 0)
+        };
+
+        // ループして4つ作る
+        for (int i = 0; i < 4; ++i) {
+            titleOutline[i] = AddUI<sf::ui::TextImage>();
+
+            // 座標：メインの位置(0, 300) から少しズラす
+            // Z座標：メインより奥に見せたいので 1.0f に設定
+            titleOutline[i]->transform.SetPosition(Vector3(0 + offsets[i].x, 300 + offsets[i].y, 1.0f));
+
+            // スケール：メインと全く同じにする（ここ重要！）
+            titleOutline[i]->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
+
+            titleOutline[i]->Create(
+                device,
+                L"SONG SELECT",         // 同じ文字
+                L"851ゴチカクット",     // 同じフォント
+                120.0f,                 // 同じサイズ
+                D2D1::ColorF(D2D1::ColorF::White),
+                1024, 240
+            );
+        }
+
+        // =========================================================
+        // ★ 2. メイン文字（本体）の生成
+        // =========================================================
         titleText = AddUI<sf::ui::TextImage>();
-        titleText->transform.SetPosition(Vector3(0, 300, 0)); // 位置は元の画像と同じY=300
-        titleText->transform.SetScale(Vector3(12.0f, 3.0f, 1.0f)); // スケールは一旦1倍に
+
+        // 座標：中心 (0, 300), Z座標は手前 (0.0f)
+        titleText->transform.SetPosition(Vector3(0, 300, 0.0f));
+
+        // スケール
+        titleText->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
+
         titleText->Create(
-            device,                              // デバイス
-            L"SONG SELECT",                      // 表示する文字列
-            L"851ゴチカクット",                      // フォント名（太字で見やすいフォントの例）
-            120.0f,                              // フォントサイズ
-            D2D1::ColorF(D2D1::ColorF::White),   // 色（白）
-            1024, 256                            // テクスチャ解像度（幅, 高さ）
+            device,
+            L"SONG SELECT",
+            L"851ゴチカクット",
+            120.0f,
+            D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // ★色は「白」
+            1024, 240
         );
 
         songTitleText = AddUI<sf::ui::TextImage>();

@@ -76,6 +76,8 @@ namespace app {
             float DEPTH_NEAR = 0.0f;     // 手前Z
             float DEPTH_FAR = -2.0f;    // 奥Z
 
+            sf::ui::TextImage* titleOutline[4] = { nullptr };
+
             // 画面中央座標（既存定義と合わせる）
             static constexpr float CENTER_X = 0.0f;
             static constexpr float CENTER_Y = -100.0f;

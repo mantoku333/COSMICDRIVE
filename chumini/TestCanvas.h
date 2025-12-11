@@ -5,6 +5,8 @@
 #include "EffectManager.h"
 #include <vector>
 #include <memory>
+// テキスト描画用
+#include "TextImage.h"
 
 // 前方宣言
 namespace app::test {
@@ -27,61 +29,42 @@ namespace app
 			// NoteManagerから呼ばれる窓口
 			void SpawnHitEffect(float x, float y, float scale, float duration, const Color& color);
 
-			// ... (その他のUI関数) ...
-			void SetJudgeImage(JudgeResult result);
-			void DrawNumber(int number, float x, float y, float digitWidth, float digitHeight, float sheetWidth, float sheetHeight, sf::Texture* numberTexture);
-			void InitializeTimerDisplay();
-			void InitializeComboDisplay();
-			void InitializeJudgeCountDisplay();
-			void UpdateTimerDisplay(const std::string& str);
+			void UpdateTimerDisplay(float time);
 			void UpdateComboDisplay(int combo);
 			void UpdateJudgeCountDisplay();
+
+			// ★ここを SetJudgeImage に戻しました（中身はテキスト更新です）
+			void SetJudgeImage(JudgeResult result);
+
 			void UpdateJacketImage();
 
 			NoteManager* noteManager = nullptr;
-
 			void DestroyEffect(sf::ui::Image* effect);
 
 		private:
-		
-
 			// ... (既存のテクスチャ) ...
 			sf::Texture textureDefaultJacket;
 			sf::ui::Image* Jacket;
 			sf::Texture textureJacket;
-			sf::Texture textureNone;
-			sf::Texture textureNumber;
-			sf::Texture textureCombo;
 			sf::Texture texturePanel;
 
-			// ★追加: エフェクト用テクスチャの実体はここ（Canvas）が持つ
+			// エフェクト用
 			sf::Texture textureHitEffect;
 
 			sf::ui::Image* judgePanel = nullptr;
-
 			sf::SafePtr<EffectManager> effectManager;
 
-			// ... (以下既存のメンバ変数) ...
-			std::vector<sf::ui::Image*> judgeCountDigitsPerfect;
-			std::vector<sf::ui::Image*> judgeCountDigitsGreat;
-			std::vector<sf::ui::Image*> judgeCountDigitsGood;
-			std::vector<sf::ui::Image*> judgeCountDigitsMiss;
+			// ---------------------------------------------------------
+			// テキストUI
+			// ---------------------------------------------------------
+			sf::ui::TextImage* timerText = nullptr;
+			sf::ui::TextImage* comboText = nullptr;
+			sf::ui::TextImage* judgeStatsText = nullptr;
 
-			sf::Texture texturePerfect, textureGreat, textureGood, textureMiss;
-			sf::ui::Image* judgeImage = nullptr;
-
-			std::vector<sf::ui::Image*> timerDigits;
-			static const int MAX_TIMER_DIGITS = 8;
-
-			std::vector<sf::ui::Image*> comboDigits;
-			static constexpr int MAX_COMBO_DIGITS = 4;
+			// 判定結果表示用テキスト
+			sf::ui::TextImage* judgeResultText = nullptr;
 
 			sf::command::Command<> updateCommand;
-
-			float digitWidth = 100.0f;
-			float digitHeight = 100.0f;
-			float sheetWidth = 1000.0f;
-			float sheetHeight = 100.0f;
 
 			float countUpTimer = 0.0f;
 		};

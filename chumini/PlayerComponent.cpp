@@ -152,7 +152,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
 
             auto* canvas = managerActor->GetComponent<app::test::TestCanvas>();
             if (canvas) {
-                canvas->SetJudgeImage(result);
+               // canvas->SetJudgeImage(result);
             }
         }
     }
