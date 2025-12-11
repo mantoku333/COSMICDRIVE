@@ -24,14 +24,14 @@ void TitleCanvas::Begin()
 	// ★復活：名前・学校名の表示
 	// ---------------------------------------------------------
 	auto titleText = AddUI<sf::ui::TextImage>();
-	titleText->transform.SetPosition(Vector3(-550, -300, 0));
+	titleText->transform.SetPosition(Vector3(-650, -400, 0));
 	titleText->transform.SetScale(Vector3(10, 2, 0));
 
 	titleText->Create(
 		context,
 		L"萬徳倫功",
-		L"851ゴチカクット",
-		80.0f,
+		L"叛逆明朝",
+		100.0f,
 		D2D1::ColorF(D2D1::ColorF::Tomato),
 		1024, 256);
 

@@ -199,40 +199,51 @@ namespace app::test {
 
     // ===== UI初期化 =====
     void SelectCanvas::InitializeUI() {
-        backgroundGradient = AddUI<sf::ui::Image>();
+
+        auto* dx11 = sf::dx::DirectX11::Instance();
+        auto device = dx11->GetMainDevice().GetDevice();
+
+       /* backgroundGradient = AddUI<sf::ui::Image>();
         backgroundGradient->transform.SetPosition(Vector3(0, 0, -10));
         backgroundGradient->transform.SetScale(Vector3(14.0f, 8.0f, 1.0f));
-        backgroundGradient->material.texture = &textureBack;
-
-        titlePanel = AddUI<sf::ui::Image>();
-        titlePanel->transform.SetPosition(Vector3(0, 300, 0));
-        titlePanel->transform.SetScale(Vector3(5.0f, 1.0f, 1.0f));
-        titlePanel->material.texture = &textureTitlePanel;
+        backgroundGradient->material.texture = &textureBack;*/
 
         selectFrame = AddUI<sf::ui::Image>();
         selectFrame->transform.SetPosition(Vector3(CENTER_X, CENTER_Y, 1));
-        selectFrame->transform.SetScale(Vector3(10.0f, 10.0f, 1.0f));
+        selectFrame->transform.SetScale(Vector3(10.0f, 50.0f, 1.0f));
         selectFrame->material.texture = &textureSelectFrame;
         selectFrame->material.SetColor({ 1, 1, 1, 0.8f });
 
         CC = AddUI<sf::ui::Image>();
-        CC->transform.SetPosition(Vector3(500, -300, 0));
+        CC->transform.SetPosition(Vector3(500, -350, 0));
         CC->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
         CC->material.texture = &textureCC;
 
         RebuildJacketPool();
         UpdateJacketPositions();
 
-        auto* dx11 = sf::dx::DirectX11::Instance();
+        titleText = AddUI<sf::ui::TextImage>();
+        titleText->transform.SetPosition(Vector3(0, 300, 0)); // 位置は元の画像と同じY=300
+        titleText->transform.SetScale(Vector3(12.0f, 3.0f, 1.0f)); // スケールは一旦1倍に
+        titleText->Create(
+            device,                              // デバイス
+            L"SONG SELECT",                      // 表示する文字列
+            L"851ゴチカクット",                      // フォント名（太字で見やすいフォントの例）
+            120.0f,                              // フォントサイズ
+            D2D1::ColorF(D2D1::ColorF::White),   // 色（白）
+            1024, 256                            // テクスチャ解像度（幅, 高さ）
+        );
+
         songTitleText = AddUI<sf::ui::TextImage>();
-        songTitleText->transform.SetPosition(Vector3(0, -100, 0));
-        songTitleText->transform.SetScale(Vector3(10.0f, 2.8f, 1.0f));
+        songTitleText->transform.SetPosition(Vector3(0, -270, 0));
+        songTitleText->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
         songTitleText->Create(
-            dx11->GetMainDevice().GetDevice(),
-            L"", L"メイリオ",
-            64.0f,
+            device,
+            L"",
+            L"851ゴチカクット",
+            120.0f,
             D2D1::ColorF(D2D1::ColorF::White),
-            1024, 256);
+            1024, 200);
     }
 
     // ===== ジャケット再構築 =====
