@@ -3,244 +3,251 @@
 #include "SelectScene.h"
 #include "EditScene.h"
 
-// テキスト描画に必要
-#include "Text.h"            // sf::ui::Text
-#include "TextImage.h"   
-#include "DWriteContext.h"   // D2D/DirectWrite共有コンテキスト
-#include "DirectX11.h"       // SwapChain取得
+// 必要なインクルード
+#include "DirectX11.h"       // デバイス取得用
+#include "SInput.h"          // 入力取得用
+#include "DWriteContext.h"   // フォント描画用
 
-void app::test::TitleCanvas::Begin()
+using namespace app::test;
+using namespace sf;
+
+void TitleCanvas::Begin()
 {
-    // 基底クラスのBeginを必ず呼び出す
-    sf::ui::Canvas::Begin();
+	// 基底クラスのBeginを必ず呼び出す
+	sf::ui::Canvas::Begin();
 
-    auto* dx11 = sf::dx::DirectX11::Instance();
+	// DirectXデバイスの取得
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto context = dx11->GetMainDevice().GetDevice();
 
-    // TextImage を作成して Canvas に載せる
-    auto titleText = AddUI<sf::ui::TextImage>();
-    titleText->transform.SetPosition(Vector3(-550, -100, 0));
-    titleText->transform.SetScale(Vector3(10, 2, 0));
+	// ---------------------------------------------------------
+	// ★復活：名前・学校名の表示
+	// ---------------------------------------------------------
+	auto titleText = AddUI<sf::ui::TextImage>();
+	titleText->transform.SetPosition(Vector3(-550, -300, 0));
+	titleText->transform.SetScale(Vector3(10, 2, 0));
 
-    titleText->Create(
-        dx11->GetMainDevice().GetDevice(),
-        L"HAL大阪 萬徳倫功mantokuriku",
-        L"叛逆明朝",
-        120.0f,
-        D2D1::ColorF(D2D1::ColorF::Tomato),
-        1024, 256);
-
-
-
-
-    // テクスチャの読み込み
-    textureEditButton.LoadTextureFromFile("Assets\\Texture\\edit.png");
-    texturePlayButton.LoadTextureFromFile("Assets\\Texture\\play.png");
-    textureTitleLogo.LoadTextureFromFile("Assets\\Texture\\title.png");
-
-    // タイトルロゴの追加
-    titleLogo = AddUI<sf::ui::Image>();
-    titleLogo->transform.SetPosition(Vector3(0, 300, 0));
-    titleLogo->transform.SetScale(Vector3(9, 2, 0));
-    titleLogo->material.texture = &textureTitleLogo;
-
-    // プレイボタンの追加
-    playButton = AddUI<sf::ui::Image>();
-    playButton->transform.SetPosition(Vector3(0, 0, 0));
-    playButton->transform.SetScale(Vector3(3, 1, 0));
-    playButton->material.texture = &texturePlayButton;
-
-    // エディットボタンの追加
-    editButton = AddUI<sf::ui::Image>();
-    editButton->transform.SetPosition(Vector3(0, -200, 0));
-    editButton->transform.SetScale(Vector3(3, 1, 0));
-    editButton->material.texture = &textureEditButton;
+	titleText->Create(
+		context,
+		L"萬徳倫功",
+		L"851ゴチカクット",
+		80.0f,
+		D2D1::ColorF(D2D1::ColorF::Tomato),
+		1024, 256);
 
 
-    // 初期選択状態の設定
-    selectedButton = 0; // 0: エディット, 1: プレイ
-    UpdateButtonSelection();
+	// ---------------------------------------------------------
+	// 1. タイトルロゴ (テキスト化)
+	// ---------------------------------------------------------
+	titleLogo = AddUI<sf::ui::TextImage>();
+	titleLogo->transform.SetPosition(Vector3(0, 300, 0)); // 上の方に配置
+	titleLogo->transform.SetScale(Vector3(15, 5, 0));     // 大きく表示
 
-    // シーンがメモリ上に存在しなければ
-    if (scene.isNull())
-    {
-        // シーンをスタンバイ状態にする
-        scene = SelectScene::StandbyScene();
-    }
+	titleLogo->Create(
+		context,
+		L"†COSMIC 滅†",         // タイトル文字列
+		L"851ゴチカクット",              // フォント名
+		120.0f,                 // フォントサイズ
+		D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 色
+		1024, 256               // テクスチャサイズ
+	);
 
-    if (sceneEdit.isNull())
-    {
-        // EDITシーンをスタンバイ
-        sceneEdit = EditScene::StandbyScene();
-    }
+	// ---------------------------------------------------------
+	// 2. プレイボタン (テキスト化)
+	// ---------------------------------------------------------
+	playButton = AddUI<sf::ui::TextImage>();
+	playButton->transform.SetPosition(Vector3(0, -100, 0)); // 中央
+	playButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
-    updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
+	playButton->Create(
+		context,
+		L"PLAY",
+		L"851ゴチカクット",
+		150.0f,
+		D2D1::ColorF(D2D1::ColorF::White),
+		512, 128
+	);
+
+	// ---------------------------------------------------------
+	// 3. エディットボタン (テキスト化)
+	// ---------------------------------------------------------
+	editButton = AddUI<sf::ui::TextImage>();
+	editButton->transform.SetPosition(Vector3(0, -400, 0)); // 下の方
+	editButton->transform.SetScale(Vector3(4, 1.5f, 0));
+
+	editButton->Create(
+		context,
+		L"EDIT",
+		L"851ゴチカクット",
+		150.0f,
+		D2D1::ColorF(D2D1::ColorF::White),
+		512, 128
+	);
+
+	// ---------------------------------------------------------
+	// 初期設定
+	// ---------------------------------------------------------
+	selectedButton = 1; // 初期選択はPLAYにしておく
+	UpdateButtonSelection();
+
+	// シーンのスタンバイ
+	if (scene.isNull()) {
+		scene = SelectScene::StandbyScene();
+	}
+	if (sceneEdit.isNull()) {
+		sceneEdit = EditScene::StandbyScene();
+	}
+
+	updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
 }
 
-void app::test::TitleCanvas::Update(const sf::command::ICommand& command)
+void TitleCanvas::Update(const sf::command::ICommand& command)
 {
-    // キー入力処理
-    HandleInput(command);
-
-    // ボタン選択状態の更新
-    UpdateButtonSelection();
+	HandleInput(command);
+	UpdateButtonSelection();
 }
 
-void app::test::TitleCanvas::HandleInput(const sf::command::ICommand& command)
+void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 {
-    // マウス座標を取得
-    Vector2 mousePos = GetMousePosition();
+	// --- マウス操作 ---
+	Vector2 mousePos = GetMousePosition();
+	bool isEditHovered = IsButtonHovered(mousePos, editButton);
+	bool isPlayHovered = IsButtonHovered(mousePos, playButton);
 
-    // エディットボタンの当たり判定
-    bool isEditButtonHovered = IsButtonHovered(mousePos, editButton);
-    // プレイボタンの当たり判定
-    bool isPlayButtonHovered = IsButtonHovered(mousePos, playButton);
+	// マウスが乗ったら選択状態を切り替える
+	if (isEditHovered) {
+		selectedButton = 0;
+	}
+	else if (isPlayHovered) {
+		selectedButton = 1;
+	}
 
-    // ホバー状態でボタン選択を変更
-    if (isEditButtonHovered && selectedButton != 0) {
-        selectedButton = 0;
-    }
-    else if (isPlayButtonHovered && selectedButton != 1) {
-        selectedButton = 1;
-    }
+	// 左クリックで決定
+	if (SInput::Instance().GetMouseDown(0)) {
+		if (isEditHovered || isPlayHovered) {
+			OnButtonPressed();
+		}
+	}
 
-    // マウス左クリックで決定（SInputシステムを使用）
-    if (SInput::Instance().GetMouseDown(0)) { // 0 = 左クリック
-        if (isEditButtonHovered) {
-            selectedButton = 0;
-            OnButtonPressed();
-        }
-        else if (isPlayButtonHovered) {
-            selectedButton = 1;
-            OnButtonPressed();
-        }
-    }
+	// --- キーボード操作 ---
+	const int BUTTON_COUNT = 2;
 
-    const int BUTTON_COUNT = 2; // ボタンの総数
+	// 上下キーまたはWSキーで選択切り替え
+	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W)) {
+		selectedButton = (selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+	}
+	else if (SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
+		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
+	}
 
-    // キーボード操作
-    if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W)) {
-        selectedButton = (selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
-    }
-    else if (SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
-        selectedButton = (selectedButton + 1) % BUTTON_COUNT;
-    }
-
-    // Enterキーまたはスペースキーで決定
-    if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-        OnButtonPressed();
-    }
+	// スペースキーまたはエンターキーで決定
+	if (SInput::Instance().GetKeyDown(Key::SPACE)) {
+		OnButtonPressed();
+	}
 }
 
-bool app::test::TitleCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::Image* button)
+void TitleCanvas::UpdateButtonSelection()
 {
-    // ボタンの位置とスケールを取得
-    Vector3 buttonPos = button->transform.GetPosition();
-    Vector3 buttonScale = button->transform.GetScale();
+	// 選択されているボタンを強調表示（色とサイズを変更）
 
-    // ボタンの境界を計算（UI座標系での矩形）
-    float buttonWidth = buttonScale.x * 100;  // 基準サイズに合わせて調整
-    float buttonHeight = buttonScale.y * 50;  // 基準サイズに合わせて調整
+	// 色定義
+	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, 1.0f); // 黄色（不透明）
+	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f); // 灰色（半透明）
 
-    float left = buttonPos.x - buttonWidth * 0.5f;
-    float right = buttonPos.x + buttonWidth * 0.5f;
-    float top = buttonPos.y + buttonHeight * 0.5f;
-    float bottom = buttonPos.y - buttonHeight * 0.5f;
+	if (selectedButton == 0) {
+		// --- Edit選択中 ---
+		editButton->material.SetColor(colorSelected);
+		editButton->transform.SetScale(Vector3(4.5f, 1.7f, 0)); // 少し大きく
 
-    // マウス座標がボタン範囲内にあるかチェック
-    bool isInside = (mousePos.x >= left && mousePos.x <= right &&
-        mousePos.y >= bottom && mousePos.y <= top);
+		playButton->material.SetColor(colorNormal);
+		playButton->transform.SetScale(Vector3(4.0f, 1.5f, 0)); // 普通サイズ
+	}
+	else {
+		// --- Play選択中 ---
+		playButton->material.SetColor(colorSelected);
+		playButton->transform.SetScale(Vector3(4.5f, 1.7f, 0));
 
-    return isInside;
+		editButton->material.SetColor(colorNormal);
+		editButton->transform.SetScale(Vector3(4.0f, 1.5f, 0));
+	}
 }
 
-Vector2 app::test::TitleCanvas::GetMousePosition()
+void TitleCanvas::OnButtonPressed()
 {
-    // Win32 APIを使ってマウス座標を取得
-    POINT mousePoint;
-    GetCursorPos(&mousePoint);
-
-    // ウィンドウのクライアント領域座標に変換
-    HWND hwnd = GetActiveWindow(); // または適切なウィンドウハンドルを取得
-    ScreenToClient(hwnd, &mousePoint);
-
-    float uiX = static_cast<float>(mousePoint.x) - screenWidth * 0.5f;  // 画面中央を原点とする場合
-    float uiY = screenHeight * 0.5f - static_cast<float>(mousePoint.y); // Y軸を反転する場合
-
-    return Vector2(uiX, uiY);
+	if (selectedButton == 0) {
+		ShowEditScene();
+	}
+	else {
+		ShowSongSelectScene();
+	}
 }
 
-void app::test::TitleCanvas::UpdateButtonSelection()
+bool TitleCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button)
 {
-    if (selectedButton == 0) {
-        // エディットボタンが選択されている場合
-        editButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));  // 選択時：大きく
-        playButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));  // 非選択時：通常サイズ
+	if (!button) return false;
 
-        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 1.0f)); // 明るい
-        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 0.3f));  // 暗い
-    }
-    else {
-        // プレイボタンが選択されている場合
-        editButton->transform.SetScale(Vector3(3.0f, 1.0f, 0));
-        playButton->transform.SetScale(Vector3(3.2f, 1.1f, 0));
+	Vector3 pos = button->transform.GetPosition();
+	Vector3 scale = button->transform.GetScale();
 
-        playButton->material.SetColor(DirectX::XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
-        editButton->material.SetColor(DirectX::XMFLOAT4(1.3f, 1.3f, 1.0f, 0.3f));
-    }
+	// TextImageの当たり判定サイズ調整
+	// ※見た目に合わせて数値を調整してください (ここでは 幅80, 高さ40 を基準)
+	float width = scale.x * 80.0f;
+	float height = scale.y * 40.0f;
+
+	float left = pos.x - width * 0.5f;
+	float right = pos.x + width * 0.5f;
+	float top = pos.y + height * 0.5f;
+	float bottom = pos.y - height * 0.5f;
+
+	return (mousePos.x >= left && mousePos.x <= right &&
+		mousePos.y >= bottom && mousePos.y <= top);
 }
 
-void app::test::TitleCanvas::OnButtonPressed()
+Vector2 TitleCanvas::GetMousePosition()
 {
-    if (selectedButton == 0) {
-        // EDITシーンへ
-        ShowEditScene();
-    }
-    else {
-        // SELECTシーンへ
-        ShowSongSelectScene();
-    }
+	POINT mousePoint;
+	GetCursorPos(&mousePoint);
+	HWND hwnd = GetActiveWindow();
+	ScreenToClient(hwnd, &mousePoint);
+
+	// 画面中心を原点(0,0)とし、Y軸を上がプラスになるよう変換
+	float uiX = static_cast<float>(mousePoint.x) - screenWidth * 0.5f;
+	float uiY = screenHeight * 0.5f - static_cast<float>(mousePoint.y);
+
+	return Vector2(uiX, uiY);
 }
 
-void app::test::TitleCanvas::ShowSongSelectScene()
+void TitleCanvas::ShowSongSelectScene()
 {
-    // シーンの読み込みが完了していたら
-    if (scene->StandbyThisScene())
-    {
-        // シーンを実体化させる
-        scene->Activate();
-    }
-
-    // 今いるシーンを消す
-    auto actor = actorRef.Target();
-    if (!actor) return;
-    auto* thisscene = &actor->GetScene();
-
-    thisscene->DeActivate();
+	if (scene->StandbyThisScene()) {
+		scene->Activate();
+	}
+	auto actor = actorRef.Target();
+	if (actor) {
+		actor->GetScene().DeActivate();
+	}
 }
 
-void app::test::TitleCanvas::ShowEditScene()
+void TitleCanvas::ShowEditScene()
 {
-    // ★ EDITシーンの起動
-    if (sceneEdit->StandbyThisScene()) {
-        sceneEdit->Activate();
-    }
-
-    // 今いるシーンを消す
-    auto actor = actorRef.Target();
-    if (!actor) return;
-    auto* thisscene = &actor->GetScene();
-    thisscene->DeActivate();
+	if (sceneEdit->StandbyThisScene()) {
+		sceneEdit->Activate();
+	}
+	auto actor = actorRef.Target();
+	if (actor) {
+		actor->GetScene().DeActivate();
+	}
 }
 
-int app::test::TitleCanvas::GetSelectedButton() const
+int TitleCanvas::GetSelectedButton() const
 {
-    return selectedButton;
+	return selectedButton;
 }
 
-void app::test::TitleCanvas::SetSelectedButton(int buttonIndex)
+void TitleCanvas::SetSelectedButton(int buttonIndex)
 {
-    if (buttonIndex >= 0 && buttonIndex <= 1) {
-        selectedButton = buttonIndex;
-        UpdateButtonSelection();
-    }
+	if (buttonIndex >= 0 && buttonIndex <= 1) {
+		selectedButton = buttonIndex;
+		UpdateButtonSelection();
+	}
 }

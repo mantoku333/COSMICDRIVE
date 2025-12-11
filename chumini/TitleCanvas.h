@@ -1,65 +1,52 @@
 #pragma once
 #include "App.h"
+#include "TextImage.h" // 追加: TextImageを使用するために必要
 
 namespace app
 {
 	namespace test
 	{
-		class TitleCanvas :public sf::ui::Canvas
+		class TitleCanvas : public sf::ui::Canvas
 		{
 		public:
-			void Begin()override;
+			void Begin() override;
 			void Update(const sf::command::ICommand&);
 
-            int GetSelectedButton() const;
-            void SetSelectedButton(int buttonIndex);
+			int GetSelectedButton() const;
+			void SetSelectedButton(int buttonIndex);
 
-        private:
-            // テクスチャ
-            sf::Texture textureTitleLogo;
-            sf::Texture textureEditButton;
-            sf::Texture texturePlayButton;
-            sf::Texture textureEditButtonSelected;
-            sf::Texture texturePlayButtonSelected;
+		private:
+			// --- UIオブジェクト（ImageからTextImageに変更） ---
+			sf::ui::TextImage* titleLogo = nullptr;
+			sf::ui::TextImage* playButton = nullptr;
+			sf::ui::TextImage* editButton = nullptr;
 
-            // UIオブジェクト
-            sf::ui::Image* titleLogo;
-            sf::ui::Image* editButton;
-            sf::ui::Image* playButton;
+			// --- 状態管理 ---
+			int selectedButton = 0; // 0: エディット, 1: プレイ
 
-            // 状態管理
-            int selectedButton; // 0: エディット, 1: プレイ
-
-            // メソッド
-            void HandleInput(const sf::command::ICommand& command);
-            void UpdateButtonSelection();
-            void OnButtonPressed();
+			// --- メソッド ---
+			void HandleInput(const sf::command::ICommand& command);
+			void UpdateButtonSelection();
+			void OnButtonPressed();
 
 			void ShowSongSelectScene();
-            void ShowEditScene();
+			void ShowEditScene();
 
-            enum class MouseButton {
-                Left,
-                Right,
-                Middle
-            };
+			// マウス座標取得用
+			Vector2 GetMousePosition();
 
-            bool IsMouseButtonPressed(MouseButton button);
+			// 当たり判定 (引数を TextImage* に変更)
+			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
 
-            // 画面サイズ（実際の値に設定してください）
-            static constexpr float screenWidth = 1920.0f;
-            static constexpr float screenHeight = 1080.0f;
-
-            // マウス操作用のメソッド
-            bool IsButtonHovered(const Vector2& mousePos, sf::ui::Image* button);
-            Vector2 GetMousePosition();
+			// 画面サイズ
+			static constexpr float screenWidth = 1920.0f;
+			static constexpr float screenHeight = 1080.0f;
 
 			sf::command::Command<> updateCommand;
-            // シーン
-            sf::SafePtr<sf::IScene> scene;
-            sf::SafePtr<sf::IScene> sceneEdit;
 
-
+			// シーン
+			sf::SafePtr<sf::IScene> scene;
+			sf::SafePtr<sf::IScene> sceneEdit;
 		};
 	}
 }
