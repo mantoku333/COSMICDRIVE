@@ -42,6 +42,9 @@ namespace app
 			static constexpr float screenWidth = 1920.0f;
 			static constexpr float screenHeight = 1080.0f;
 
+			float animationTimer = 0.0f;
+
+
 			sf::command::Command<> updateCommand;
 
 			// ÉVÅ[Éì

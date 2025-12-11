@@ -1,108 +1,264 @@
 #include "ResultCanvas.h"
 #include "JudgeStatsService.h"
-#include "SelectScene.h" // 戻る先のシーン（適宜変更してください）
+#include "SelectScene.h" 
+#include "DirectX11.h"
 #include <string>
+#include <cstdio>
+#include <vector>
 
 namespace app::test {
 
-    // 定数（TestCanvasと合わせる）
-    static constexpr float digitWidth = 100.0f;
-    static constexpr float digitHeight = 100.0f;
-    static constexpr float sheetWidth = 1000.0f;
-    static constexpr float sheetHeight = 100.0f;
+	void ResultCanvas::Begin() {
+		// 基底クラスの初期化
+		sf::ui::Canvas::Begin();
 
-    void ResultCanvas::Begin() {
-        sf::ui::Canvas::Begin();
+		// DirectXデバイスの取得
+		auto* dx11 = sf::dx::DirectX11::Instance();
+		auto context = dx11->GetMainDevice().GetDevice();
 
-        // ---------------------------------------------
-        // リソース読み込み
-        // ---------------------------------------------
-        // 背景や数字の画像を読み込む
-        textureBackground.LoadTextureFromFile("Assets/Texture/SelectBack.png"); // 適当な背景
-        textureNumber.LoadTextureFromFile("Assets/Texture/numbers.png");
+		// =========================================================
+		// 1. 背景の表示
+		// =========================================================
+		// 背景画像をロードして少し暗く表示し、文字を見やすくする
+		textureBackground.LoadTextureFromFile("Assets/Texture/SelectBack.png");
 
-        // 背景表示
-        auto bg = AddUI<sf::ui::Image>();
-        bg->transform.SetPosition(Vector3(0, 0, 0));
-        bg->transform.SetScale(Vector3(19.2f, 10.8f, 0)); // 画面全体
-        bg->material.texture = &textureBackground;
-        bg->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f }); // 少し暗くする
 
-        // ---------------------------------------------
-        // JudgeStatsService から結果を取得
-        // ---------------------------------------------
-        int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
-        int great = JudgeStatsService::GetCount(JudgeResult::Great);
-        int good = JudgeStatsService::GetCount(JudgeResult::Good);
-        int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
-        int maxCombo = JudgeStatsService::GetMaxCombo(); // ※MaxComboの実装があれば
+		// =========================================================
+		// 2. テキストUIの生成と配置
+		// =========================================================
 
-        // ---------------------------------------------
-        // 数字の描画 (座標は画面に合わせて調整してください)
-        // ---------------------------------------------
+		// --- "RESULT" 
+		resultLabel = AddUI<sf::ui::TextImage>();
+		resultLabel->transform.SetPosition(Vector3(0, 350, 0));
+		resultLabel->transform.SetScale(Vector3(8, 2, 0));
+		resultLabel->Create(
+			context,
+			L"RESULT",
+			L"851ゴチカクット",
+			100.0f,
+			D2D1::ColorF(D2D1::ColorF::Yellow),
+			512, 128
+		);
 
-        // Perfect
-        DrawNumber(perfect, 200, 300);
+		guideText = AddUI<sf::ui::TextImage>();
+		guideText->transform.SetPosition(Vector3(0, -400, 0)); 
+		guideText->transform.SetScale(Vector3(5, 1.5f, 0));
+		guideText->Create(
+			context,
+			L"---PRESS SPACE---",
+			L"851ゴチカクット",
+			70.0f,
+			D2D1::ColorF(D2D1::ColorF::White),
+			800, 128
+		);
 
-        // Great
-        DrawNumber(great, 200, 150);
+		// --- 判定内訳
+		judgeDetailText = AddUI<sf::ui::TextImage>();
+		judgeDetailText->transform.SetPosition(Vector3(-300, -100, 0));
+		judgeDetailText->transform.SetScale(Vector3(6, 8, 0));
+		judgeDetailText->Create(
+			context,
+			L"", // 後でセット
+			L"851ゴチカクット",
+			60.0f,
+			D2D1::ColorF(D2D1::ColorF::White),
+			512, 1024
+		);
 
-        // Good
-        DrawNumber(good, 200, 0);
+		// --- マックスコンボ
+		comboText = AddUI<sf::ui::TextImage>();
+		comboText->transform.SetPosition(Vector3(-300, -250, 0));
+		comboText->transform.SetScale(Vector3(8, 2, 0));
+		comboText->Create(
+			context,
+			L"",
+			L"851ゴチカクット",
+			70.0f,
+			D2D1::ColorF(D2D1::ColorF::Cyan),
+			1024, 256
+		);
 
-        // Miss
-        DrawNumber(miss, 200, -150);
+		// --- スコア
+		scoreText = AddUI<sf::ui::TextImage>();
+		scoreText->transform.SetPosition(Vector3(-300, 100, 0));
+		scoreText->transform.SetScale(Vector3(8, 2, 0));
+		scoreText->Create(
+			context,
+			L"",
+			L"851ゴチカクット",
+			120.0f,
+			D2D1::ColorF(D2D1::ColorF::White),
+			1024, 256
+		);
 
-        // Max Combo (あれば)
-        // DrawNumber(maxCombo, 600, 300);
+		// =========================================================
+		// 3. ランク表示 (超巨大文字 + ふち取り)
+		// =========================================================
 
-        // 戻る準備
-        if (nextScene.isNull()) {
-            // 例: SelectSceneへ戻る
-            nextScene = SelectScene::StandbyScene();
-        }
+		// ふちのズレ幅（太さ）
+		float outlineOffset = 4.0f;
+		Vector3 offsets[4] = {
+			Vector3(-outlineOffset, 0, 0), // 左
+			Vector3(outlineOffset, 0, 0), // 右
+			Vector3(0, -outlineOffset, 0), // 下
+			Vector3(0,  outlineOffset, 0)  // 上
+		};
 
-        updateCommand.Bind(std::bind(&ResultCanvas::Update, this, std::placeholders::_1));
-    }
+		// --- ふち文字 (奥に配置) ---
+		for (int i = 0; i < 4; ++i) {
+			rankOutline[i] = AddUI<sf::ui::TextImage>();
+			// 少しズラし、Z軸を奥(0.1f)にする
+			rankOutline[i]->transform.SetPosition(Vector3(350 + offsets[i].x, -100 + offsets[i].y, 0.1f));
+			rankOutline[i]->transform.SetScale(Vector3(20, 20, 0)); // 巨大サイズ
+			rankOutline[i]->Create(
+				context,
+				L"", // 後でランク文字を入れる
+				L"851ゴチカクット",
+				150.0f,
+				D2D1::ColorF(D2D1::ColorF::Black), // 初期色は黒
+				512, 512
+			);
+		}
 
-    void ResultCanvas::Update(const sf::command::ICommand&) {
+		// --- メイン文字 (手前に配置) ---
+		rankText = AddUI<sf::ui::TextImage>();
+		rankText->transform.SetPosition(Vector3(350, -100, 0));
+		rankText->transform.SetScale(Vector3(20, 20, 0));
+		rankText->Create(
+			context,
+			L"",
+			L"851ゴチカクット",
+			150.0f,
+			D2D1::ColorF(D2D1::ColorF::White),
+			512, 512
+		);
 
-        // スペースキーなどでセレクト画面へ戻る
-        if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-            if ( nextScene->StandbyThisScene()) {
-                nextScene->Activate();
+		// =========================================================
+		// 4. スコア計算 & ランク判定ロジック
+		// =========================================================
+		int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
+		int great = JudgeStatsService::GetCount(JudgeResult::Great);
+		int good = JudgeStatsService::GetCount(JudgeResult::Good);
+		int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
+		int maxCombo = JudgeStatsService::GetMaxCombo();
 
-                auto owner = actorRef.Target();
-                if (owner) owner->GetScene().DeActivate();
-            }
-        }
-    }
+		// 簡易スコア計算 (満点 1,000,000 点)
+		int totalNotes = perfect + great + good + miss;
+		int score = 0;
+		if (totalNotes > 0) {
+			// 配点: Perfect=1.0, Great=0.8, Good=0.5, Miss=0.0
+			double p = (perfect * 1.0 + great * 0.8 + good * 0.5) / totalNotes;
+			score = static_cast<int>(p * 1000000);
+		}
 
-    // 数字描画関数（指定座標にImageを生成して配置する）
-    void ResultCanvas::DrawNumber(int number, float x, float y, float scale) {
-        std::string str = std::to_string(number);
-        float charSpacing = (digitWidth - 60.0f) * scale; // 文字間隔
+		// --- ランクと色の決定 ---
+		std::wstring rankStr = L"C";
 
-        // 桁数分ループ
-        for (size_t i = 0; i < str.size(); ++i) {
-            int digit = str[i] - '0';
+		// デフォルト（Cランク）は緑
+		D2D1_COLOR_F mainColor = D2D1::ColorF(0.8f, 1.0f, 0.8f); // 薄い緑
+		D2D1_COLOR_F edgeColor = D2D1::ColorF(0.0f, 0.8f, 0.0f); // 濃い緑
 
-            // UV計算
-            float u0 = (digit * digitWidth) / sheetWidth;
-            float u1 = ((digit + 1) * digitWidth) / sheetWidth;
-            float v0 = 0.0f;
-            float v1 = digitHeight / sheetHeight;
+		if (score >= 1000000) {
+			rankStr = L"SSS";
+			// 金 (豪華)
+			mainColor = D2D1::ColorF(1.0f, 1.0f, 0.9f); // キラキラした白金
+			edgeColor = D2D1::ColorF(1.0f, 0.85f, 0.0f); // 純金
+		}
+		else if (score >= 900000) {
+			rankStr = L"SS";
+			// 金
+			mainColor = D2D1::ColorF(1.0f, 1.0f, 0.6f);
+			edgeColor = D2D1::ColorF(0.85f, 0.7f, 0.0f);
+		}
+		else if (score >= 800000) {
+			rankStr = L"S";
+			// 金 (スタンダード)
+			mainColor = D2D1::ColorF(1.0f, 0.95f, 0.4f);
+			edgeColor = D2D1::ColorF(0.8f, 0.6f, 0.0f);
+		}
+		else if (score >= 600000) {
+			rankStr = L"A";
+			// 赤
+			mainColor = D2D1::ColorF(1.0f, 0.8f, 0.8f); // 薄い赤
+			edgeColor = D2D1::ColorF(1.0f, 0.0f, 0.0f); // 真っ赤
+		}
+		else if (score >= 400000) {
+			rankStr = L"B";
+			// 青
+			mainColor = D2D1::ColorF(0.8f, 0.9f, 1.0f); // 薄い青
+			edgeColor = D2D1::ColorF(0.0f, 0.0f, 1.0f); // 純青
+		}
+		else {
+			rankStr = L"C";
+			// 緑
+			mainColor = D2D1::ColorF(0.8f, 1.0f, 0.8f); // 薄い緑
+			edgeColor = D2D1::ColorF(0.0f, 0.7f, 0.0f); // 濃い緑
+		}
 
-            // UI生成
-            auto img = AddUI<sf::ui::Image>();
+		// =========================================================
+		// 5. テキストへの値セット
+		// =========================================================
 
-            // 座標計算（左揃えの例）
-            float posX = x + i * charSpacing;
+		// 判定詳細
+		wchar_t detailBuf[256];
+		swprintf_s(detailBuf,
+			L"PERFECT: %d\n"
+			L"GREAT:   %d\n"
+			L"GOOD:    %d\n"
+			L"MISS:    %d",
+			perfect, great, good, miss);
+		judgeDetailText->SetText(detailBuf);
 
-            img->transform.SetPosition(Vector3(posX, y, 0));
-            img->transform.SetScale(Vector3(scale, scale, 0));
-            img->material.texture = &textureNumber;
-            img->SetUV(u0, v0, u1, v1);
-        }
-    }
-}
+		// マックスコンボ
+		wchar_t comboBuf[64];
+		swprintf_s(comboBuf, L"MAX COMBO: %d", maxCombo);
+		comboText->SetText(comboBuf);
+
+		// スコア
+		wchar_t scoreBuf[64];
+		swprintf_s(scoreBuf, L"SCORE: %d", score);
+		scoreText->SetText(scoreBuf);
+
+		// ランク (本体)
+		rankText->SetText(rankStr);
+		rankText->material.SetColor({ mainColor.r, mainColor.g, mainColor.b, 1.0f });
+
+		// ランク (ふち)
+		for (int i = 0; i < 4; ++i) {
+			if (rankOutline[i]) {
+				rankOutline[i]->SetText(rankStr);
+				rankOutline[i]->material.SetColor({ edgeColor.r, edgeColor.g, edgeColor.b, 1.0f });
+			}
+		}
+
+		// =========================================================
+		// 6. シーン遷移準備
+		// =========================================================
+		if (nextScene.isNull()) {
+			nextScene = SelectScene::StandbyScene();
+		}
+
+		updateCommand.Bind(std::bind(&ResultCanvas::Update, this, std::placeholders::_1));
+	}
+
+	void ResultCanvas::Update(const sf::command::ICommand&) {
+
+		// 点滅アニメーション
+		timer += sf::Time::DeltaTime();
+		if (guideText) {
+			float alpha = 0.65f + 0.35f * std::sin(timer * 3.0f);
+			guideText->material.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
+		}
+
+		// スペースキーでセレクト画面へ戻る
+		if (SInput::Instance().GetKeyDown(Key::SPACE)) {
+			if (nextScene->StandbyThisScene()) {
+				nextScene->Activate();
+
+				auto owner = actorRef.Target();
+				if (owner) owner->GetScene().DeActivate();
+			}
+		}
+	}
+
+} // namespace app::test

@@ -37,6 +37,8 @@ namespace app::test {
         std::string artist;
         std::string jacketFile;
         std::string waveFile;
+        int bpm = 0;
+
         int level = 0;
         int difficulty = 0;
 

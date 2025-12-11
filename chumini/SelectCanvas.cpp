@@ -35,7 +35,7 @@ namespace app::test {
         return wstr;
     }
 
-    // ★★★ 追加: UTF-8 -> Shift-JIS (ログ表示 & 古いAPI用) ★★★
+    // UTF-8 -> Shift-JIS (ログ表示 & 古いAPI用) 
     // これを通さないと、日本語パスの画像読み込みやログ出力が失敗します
     static std::string Utf8ToShiftJis(const std::string& utf8Str) {
         // 1. UTF-8 -> Unicode (wstring)
@@ -95,6 +95,17 @@ namespace app::test {
             songTitleText->SetText(title);
         }
 
+        // ★追加: アーティスト
+        if (artistText) {
+            artistText->SetText(Utf8ToWstring(songs[targetIndex].artist));
+        }
+
+        // ★追加: BPM
+        if (bpmText) {
+            std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
+            bpmText->SetText(bpmStr);
+        }
+
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
     }
 
@@ -152,7 +163,7 @@ namespace app::test {
                                 info.musicPath = WstringToUtf8(fullWavePath.wstring());
                             }
 
-                            info.bpm = "???";
+                            info.bpm = std::to_string(parser.bpm);
                             songs.push_back(info);
 
                             // ★ログ文字化け対策: Shift-JISに変換して表示
@@ -280,14 +291,48 @@ namespace app::test {
 
         songTitleText = AddUI<sf::ui::TextImage>();
         songTitleText->transform.SetPosition(Vector3(0, -270, 0));
-        songTitleText->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
+        songTitleText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         songTitleText->Create(
             device,
             L"",
             L"851ゴチカクット",
             120.0f,
             D2D1::ColorF(D2D1::ColorF::White),
-            1024, 200);
+            1800, 200);
+
+        // ---------------------------------------------------------
+    // ★追加: アーティスト名 (タイトルの下)
+    // ---------------------------------------------------------
+        artistText = AddUI<sf::ui::TextImage>();
+        // Y座標をタイトル(-270)より下げる (-350あたり)
+        artistText->transform.SetPosition(Vector3(0, -350, 0));
+        // スケールはタイトルより少し小さく
+        artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
+        artistText->Create(
+            device,
+            L"", // 初期値
+            L"851ゴチカクット",
+            80.0f, // フォントサイズ少し小さめ
+            D2D1::ColorF(D2D1::ColorF::LightGray), // 色を少しグレーにすると階層感が出る
+            1024, 200
+        );
+
+        // ---------------------------------------------------------
+        // ★追加: BPM表示 (さらに下)
+        // ---------------------------------------------------------
+        bpmText = AddUI<sf::ui::TextImage>();
+        // Y座標をさらに下げる (-420あたり)
+        bpmText->transform.SetPosition(Vector3(0, -420, 0));
+        bpmText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
+        bpmText->Create(
+            device,
+            L"", // 初期値
+            L"851ゴチカクット",
+            80.0f, // フォントサイズ少し小さめ
+            D2D1::ColorF(D2D1::ColorF::LightGray), // 色を少しグレーにすると階層感が出る
+            1024, 200
+        );
+
     }
 
     // ===== ジャケット再構築 =====
@@ -454,6 +499,19 @@ namespace app::test {
             songTitleText->SetText(title);
         }
 
+        // アーティスト更新
+        if (artistText) {
+            std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
+            artistText->SetText(artist);
+        }
+
+        // BPM更新
+        if (bpmText) {
+            std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
+            bpmText->SetText(bpmStr);
+        }
+
+
         // ★文字化け対策: Shift-JIS変換してログ出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
     }
@@ -471,6 +529,17 @@ namespace app::test {
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
+        }
+        // アーティスト更新
+        if (artistText) {
+            std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
+            artistText->SetText(artist);
+        }
+
+        // BPM更新
+        if (bpmText) {
+            std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
+            bpmText->SetText(bpmStr);
         }
 
         // ★文字化け対策

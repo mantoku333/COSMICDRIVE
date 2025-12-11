@@ -3,6 +3,7 @@
 #include "TitleScene.h"
 #include "SelectScene.h"	
 #include "ControlCamera.h"
+#include "ResultScene.h"
 
 void app::ResidentScene::Init()
 {
@@ -28,6 +29,7 @@ void app::ResidentScene::LoadLoadingScene()
 	auto scene = test::TitleScene::StandbyScene();
 	//auto scene = test::SelectScene::StandbyScene();
 	//auto scene = test::TestScene::StandbyScene();
+	//auto scene = test::ResultScene::StandbyScene();
 
 	while (1)
 	{

@@ -78,6 +78,9 @@ namespace app {
 
             sf::ui::TextImage* titleOutline[4] = { nullptr };
 
+            sf::ui::TextImage* artistText = nullptr;
+            sf::ui::TextImage* bpmText = nullptr;
+
             // 画面中央座標（既存定義と合わせる）
             static constexpr float CENTER_X = 0.0f;
             static constexpr float CENTER_Y = -100.0f;

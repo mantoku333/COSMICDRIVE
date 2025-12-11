@@ -1,23 +1,30 @@
 #pragma once
 #include "App.h"
+#include "TextImage.h"
 
 namespace app::test {
-    class ResultCanvas : public sf::ui::Canvas {
-    public:
-        void Begin() override;
-        void Update(const sf::command::ICommand&);
+	class ResultCanvas : public sf::ui::Canvas {
+	public:
+		void Begin() override;
+		void Update(const sf::command::ICommand&);
 
-    private:
-        sf::Texture textureBackground;
-        sf::Texture textureNumber;
+	private:
+		sf::Texture textureBackground;
 
-        // 数字描画用のヘルパー関数
-        void DrawNumber(int number, float x, float y, float scale = 0.5f);
+		sf::ui::TextImage* resultLabel = nullptr;
+		sf::ui::TextImage* scoreText = nullptr;
 
-        // キー入力待ち用
-        sf::command::Command<> updateCommand;
+		// ランク表示用
+		sf::ui::TextImage* rankText = nullptr;       // メイン（手前）
+		sf::ui::TextImage* rankOutline[4] = { nullptr }; // ★追加: ふち用（奥）
 
-        // 次のシーンへ（タイトルやセレクトへ戻る用）
-        sf::SafePtr<sf::IScene> nextScene;
-    };
+		sf::ui::TextImage* comboText = nullptr;
+		sf::ui::TextImage* judgeDetailText = nullptr;
+
+		sf::ui::TextImage* guideText = nullptr;
+		float timer = 0.0f;
+
+		sf::command::Command<> updateCommand;
+		sf::SafePtr<sf::IScene> nextScene;
+	};
 }

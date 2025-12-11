@@ -21,7 +21,7 @@ void TitleCanvas::Begin()
 	auto context = dx11->GetMainDevice().GetDevice();
 
 	// ---------------------------------------------------------
-	// ★復活：名前・学校名の表示
+	// 名前・学校名の表示
 	// ---------------------------------------------------------
 	auto titleText = AddUI<sf::ui::TextImage>();
 	titleText->transform.SetPosition(Vector3(-650, -400, 0));
@@ -37,23 +37,23 @@ void TitleCanvas::Begin()
 
 
 	// ---------------------------------------------------------
-	// 1. タイトルロゴ (テキスト化)
+	// 1. タイトルロゴ
 	// ---------------------------------------------------------
 	titleLogo = AddUI<sf::ui::TextImage>();
-	titleLogo->transform.SetPosition(Vector3(0, 300, 0)); // 上の方に配置
+	titleLogo->transform.SetPosition(Vector3(0, 250, 0)); // 上の方に配置
 	titleLogo->transform.SetScale(Vector3(15, 5, 0));     // 大きく表示
 
 	titleLogo->Create(
 		context,
-		L"†COSMIC 滅†",         // タイトル文字列
+		L"COSMIC DRIVE",         // タイトル文字列
 		L"851ゴチカクット",              // フォント名
 		120.0f,                 // フォントサイズ
 		D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 色
-		1024, 256               // テクスチャサイズ
+		1500, 256               // テクスチャサイズ
 	);
 
 	// ---------------------------------------------------------
-	// 2. プレイボタン (テキスト化)
+	// 2. プレイボタン
 	// ---------------------------------------------------------
 	playButton = AddUI<sf::ui::TextImage>();
 	playButton->transform.SetPosition(Vector3(0, -100, 0)); // 中央
@@ -69,10 +69,10 @@ void TitleCanvas::Begin()
 	);
 
 	// ---------------------------------------------------------
-	// 3. エディットボタン (テキスト化)
+	// 3. エディットボタン
 	// ---------------------------------------------------------
 	editButton = AddUI<sf::ui::TextImage>();
-	editButton->transform.SetPosition(Vector3(0, -400, 0)); // 下の方
+	editButton->transform.SetPosition(Vector3(0, -300, 0)); // 下の方
 	editButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	editButton->Create(
@@ -103,6 +103,8 @@ void TitleCanvas::Begin()
 
 void TitleCanvas::Update(const sf::command::ICommand& command)
 {
+	animationTimer += sf::Time::DeltaTime();
+
 	HandleInput(command);
 	UpdateButtonSelection();
 }
@@ -148,27 +150,61 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 
 void TitleCanvas::UpdateButtonSelection()
 {
-	// 選択されているボタンを強調表示（色とサイズを変更）
+	// ---------------------------------------------------------
+	// アニメーション計算 (sin波)
+	// ---------------------------------------------------------
+	// 速度: 10.0f
+	float sine = std::sin(animationTimer * 7.0f);
+
+	// サイズ変動
+	float scaleOffset = 0.1f * sine;
+
+	// 透明度を 0.5 ～ 1.0 の間で揺らす
+	// (sine + 1.0f) * 0.5f で 0~1 になる
+	float alphaAnim = 0.5f + 0.5f * ((sine + 1.0f) * 0.5f);
+
+	// ---------------------------------------------------------
+	// パラメータ定義
+	// ---------------------------------------------------------
+
+	// 基本サイズ
+	Vector3 scaleNormal(4.0f, 1.5f, 0);       // 非選択時
+	Vector3 scaleSelectedBase(4.5f, 1.7f, 0); // 選択時の基準
+
+	// 現在のアニメーション適用後の選択時サイズ
+	Vector3 scaleSelectedAnim = Vector3(
+		scaleSelectedBase.x + scaleOffset,
+		scaleSelectedBase.y + scaleOffset * 0.4f, // 縦の変動は少し控えめに
+		0
+	);
 
 	// 色定義
-	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, 1.0f); // 黄色（不透明）
-	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f); // 灰色（半透明）
+	// 選択中：黄色 + アニメーション透明度
+	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, alphaAnim);
+	// 非選択：灰色（半透明固定）
+	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f);
 
+
+	// ---------------------------------------------------------
+	// 適用
+	// ---------------------------------------------------------
 	if (selectedButton == 0) {
-		// --- Edit選択中 ---
+		// --- Edit選択中 (アニメーション) ---
+		editButton->transform.SetScale(scaleSelectedAnim);
 		editButton->material.SetColor(colorSelected);
-		editButton->transform.SetScale(Vector3(4.5f, 1.7f, 0)); // 少し大きく
 
+		// --- Play非選択 (固定) ---
+		playButton->transform.SetScale(scaleNormal);
 		playButton->material.SetColor(colorNormal);
-		playButton->transform.SetScale(Vector3(4.0f, 1.5f, 0)); // 普通サイズ
 	}
 	else {
-		// --- Play選択中 ---
+		// --- Play選択中 (アニメーション) ---
+		playButton->transform.SetScale(scaleSelectedAnim);
 		playButton->material.SetColor(colorSelected);
-		playButton->transform.SetScale(Vector3(4.5f, 1.7f, 0));
 
+		// --- Edit非選択 (固定) ---
+		editButton->transform.SetScale(scaleNormal);
 		editButton->material.SetColor(colorNormal);
-		editButton->transform.SetScale(Vector3(4.0f, 1.5f, 0));
 	}
 }
 
@@ -189,8 +225,7 @@ bool TitleCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* bu
 	Vector3 pos = button->transform.GetPosition();
 	Vector3 scale = button->transform.GetScale();
 
-	// TextImageの当たり判定サイズ調整
-	// ※見た目に合わせて数値を調整してください (ここでは 幅80, 高さ40 を基準)
+	// TextImageの当たり判定
 	float width = scale.x * 80.0f;
 	float height = scale.y * 40.0f;
 

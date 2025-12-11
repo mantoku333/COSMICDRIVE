@@ -59,7 +59,7 @@ namespace app::test {
 
 		// 3. 判定数内訳
 		judgeStatsText = AddUI<sf::ui::TextImage>();
-		judgeStatsText->transform.SetPosition(Vector3(-200, 500, 0));
+		judgeStatsText->transform.SetPosition(Vector3(-700, 0, 0));
 		judgeStatsText->transform.SetScale(Vector3(5, 5, 0));
 		judgeStatsText->Create(context, L"PERFECT: 0\n...", L"851ゴチカクット", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 512);
 
@@ -165,12 +165,12 @@ namespace app::test {
 
 		switch (result) {
 		case JudgeResult::Perfect:
-			judgeResultText->SetText(L"PERFECT!!");
+			judgeResultText->SetText(L"PERFECT");
 			judgeResultText->material.SetColor({ 1.0f, 0.8f, 0.0f, 1.0f }); // 金
 			break;
 
 		case JudgeResult::Great:
-			judgeResultText->SetText(L"GREAT!");
+			judgeResultText->SetText(L"GREAT");
 			judgeResultText->material.SetColor({ 1.0f, 0.4f, 0.7f, 1.0f }); // ピンク
 			break;
 
@@ -180,14 +180,14 @@ namespace app::test {
 			break;
 
 		case JudgeResult::Miss:
-			judgeResultText->SetText(L"MISS...");
+			judgeResultText->SetText(L"MISS");
 			judgeResultText->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f }); // 灰
 			break;
 
 		case JudgeResult::None:
 		default:
 			// Noneの時は何も表示しない等の処理
-			// judgeResultText->SetText(L"");
+			judgeResultText->SetText(L"");
 			break;
 		}
 	}

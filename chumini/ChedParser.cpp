@@ -25,11 +25,9 @@ namespace app::test {
     }
 
     // string (Unknown) -> wstring (UTF-16)
-    // UTF-8として変換を試み、失敗したらShift-JIS(CP_ACP)として変換する
     static std::wstring AnyToWString(const std::string& str) {
         if (str.empty()) return L"";
 
-        // UTF-8として変換を試みる
         int sizeUtf8 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.c_str(), -1, nullptr, 0);
         if (sizeUtf8 > 0) {
             std::wstring wstr(sizeUtf8, 0);
@@ -38,7 +36,6 @@ namespace app::test {
             return wstr;
         }
 
-        // 失敗したらShift-JISとして変換
         int sizeAcp = MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, nullptr, 0);
         if (sizeAcp > 0) {
             std::wstring wstr(sizeAcp, 0);
@@ -47,10 +44,10 @@ namespace app::test {
             return wstr;
         }
 
-        return L""; // 変換不能
+        return L"";
     }
 
-    // ログ出力用 (wstring -> Shift-JIS string)
+    // ログ出力用
     static std::string WStringToLog(const std::wstring& wstr) {
         if (wstr.empty()) return "";
         int size = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
@@ -61,9 +58,6 @@ namespace app::test {
         return str;
     }
 
-    // -----------------------------
-    // その他ヘルパ
-    // -----------------------------
     static int DecodeBase36Char(char c) {
         if ('0' <= c && c <= '9') return c - '0';
         if ('A' <= c && c <= 'Z') return c - 'A' + 10;
@@ -82,7 +76,7 @@ namespace app::test {
         if (s.size() >= 2 && s.front() == L'"' && s.back() == L'"') {
             s = s.substr(1, s.size() - 2);
         }
-        return WStringToUtf8(s); // UTF-8にして返す
+        return WStringToUtf8(s);
     }
 
     struct BarInfo { int measureStart; int ticksPerMeasure; int startTick; };
@@ -94,14 +88,13 @@ namespace app::test {
     {
         // 初期化
         title = ""; artist = ""; jacketFile = ""; waveFile = "";
-        level = 0; difficulty = 0;
+        level = 0; difficulty = 0; bpm = 0; // ★初期化
         notes.clear(); tempos.clear(); bpmTable.clear();
         ticksPerBeat = 480;
 
-        // ログ出力 
         sf::debug::Debug::Log("ChedParser::Load: " + WStringToLog(path) + (headerOnly ? " (HeaderOnly)" : ""));
 
-        std::ifstream file(path, std::ios::binary); // バイナリで開く(改行コード補正の回避)
+        std::ifstream file(path, std::ios::binary);
         if (!file) {
             sf::debug::Debug::LogError("Ched譜面読み込み失敗");
             return false;
@@ -114,11 +107,9 @@ namespace app::test {
         // 1パス目: 行読み込み & メタデータ解析
         // -----------------------------
         while (std::getline(file, rawLine)) {
-            // 末尾の\r削除
             if (!rawLine.empty() && rawLine.back() == '\r') rawLine.pop_back();
             if (rawLine.empty()) continue;
 
-            // Unicode(wstring)に変換してから処理
             std::wstring line = AnyToWString(rawLine);
             TrimW(line);
 
@@ -140,7 +131,6 @@ namespace app::test {
                     cmd = line;
                 }
 
-                // メンバ変数には UTF-8 string として保存する
                 if (cmd == L"#TITLE") { title = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#ARTIST") { artist = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#JACKET") { jacketFile = RemoveQuotesAndToUtf8(val); continue; }
@@ -158,16 +148,28 @@ namespace app::test {
                     }
                     continue;
                 }
-            }
 
-            // ヘッダのみモード判定 (# + 数字3桁)
-            if (headerOnly) {
-                if (line.size() > 4 && line[0] == L'#' &&
-                    iswdigit(line[1]) && iswdigit(line[2]) && iswdigit(line[3]))
-                {
-                    return true;
+                // ★追加: BPMを見つけたら即確保して、headerOnlyなら終了！
+                // "#BPM" で始まるコマンド (例: #BPM01)
+                if (cmd.find(L"#BPM") == 0) {
+                    try {
+                        double d = std::stod(val);
+                        // 最初に見つかったBPMを採用（すでにセットされていれば上書きしないなど調整可）
+                        if (this->bpm == 0) {
+                            this->bpm = static_cast<int>(d);
+                        }
+                    }
+                    catch (...) {}
+
+                    // ヘッダ読み込みモードなら、BPMが取れた時点で満足して帰る
+                    if (headerOnly && this->bpm > 0) {
+                        return true;
+                    }
                 }
             }
+
+            // ★削除: ここにあった「headerOnlyなら #00xxx で抜ける」処理は削除しました
+            // これでファイル後半にあるBPM定義まで読み進めることができます。
 
             // 譜面データをバッファリング
             if (line[0] == L'#') {
@@ -176,12 +178,9 @@ namespace app::test {
                     std::wstring headW = line.substr(1, colonPos - 1);
                     std::wstring dataW = line.substr(colonPos + 1);
                     TrimW(dataW);
-
-                    // 空白除去
                     dataW.erase(std::remove_if(dataW.begin(), dataW.end(), [](wchar_t c) { return iswspace(c); }), dataW.end());
 
                     if (!dataW.empty()) {
-                        // データ部はASCII文字しかないのでstringに戻して保存する
                         std::string head(headW.begin(), headW.end());
                         std::string data(dataW.begin(), dataW.end());
                         scoreLines.emplace_back(std::move(head), std::move(data));
@@ -190,10 +189,11 @@ namespace app::test {
             }
         }
 
+        // ここまで来たらファイル末尾 (headerOnly でもBPMが見つからなかった場合など)
         if (headerOnly) return true;
 
         // =================================================================
-        // 譜面解析 
+        // 譜面解析 (Full Load)
         // =================================================================
 
         std::vector<std::pair<int, double>> barLengths;
@@ -239,7 +239,7 @@ namespace app::test {
             return baseTick + (index * tpm) / total;
             };
 
-        // BPM
+        // BPMテーブル構築
         for (auto& h : scoreLines) {
             if (h.first.size() == 5 && h.first.rfind("BPM", 0) == 0) {
                 std::string idStr = h.first.substr(3, 2);
@@ -317,13 +317,20 @@ namespace app::test {
             return a.absBeat < b.absBeat;
             });
 
-        // Time Calc
+        // Time Calc & BPM Finalize
         {
             double currentBpm = 120.0;
             if (!bpmTable.empty()) {
                 if (bpmTable.count(1)) currentBpm = bpmTable[1];
                 else currentBpm = bpmTable.begin()->second;
             }
+
+            // もし headerOnly でBPMが取れていなくても、ここで確実にセットする
+            if (this->bpm == 0) {
+                this->bpm = static_cast<int>(currentBpm);
+            }
+
+            sf::debug::Debug::Log("Initial BPM: " + std::to_string(currentBpm));
 
             double currentTime = 0.0;
             double lastEventBeat = 0.0;
