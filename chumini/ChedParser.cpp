@@ -24,7 +24,7 @@ namespace app::test {
         return str;
     }
 
-    // string (Unknown) -> wstring (UTF-16)
+    // string -> wstring (UTF-16)
     static std::wstring AnyToWString(const std::string& str) {
         if (str.empty()) return L"";
 
@@ -58,6 +58,8 @@ namespace app::test {
         return str;
     }
 
+    // 36進数デコード ('0'-'9', 'A'-'Z', 'a'-'z' -> 0-35)
+    // 譜面データ列の解析に使用
     static int DecodeBase36Char(char c) {
         if ('0' <= c && c <= '9') return c - '0';
         if ('A' <= c && c <= 'Z') return c - 'A' + 10;
@@ -65,6 +67,7 @@ namespace app::test {
         return 0;
     }
 
+    // 文字列の前後の空白除去
     static void TrimW(std::wstring& s) {
         auto first = s.find_first_not_of(L" \t\r\n");
         if (first == std::wstring::npos) { s.clear(); return; }
@@ -72,6 +75,7 @@ namespace app::test {
         s = s.substr(first, last - first + 1);
     }
 
+    // 文字列からダブルクォートを除去してUTF-8化
     static std::string RemoveQuotesAndToUtf8(std::wstring s) {
         if (s.size() >= 2 && s.front() == L'"' && s.back() == L'"') {
             s = s.substr(1, s.size() - 2);
@@ -88,7 +92,7 @@ namespace app::test {
     {
         // 初期化
         title = ""; artist = ""; jacketFile = ""; waveFile = "";
-        level = 0; difficulty = 0; bpm = 0; // ★初期化
+        level = 0; difficulty = 0; bpm = 0; 
         notes.clear(); tempos.clear(); bpmTable.clear();
         ticksPerBeat = 480;
 
@@ -101,21 +105,26 @@ namespace app::test {
         }
 
         std::string rawLine;
+
+        // 譜面データ行を一時保存するバッファ
         std::vector<std::pair<std::string, std::string>> scoreLines;
 
         // -----------------------------
         // 1パス目: 行読み込み & メタデータ解析
         // -----------------------------
         while (std::getline(file, rawLine)) {
+            // 改行コード処理
             if (!rawLine.empty() && rawLine.back() == '\r') rawLine.pop_back();
             if (rawLine.empty()) continue;
 
+            // 文字コード変換
             std::wstring line = AnyToWString(rawLine);
             TrimW(line);
 
+            // コメント行スキップ
             if (line.empty() || line.find(L"//") == 0) continue;
 
-            // メタデータ解析 (#コマンド)
+            // メタデータ解析
             if (line[0] == L'#') {
                 std::wstring cmd, val;
                 size_t sp = line.find_first_of(L" \t");
@@ -131,6 +140,7 @@ namespace app::test {
                     cmd = line;
                 }
 
+                // ヘッダ情報の取得
                 if (cmd == L"#TITLE") { title = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#ARTIST") { artist = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#JACKET") { jacketFile = RemoveQuotesAndToUtf8(val); continue; }
@@ -148,13 +158,11 @@ namespace app::test {
                     }
                     continue;
                 }
-
-                // ★追加: BPMを見つけたら即確保して、headerOnlyなら終了！
-                // "#BPM" で始まるコマンド (例: #BPM01)
+                // "#BPM"
                 if (cmd.find(L"#BPM") == 0) {
                     try {
                         double d = std::stod(val);
-                        // 最初に見つかったBPMを採用（すでにセットされていれば上書きしないなど調整可）
+                        // InitBPMをInfoに投げる
                         if (this->bpm == 0) {
                             this->bpm = static_cast<int>(d);
                         }
@@ -167,9 +175,6 @@ namespace app::test {
                     }
                 }
             }
-
-            // ★削除: ここにあった「headerOnlyなら #00xxx で抜ける」処理は削除しました
-            // これでファイル後半にあるBPM定義まで読み進めることができます。
 
             // 譜面データをバッファリング
             if (line[0] == L'#') {
@@ -189,13 +194,14 @@ namespace app::test {
             }
         }
 
-        // ここまで来たらファイル末尾 (headerOnly でもBPMが見つからなかった場合など)
+		// ヘッダ読み込みの際はここで終了
         if (headerOnly) return true;
 
         // =================================================================
         // 譜面解析 (Full Load)
         // =================================================================
 
+		// 小節長テーブル構築
         std::vector<std::pair<int, double>> barLengths;
         for (auto& h : scoreLines) {
             if (h.first.size() == 5 && h.first.substr(3, 2) == "02") {
@@ -207,16 +213,19 @@ namespace app::test {
                 catch (...) {}
             }
         }
+        // デフォルトは 4/4拍子
         if (barLengths.empty()) barLengths.emplace_back(0, 4.0);
 
         std::sort(barLengths.begin(), barLengths.end(), [](auto& a, auto& b) { return a.first < b.first; });
 
+        // 各小節の開始Tickを累積計算
         std::vector<BarInfo> bars;
         int accumTicks = 0;
         for (size_t i = 0; i < barLengths.size(); ++i) {
             int measure = barLengths[i].first;
             double beats = barLengths[i].second;
             if (i > 0) {
+                // 前の小節区間の長さを足し合わせる
                 int prevMeasure = barLengths[i - 1].first;
                 double prevBeats = barLengths[i - 1].second;
                 accumTicks += static_cast<int>((measure - prevMeasure) * prevBeats * ticksPerBeat);
@@ -224,6 +233,7 @@ namespace app::test {
             bars.push_back(BarInfo{ measure, static_cast<int>(beats * ticksPerBeat), accumTicks });
         }
 
+        // 指定小節の情報を取得
         auto findBar = [&](int measure) -> const BarInfo& {
             const BarInfo* current = &bars.front();
             for (auto& b : bars) {
@@ -232,6 +242,7 @@ namespace app::test {
             return *current;
             };
 
+        // 曲頭からの秒数へ変換
         auto ToGlobalTick = [&](int measure, int index, int total) -> int {
             const BarInfo& bar = findBar(measure);
             int tpm = bar.ticksPerMeasure;
@@ -250,7 +261,7 @@ namespace app::test {
             }
         }
 
-        // Notes
+		// Notesを構築
         for (auto& h : scoreLines) {
             if (h.first.size() < 5 || !std::isdigit(h.first[0])) continue;
 
@@ -259,9 +270,10 @@ namespace app::test {
             catch (...) { continue; }
             std::string ch = h.first.substr(3, 2);
             const std::string& data = h.second;
-            const int total = (int)data.size() / 2;
+            const int total = (int)data.size() / 2; // 2文字で1オブジェクト
             if (total <= 0) continue;
 
+            // 08: BPM変更
             if (ch == "08") {
                 for (int i = 0; i < total; ++i) {
                     std::string token = data.substr(i * 2, 2);
@@ -280,9 +292,12 @@ namespace app::test {
                 continue;
             }
 
+            // 1n: 通常ノーツ
             if (ch[0] == '1') {
                 char laneChar = ch[1];
                 int rawLane = DecodeBase36Char(laneChar);
+
+				// 4k用に標準化 ここ可変にするとレーン増やせる
                 int standardLane = std::clamp(rawLane / 4, 0, 3);
 
                 for (int i = 0; i < total; ++i) {
@@ -292,8 +307,9 @@ namespace app::test {
                     NoteType type = NoteType::Tap;
                     int targetLane = standardLane;
 
-                    if (token == "44") type = NoteType::SongEnd;
-                    else if (token == "24") targetLane = 4;
+                    // コマンド判定
+                    if (token == "44") type = NoteType::SongEnd; // 楽曲終了
+                    else if (token == "24") targetLane = 4; // サイドレーンに流す
                     else {
                         if (DecodeBase36Char(token[1]) <= 0) continue;
                     }
@@ -310,6 +326,7 @@ namespace app::test {
             }
         }
 
+        // 時間順ソート
         std::sort(notes.begin(), notes.end(), [](const ChedNote& a, const ChedNote& b) {
             return a.absBeat < b.absBeat;
             });
@@ -325,23 +342,27 @@ namespace app::test {
                 else currentBpm = bpmTable.begin()->second;
             }
 
-            // もし headerOnly でBPMが取れていなくても、ここで確実にセットする
+
             if (this->bpm == 0) {
                 this->bpm = static_cast<int>(currentBpm);
             }
 
             sf::debug::Debug::Log("Initial BPM: " + std::to_string(currentBpm));
 
-            double currentTime = 0.0;
-            double lastEventBeat = 0.0;
+            double currentTime = 0.0;   // 現在の累積時間(秒)
+            double lastEventBeat = 0.0; // 最後に計算した時点の拍数
             auto tempoIt = tempos.begin();
 
+            // 曲頭(0拍目)にBPM変更がある場合の処理
             if (tempoIt != tempos.end() && tempoIt->absBeat == 0.0) {
                 currentBpm = tempoIt->bpm;
                 tempoIt++;
             }
 
+            // すべてのノーツに対して時間を計算する
             for (auto& note : notes) {
+
+                // ノーツの場所より前にBPM変更イベントがあれば、そこまでの時間を加算してBPMを更新
                 while (tempoIt != tempos.end() && tempoIt->absBeat <= note.absBeat) {
                     double beatDist = tempoIt->absBeat - lastEventBeat;
                     currentTime += beatDist * (60.0 / currentBpm);
@@ -354,7 +375,7 @@ namespace app::test {
             }
         }
 
-        sf::debug::Debug::Log("ChedFullLoad完了: Notes=" + std::to_string(notes.size()));
+        sf::debug::Debug::Log("FullLoad完了: Notes=" + std::to_string(notes.size()));
         return true;
     }
 

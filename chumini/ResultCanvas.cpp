@@ -16,15 +16,9 @@ namespace app::test {
 		auto* dx11 = sf::dx::DirectX11::Instance();
 		auto context = dx11->GetMainDevice().GetDevice();
 
-		// =========================================================
-		// 1. 背景の表示
-		// =========================================================
-		// 背景画像をロードして少し暗く表示し、文字を見やすくする
-		textureBackground.LoadTextureFromFile("Assets/Texture/SelectBack.png");
-
 
 		// =========================================================
-		// 2. テキストUIの生成と配置
+		// テキストUIの生成と配置
 		// =========================================================
 
 		// --- "RESULT" 
@@ -92,7 +86,7 @@ namespace app::test {
 		);
 
 		// =========================================================
-		// 3. ランク表示 (超巨大文字 + ふち取り)
+		// 3. ランク表示
 		// =========================================================
 
 		// ふちのズレ幅（太さ）
@@ -108,7 +102,7 @@ namespace app::test {
 		for (int i = 0; i < 4; ++i) {
 			rankOutline[i] = AddUI<sf::ui::TextImage>();
 			// 少しズラし、Z軸を奥(0.1f)にする
-			rankOutline[i]->transform.SetPosition(Vector3(350 + offsets[i].x, -100 + offsets[i].y, 0.1f));
+			rankOutline[i]->transform.SetPosition(Vector3(450 + offsets[i].x, -100 + offsets[i].y, 0.1f));
 			rankOutline[i]->transform.SetScale(Vector3(20, 20, 0)); // 巨大サイズ
 			rankOutline[i]->Create(
 				context,
@@ -122,7 +116,7 @@ namespace app::test {
 
 		// --- メイン文字 (手前に配置) ---
 		rankText = AddUI<sf::ui::TextImage>();
-		rankText->transform.SetPosition(Vector3(350, -100, 0));
+		rankText->transform.SetPosition(Vector3(450, -100, 0));
 		rankText->transform.SetScale(Vector3(20, 20, 0));
 		rankText->Create(
 			context,

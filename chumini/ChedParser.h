@@ -27,7 +27,7 @@ namespace app::test {
 
     class ChedParser : public sf::Component {
     public:
-        void Begin() override {} // 今は空
+        void Begin() override {} 
         // void Update(const sf::command::ICommand&) override {}
         
         bool Load(const std::wstring& path, bool headerOnly = false);

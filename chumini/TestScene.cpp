@@ -64,13 +64,12 @@ void app::test::TestScene::Init()
             lanePanels.push_back(lane);
         }
 
-        // ▼▼▼ 追加: 特殊ギミック用サイドレーン（左右） ▼▼▼
+        // 特殊ギミック用サイドレーン（左4 右5）
         {
             // メインレーン群の端の座標を計算
             // lanes * laneW が全体の幅。その半分が中心からの距離。
             float mainHalfWidth = (lanes * laneW) * 0.5f;
 
-            // 追加するサイドレーンの幅（とりあえずメインと同じ幅にする）
             float sideLaneW = laneW;
 
             // 左右のX座標：メインの端 + サイドレーンの半径
@@ -125,7 +124,7 @@ void app::test::TestScene::Init()
 
         // ── レーン外枠（左右エッジ）──
         {
-            laneEdges.clear(); // ← 忘れず初期化
+            laneEdges.clear(); 
 
             const float edgeThickness = 0.08f;
             const float edgeHeight = 0.1f;
@@ -153,7 +152,7 @@ void app::test::TestScene::Init()
 
                 mEdge->material.SetColor({ 1.0f, 0.5f, 0.5f, 1.0f });
 
-                laneEdges.push_back(edge); // 追加
+                laneEdges.push_back(edge);
             }
         }
 
@@ -167,7 +166,7 @@ void app::test::TestScene::Init()
             float zPos = -halfH + laneH * barRatio;
             float yPos = -std::tan(slopeRad) * zPos;
 
-            judgeBar = Instantiate();  // ★ メンバに保持！
+            judgeBar = Instantiate(); 
             auto mBar = judgeBar.Target()->AddComponent<sf::Mesh>();
             mBar->SetGeometry(g_cube);
 
@@ -185,15 +184,14 @@ void app::test::TestScene::Init()
 
     if (auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>())
     {
-        // ★修正: サイドレーンの座標計算
-         // (lanePanelsの生成時に使った計算と同じもの)
+        // サイドレーンの座標計算
+        // (lanePanelsの生成時に使った計算と同じもの)
         float mainHalfWidth = (4 * laneW) * 0.5f; // メイン4レーン分
         float sideLaneW = laneW;
 
         float leftX = -mainHalfWidth - (sideLaneW * 0.5f);
         float rightX = mainHalfWidth + (sideLaneW * 0.5f);
 
-        // ★修正: 引数に leftX, rightX を追加して渡す
         noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio, leftX, rightX);
     }
 

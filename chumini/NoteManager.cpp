@@ -120,8 +120,8 @@ namespace app::test {
 		// 譜面ファイル読み込み
 		// ----------------------------------
 		{
+			// 譜面をパース
 			ChedParser parser;
-			// UTF-8 -> wstring変換
 			parser.Load(std::filesystem::path(chartPath).wstring());
 
 			noteSequence.clear();
@@ -179,7 +179,7 @@ namespace app::test {
 		float startZ = laneH * 0.5f;
 		float hitZ = -laneH * 0.5f + laneH * barRatio;
 		float startY = baseY - std::tan(slopeRad) * startZ;
-		float hitY = baseY - std::tan(slopeRad) * hitZ; // ※ローカル変数としては使っていないが計算式として
+		float hitY = baseY - std::tan(slopeRad) * hitZ; 
 
 		int lanes = std::max(1, (int)laneRefs.size());
 		float totalDistance = std::abs(startZ - hitZ);
@@ -203,7 +203,7 @@ namespace app::test {
 			}
 
 			float laneX = 0.0f;
-			float laneYOffset = 0.0f; // ※Warning回避のため
+			float laneYOffset = 0.0f; 
 
 			if (nd.lane == 4) {
 				laneX = sideLaneX_Left;
@@ -313,7 +313,7 @@ namespace app::test {
 			sound->Play(GetHitSfxPath(noteSequence[idx].type));
 		}
 
-		// ★★★ エフェクト生成 (座標・色・サイズの決定) ★★★
+		// エフェクト生成 座標・色・サイズ
 		if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
 
 			if (auto* canvas = actorRef.Target()->GetComponent<TestCanvas>()) {
@@ -345,7 +345,6 @@ namespace app::test {
 				canvas->SpawnHitEffect(hitX, hitY, scale, duration, color);
 			}
 		}
-		// ★★★★★★★★★★★★★★★★★★★
 
 		++head;
 		return res;
