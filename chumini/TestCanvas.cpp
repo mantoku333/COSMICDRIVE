@@ -82,7 +82,11 @@ namespace app::test {
 		if (auto actor = actorRef.Target()) {
 			if (auto manager = actor->GetComponent<EffectManager>()) {
 				effectManager = manager;
-				effectManager->Initialize(this, &textureHitEffect);
+				effectManager->InitializeSprite(
+					[this]() { return this->AddUI<sf::ui::Image>(); },
+					&textureHitEffect,
+					20
+				);
 			}
 			noteManager = actor->GetComponent<NoteManager>();
 		}
@@ -107,7 +111,8 @@ namespace app::test {
 	void TestCanvas::SpawnHitEffect(float x, float y, float scale, float duration, const Color& color)
 	{
 		if (!effectManager.isNull()) {
-			effectManager->Spawn(x, y, scale, duration, color);
+			// ★スプライト再生のみ
+			effectManager->SpawnSprite(x, y, scale, duration, color);
 		}
 	}
 

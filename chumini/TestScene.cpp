@@ -13,6 +13,7 @@
 #include "SongInfo.h"
 
 #include "EffectManager.h"
+#include <Effekseer.h>
 
 
 void app::test::TestScene::Init()

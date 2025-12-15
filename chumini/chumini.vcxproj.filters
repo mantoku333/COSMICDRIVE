@@ -378,6 +378,9 @@
     <ClCompile Include="ChedParser.cpp">
       <Filter>App</Filter>
     </ClCompile>
+    <ClCompile Include="EffectManager.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -738,6 +741,9 @@
       <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="ChedParser.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="EffectManager.h">
       <Filter>App</Filter>
     </ClInclude>
   </ItemGroup>

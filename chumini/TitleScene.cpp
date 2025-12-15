@@ -3,6 +3,8 @@
 #include "SceneChangeComponent.h"
 
 #include"DirectWrite.h"
+#include "EffectManager.h"
+
 
 void app::test::TitleScene::Init()
 {
@@ -13,6 +15,9 @@ void app::test::TitleScene::Init()
         uiManagerActor = Instantiate();
         uiManagerActor.Target()->AddComponent<TitleCanvas>();  // タイトル用のUI Canvas
         uiManagerActor.Target()->AddComponent<SceneChangeComponent>();
+
+        uiManagerActor.Target()->AddComponent<EffectManager>();
+
         uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
     }
 
