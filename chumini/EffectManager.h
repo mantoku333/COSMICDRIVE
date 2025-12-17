@@ -23,21 +23,19 @@ namespace app::test {
         virtual ~EffectManager();
 
         // ========================================================================
-        // ★初期化メソッド（使いたい機能だけ呼んでください）
+        // 初期化メソッド
         // ========================================================================
 
-        // 1. Effekseerを使う場合の初期化 (3Dエフェクト用)
-        //    UIやCanvasは不要です。
+        // Effekseerを使う場合の初期化3Dエフェクト
         void InitializeEffekseer(ID3D11Device* device, ID3D11DeviceContext* context);
 
-        // 2. 2Dスプライトを使う場合の初期化 (板ポリ用)
-        //    UIを生成するための関数(ラムダ式)を渡します。
+        // 2Dスプライトを使う場合の初期化 (板ポリ用)
         using ImageFactory = std::function<sf::SafePtr<sf::ui::Image>()>;
         void InitializeSprite(ImageFactory factory, sf::Texture* texture, int poolSize = 20);
 
 
         // ========================================================================
-        // ★操作メソッド
+        // 操作メソッド
         // ========================================================================
 
         // Effekseerの再生
@@ -60,7 +58,13 @@ namespace app::test {
         void SetProjectionMatrix(const Effekseer::Matrix44& proj);
         void SetCameraMatrix(const Effekseer::Matrix44& camera);
 
+        void SetScale(Effekseer::Handle handle, float x, float y, float z);
+
+
     private:
+
+        ID3D11DeviceContext* m_context = nullptr;
+
         // スプライト管理用
         struct EffectInstance {
             sf::SafePtr<sf::ui::Image> image;

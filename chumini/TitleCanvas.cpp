@@ -39,18 +39,18 @@ void TitleCanvas::Begin()
 	// ---------------------------------------------------------
 	// 1. タイトルロゴ
 	// ---------------------------------------------------------
-	titleLogo = AddUI<sf::ui::TextImage>();
-	titleLogo->transform.SetPosition(Vector3(0, 250, 0)); // 上の方に配置
-	titleLogo->transform.SetScale(Vector3(15, 5, 0));     // 大きく表示
+	//titleLogo = AddUI<sf::ui::TextImage>();
+	//titleLogo->transform.SetPosition(Vector3(0, 250, 0)); // 上の方に配置
+	//titleLogo->transform.SetScale(Vector3(15, 5, 0));     // 大きく表示
 
-	titleLogo->Create(
-		context,
-		L"COSMIC DRIVE",         // タイトル文字列
-		L"851ゴチカクット",              // フォント名
-		120.0f,                 // フォントサイズ
-		D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 色
-		1500, 256               // テクスチャサイズ
-	);
+	//titleLogo->Create(
+	//	context,
+	//	L"COSMIC DRIVE",         // タイトル文字列
+	//	L"851ゴチカクット",              // フォント名
+	//	120.0f,                 // フォントサイズ
+	//	D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 色
+	//	1500, 256               // テクスチャサイズ
+	//);
 
 	// ---------------------------------------------------------
 	// 2. プレイボタン

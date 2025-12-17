@@ -43,6 +43,8 @@ namespace sf
 
 		virtual void OnGUI();
 
+		virtual void Draw() {}
+
 	public:
 		virtual void Update(const sf::command::ICommand& command) {}
 

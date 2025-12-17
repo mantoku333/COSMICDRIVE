@@ -232,6 +232,10 @@ void app::Application::Loop()
 				//メッシュの描画
 				sf::Mesh::DrawAll();
 
+				for (auto* scene : activeScene) {
+					scene->Draw();
+				}
+
 				//デバッグラインの描画
 				sf::debug::Debug::DrawLog();
 

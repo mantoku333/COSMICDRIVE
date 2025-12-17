@@ -21,7 +21,16 @@ namespace app::test {
             efkRenderer = EffekseerRendererDX11::Renderer::Create(device, context, 2000);
             efkManager = Effekseer::Manager::Create(2000);
 
+            m_context = context;
+
             if (efkRenderer != nullptr && efkManager != nullptr) {
+
+                // 左手座標系（DirectX標準）に設定する
+                efkManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
+
+                // Effekseerが描画した後に、元のDirectXの設定に戻す
+                efkRenderer->SetRestorationOfStatesFlag(true);
+
                 efkManager->SetSpriteRenderer(efkRenderer->CreateSpriteRenderer());
                 efkManager->SetRibbonRenderer(efkRenderer->CreateRibbonRenderer());
                 efkManager->SetRingRenderer(efkRenderer->CreateRingRenderer());
@@ -32,7 +41,6 @@ namespace app::test {
                 efkManager->SetMaterialLoader(efkRenderer->CreateMaterialLoader());
             }
         }
-        // Update登録 (重複登録しても問題ないよう設計するか、確認する)
         updateCommand.Bind(std::bind(&EffectManager::Update, this, std::placeholders::_1));
     }
 
@@ -45,7 +53,6 @@ namespace app::test {
             spritePool.reserve(poolSize);
 
             for (int i = 0; i < poolSize; ++i) {
-                // 渡された工場関数を使ってUIを作る (Canvasへの依存なし)
                 sf::SafePtr<sf::ui::Image> img = factory();
 
                 if (!img.isNull()) {
@@ -82,6 +89,15 @@ namespace app::test {
 
     void EffectManager::DrawEffekseer() {
         if (efkManager != nullptr && efkRenderer != nullptr) {
+
+            // シェーダー解除
+            m_context->GSSetShader(nullptr, nullptr, 0);
+            m_context->HSSetShader(nullptr, nullptr, 0);
+            m_context->DSSetShader(nullptr, nullptr, 0);
+
+            // トポロジーも念のためリセット
+            m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
             efkRenderer->BeginRendering();
             efkManager->Draw();
             efkRenderer->EndRendering();
@@ -111,6 +127,7 @@ namespace app::test {
     // 共通・更新
     // ----------------------------------------------------------------
     void EffectManager::Update(const sf::command::ICommand&) {
+
         float dt = sf::Time::DeltaTime();
 
         // スプライト更新
@@ -157,5 +174,12 @@ namespace app::test {
     }
     void EffectManager::SetCameraMatrix(const Effekseer::Matrix44& camera) {
         if (efkRenderer != nullptr) efkRenderer->SetCameraMatrix(camera);
+    }
+
+    void EffectManager::SetScale(Effekseer::Handle handle, float x, float y, float z) {
+        if (efkManager != nullptr) {
+            // Effekseerのマネージャーにハンドルのサイズ変更を依頼
+            efkManager->SetScale(handle, x, y, z);
+        }
     }
 }

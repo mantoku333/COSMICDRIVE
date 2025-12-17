@@ -10,7 +10,9 @@ namespace app
 		public:
 
 			void Init()override;
-			//void Update(const sf::command::ICommand& command) override;
+			void Update(const sf::command::ICommand& command) override;
+
+			void Draw() override;
 
 		private:
 			//更新コマンド
