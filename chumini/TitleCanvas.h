@@ -2,6 +2,8 @@
 #include "App.h"
 #include "TextImage.h" // 追加: TextImageを使用するために必要
 
+#include "SongInfo.h"
+
 namespace app
 {
 	namespace test
@@ -20,6 +22,27 @@ namespace app
 			sf::ui::TextImage* titleLogo = nullptr;
 			sf::ui::TextImage* playButton = nullptr;
 			sf::ui::TextImage* editButton = nullptr;
+
+			float totalWidth = 0.0f; // 追加：ジャケット列の端から端までの長さ
+
+
+			// --- 追加: ジャケットループ背景用 ---
+			struct ScrollingJacket {
+				sf::ui::Image* uiImage;
+				float posX; // 初期配置のズレ
+			};
+			std::vector<sf::Texture> jacketTextures;
+
+			std::vector<ScrollingJacket> scrollingJacketsTop; // 名前を変更
+			std::vector<ScrollingJacket> scrollingJacketsBottom;
+
+			const float jacketSpeedTop = 120.0f;     // 上段の速度（正の値）
+			const float jacketSpeedBottom = -150.0f; // 下段の速度（負の値で少し速くすると遠近感が出る）
+
+			const float jacketScale = 2.5f;
+			const float jacketInterval = 270.0f;
+
+			void InitializeJacketFlow(); // ジャケット読み込みと生成
 
 			// --- 状態管理 ---
 			int selectedButton = 0; // 0: エディット, 1: プレイ

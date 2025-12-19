@@ -7,14 +7,90 @@
 #include "DirectX11.h"       // デバイス取得用
 #include "SInput.h"          // 入力取得用
 #include "DWriteContext.h"   // フォント描画用
+#include <filesystem>
 
 using namespace app::test;
 using namespace sf;
+
+
+// ヘルパー関数 (SelectCanvasからコピー)
+static std::wstring Utf8ToWstring(const std::string& str) {
+	if (str.empty()) return L"";
+	int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
+	std::wstring wstr(sizeNeeded, 0);
+	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
+	return wstr;
+}
+
+static std::string Utf8ToShiftJis(const std::string& utf8Str) {
+	std::wstring wstr = Utf8ToWstring(utf8Str);
+	if (wstr.empty()) return "";
+	int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
+	std::string str(sizeNeeded, 0);
+	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
+	if (!str.empty() && str.back() == '\0') str.pop_back();
+	return str;
+}
+
+void TitleCanvas::InitializeJacketFlow() {
+	namespace fs = std::filesystem;
+	std::string rootPath = "Songs";
+	std::vector<std::string> jacketPaths;
+
+	// 1. フォルダ走査（既存ロジック）
+	if (fs::exists(rootPath)) {
+		for (const auto& dir : fs::directory_iterator(rootPath)) {
+			if (!dir.is_directory()) continue;
+			for (const auto& file : fs::directory_iterator(dir.path())) {
+				std::string ext = file.path().extension().string();
+				if (ext == ".png" || ext == ".jpg") {
+					jacketPaths.push_back(file.path().string());
+					break;
+				}
+			}
+		}
+	}
+
+	// 2. テクスチャロード
+	jacketTextures.resize(jacketPaths.size());
+	for (size_t i = 0; i < jacketPaths.size(); ++i) {
+		jacketTextures[i].LoadTextureFromFile(Utf8ToShiftJis(jacketPaths[i]));
+	}
+	if (jacketTextures.empty()) return;
+
+	// 3. 枚数とループ幅の計算
+	// 画面外からしっかり繋がって見えるよう、少し余裕を持たせた枚数に
+	int minImages = static_cast<int>(2400.0f / jacketInterval) + 2;
+	int numUI = std::max(static_cast<int>(jacketTextures.size()), minImages);
+	totalWidth = numUI * jacketInterval;
+
+	for (int i = 0; i < numUI; ++i) {
+		sf::Texture* tex = &jacketTextures[i % jacketTextures.size()];
+		// 左端を起点にして順番に配置
+		float startX = (-totalWidth * 0.5f) + (i * jacketInterval);
+
+		// --- 上段の生成 ---
+		auto* imgTop = AddUI<sf::ui::Image>();
+		imgTop->transform.SetScale(Vector3(jacketScale, jacketScale, 1));
+		imgTop->material.texture = tex;
+		scrollingJacketsTop.push_back({ imgTop, startX });
+
+		// --- 下段の生成 ---
+		auto* imgBottom = AddUI<sf::ui::Image>();
+		imgBottom->transform.SetScale(Vector3(jacketScale, jacketScale, 1));
+		imgBottom->material.texture = tex;
+		// 下段も同じ startX で初期化（Updateで位置が分かれます）
+		scrollingJacketsBottom.push_back({ imgBottom, startX });
+	}
+}
 
 void TitleCanvas::Begin()
 {
 	// 基底クラスのBeginを必ず呼び出す
 	sf::ui::Canvas::Begin();
+
+	// 背景ジャケット初期化
+	InitializeJacketFlow();
 
 	// DirectXデバイスの取得
 	auto* dx11 = sf::dx::DirectX11::Instance();
@@ -104,6 +180,40 @@ void TitleCanvas::Begin()
 void TitleCanvas::Update(const sf::command::ICommand& command)
 {
 	animationTimer += sf::Time::DeltaTime();
+	float dt = sf::Time::DeltaTime();
+
+	if (totalWidth <= 0.0f) return;
+
+	// 境界線（画面端より少し外側）
+	float wrapLimit = totalWidth * 0.5f;
+
+	// --- 上段：左から右へ (L -> R) ---
+	for (auto& sj : scrollingJacketsTop) {
+		sj.posX += jacketSpeedTop * dt;
+		// 右に突き抜けたら左へ
+		if (sj.posX > wrapLimit) {
+			sj.posX -= totalWidth;
+		}
+		// Y=250の位置に表示
+		sj.uiImage->transform.SetPosition(Vector3(sj.posX, 0.0f, 10.0f));
+		sj.uiImage->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
+	}
+
+	// --- 下段：右から左へ (R -> L) ---
+	for (auto& sj : scrollingJacketsBottom) {
+		sj.posX += jacketSpeedBottom * dt; // 負の値なので左へ進む
+
+		// ★左の境界を超えたら右へワープ
+		if (sj.posX < -wrapLimit) {
+			// 単に右端に置くのではなく、今の位置に totalWidth を足すことで
+			// 列の順番を崩さずに最後尾へ回せます
+			sj.posX += totalWidth;
+		}
+
+		// Y=-250の位置に表示
+		sj.uiImage->transform.SetPosition(Vector3(sj.posX, -250.0f, 10.0f));
+		sj.uiImage->material.SetColor({ 0.7f, 0.7f, 0.7f, 1.0f });
+	}
 
 	HandleInput(command);
 	UpdateButtonSelection();
