@@ -69,6 +69,8 @@ namespace app::test {
 
                 auto handle = effectManager->PlayEffekseer("Icon", -1.0f, 1.0f, 0.0f);
 
+                auto handle2 = effectManager->PlayEffekseer("Test", 0.0f, 1.0f, 0.0f);
+
                 effectManager->SetScale(handle, 4.5f, 3.5f, 1.0f);
             }
         }
