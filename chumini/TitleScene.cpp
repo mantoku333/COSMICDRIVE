@@ -43,11 +43,16 @@ namespace app::test {
             uiManagerActor.Target()->AddComponent<TitleCanvas>();
             uiManagerActor.Target()->AddComponent<SceneChangeComponent>();
             uiManagerActor.Target()->AddComponent<EffectManager>(); // EffectManager追加
+            bgmPlayer = uiManagerActor.Target()->AddComponent<app::test::BGMComponent>();
 
             uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
         }
 
         DirectWrite();
+
+        bgmPlayer->SetPath("Assets/Sound/BGM.wav");
+        bgmPlayer->Play();
+
 
         // 2. Effekseerの初期化
         auto* dx11 = sf::dx::DirectX11::Instance();
@@ -69,9 +74,10 @@ namespace app::test {
 
                 auto handle = effectManager->PlayEffekseer("Icon", -1.0f, 1.0f, 0.0f);
 
-                auto handle2 = effectManager->PlayEffekseer("Test", 0.0f, 1.0f, 0.0f);
+                auto handle2 = effectManager->PlayEffekseer("Test", 0.0f,-5.0f, 0.0f);
 
                 effectManager->SetScale(handle, 4.5f, 3.5f, 1.0f);
+                effectManager->SetScale(handle2, 3.5f, 3.5f, 1.0f);
             }
         }
         if (context) context->Release();

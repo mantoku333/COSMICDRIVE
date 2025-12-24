@@ -1,5 +1,7 @@
 #pragma once
 #include "App.h"
+#include "BGMComponent.h"
+
 
 namespace app
 {
@@ -17,8 +19,9 @@ namespace app
 		private:
 			//更新コマンド
 			sf::command::Command<> updateCommand;
+			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
 
-
+		
 			sf::geometry::GeometryCube g_cube;
 
 

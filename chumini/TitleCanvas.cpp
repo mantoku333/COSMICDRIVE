@@ -8,6 +8,7 @@
 #include "SInput.h"          // 入力取得用
 #include "DWriteContext.h"   // フォント描画用
 #include <filesystem>
+#include "App.h"
 
 using namespace app::test;
 using namespace sf;
@@ -59,14 +60,12 @@ void TitleCanvas::InitializeJacketFlow() {
 	if (jacketTextures.empty()) return;
 
 	// 3. 枚数とループ幅の計算
-	// 画面外からしっかり繋がって見えるよう、少し余裕を持たせた枚数に
 	int minImages = static_cast<int>(2400.0f / jacketInterval) + 2;
 	int numUI = std::max(static_cast<int>(jacketTextures.size()), minImages);
 	totalWidth = numUI * jacketInterval;
 
 	for (int i = 0; i < numUI; ++i) {
 		sf::Texture* tex = &jacketTextures[i % jacketTextures.size()];
-		// 左端を起点にして順番に配置
 		float startX = (-totalWidth * 0.5f) + (i * jacketInterval);
 
 		// --- 上段の生成 ---
@@ -79,7 +78,6 @@ void TitleCanvas::InitializeJacketFlow() {
 		auto* imgBottom = AddUI<sf::ui::Image>();
 		imgBottom->transform.SetScale(Vector3(jacketScale, jacketScale, 1));
 		imgBottom->material.texture = tex;
-		// 下段も同じ startX で初期化（Updateで位置が分かれます）
 		scrollingJacketsBottom.push_back({ imgBottom, startX });
 	}
 }
@@ -106,7 +104,7 @@ void TitleCanvas::Begin()
 	titleText->Create(
 		context,
 		L"萬徳倫功",
-		L"叛逆明朝",
+		L"Assets/Fonts/Hangyaku.ttf",
 		100.0f,
 		D2D1::ColorF(D2D1::ColorF::Tomato),
 		1024, 256);
@@ -122,8 +120,8 @@ void TitleCanvas::Begin()
 	//titleLogo->Create(
 	//	context,
 	//	L"COSMIC DRIVE",         // タイトル文字列
-	//	L"851ゴチカクット",              // フォント名
-	//	120.0f,                 // フォントサイズ
+	//	L"851ゴチカクット",               // フォント名
+	//	120.0f,                   // フォントサイズ
 	//	D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 色
 	//	1500, 256               // テクスチャサイズ
 	//);
@@ -138,23 +136,23 @@ void TitleCanvas::Begin()
 	playButton->Create(
 		context,
 		L"PLAY",
-		L"851ゴチカクット",
+		L"Assets/Fonts/ゴチカクット.ttf",
 		150.0f,
 		D2D1::ColorF(D2D1::ColorF::White),
 		512, 128
 	);
 
 	// ---------------------------------------------------------
-	// 3. エディットボタン
+	// 3. EXITボタン (EDITから変更)
 	// ---------------------------------------------------------
-	editButton = AddUI<sf::ui::TextImage>();
-	editButton->transform.SetPosition(Vector3(0, -300, 0)); // 下の方
-	editButton->transform.SetScale(Vector3(4, 1.5f, 0));
+	exitButton = AddUI<sf::ui::TextImage>();
+	exitButton->transform.SetPosition(Vector3(0, -300, 0)); // 下の方
+	exitButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
-	editButton->Create(
+	exitButton->Create(
 		context,
-		L"EDIT",
-		L"851ゴチカクット",
+		L"EXIT",
+		L"Assets/Fonts/ゴチカクット.ttf",
 		150.0f,
 		D2D1::ColorF(D2D1::ColorF::White),
 		512, 128
@@ -170,9 +168,7 @@ void TitleCanvas::Begin()
 	if (scene.isNull()) {
 		scene = SelectScene::StandbyScene();
 	}
-	if (sceneEdit.isNull()) {
-		sceneEdit = EditScene::StandbyScene();
-	}
+	// EXITにしたのでEditSceneのスタンバイは不要であれば削除可
 
 	updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
 }
@@ -194,7 +190,7 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 		if (sj.posX > wrapLimit) {
 			sj.posX -= totalWidth;
 		}
-		// Y=250の位置に表示
+		// Y=0.0の位置に表示 (元のレイアウトに復帰)
 		sj.uiImage->transform.SetPosition(Vector3(sj.posX, 0.0f, 10.0f));
 		sj.uiImage->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
 	}
@@ -203,10 +199,7 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 	for (auto& sj : scrollingJacketsBottom) {
 		sj.posX += jacketSpeedBottom * dt; // 負の値なので左へ進む
 
-		// ★左の境界を超えたら右へワープ
 		if (sj.posX < -wrapLimit) {
-			// 単に右端に置くのではなく、今の位置に totalWidth を足すことで
-			// 列の順番を崩さずに最後尾へ回せます
 			sj.posX += totalWidth;
 		}
 
@@ -223,11 +216,11 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 {
 	// --- マウス操作 ---
 	Vector2 mousePos = GetMousePosition();
-	bool isEditHovered = IsButtonHovered(mousePos, editButton);
+	bool isExitHovered = IsButtonHovered(mousePos, exitButton);
 	bool isPlayHovered = IsButtonHovered(mousePos, playButton);
 
 	// マウスが乗ったら選択状態を切り替える
-	if (isEditHovered) {
+	if (isExitHovered) {
 		selectedButton = 0;
 	}
 	else if (isPlayHovered) {
@@ -236,7 +229,7 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 
 	// 左クリックで決定
 	if (SInput::Instance().GetMouseDown(0)) {
-		if (isEditHovered || isPlayHovered) {
+		if (isExitHovered || isPlayHovered) {
 			OnButtonPressed();
 		}
 	}
@@ -260,68 +253,45 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 
 void TitleCanvas::UpdateButtonSelection()
 {
-	// ---------------------------------------------------------
-	// アニメーション計算 (sin波)
-	// ---------------------------------------------------------
-	// 速度: 10.0f
 	float sine = std::sin(animationTimer * 7.0f);
-
-	// サイズ変動
 	float scaleOffset = 0.1f * sine;
-
-	// 透明度を 0.5 ～ 1.0 の間で揺らす
-	// (sine + 1.0f) * 0.5f で 0~1 になる
 	float alphaAnim = 0.5f + 0.5f * ((sine + 1.0f) * 0.5f);
-
-	// ---------------------------------------------------------
-	// パラメータ定義
-	// ---------------------------------------------------------
 
 	// 基本サイズ
 	Vector3 scaleNormal(4.0f, 1.5f, 0);       // 非選択時
 	Vector3 scaleSelectedBase(4.5f, 1.7f, 0); // 選択時の基準
 
-	// 現在のアニメーション適用後の選択時サイズ
 	Vector3 scaleSelectedAnim = Vector3(
 		scaleSelectedBase.x + scaleOffset,
-		scaleSelectedBase.y + scaleOffset * 0.4f, // 縦の変動は少し控えめに
+		scaleSelectedBase.y + scaleOffset * 0.4f,
 		0
 	);
 
-	// 色定義
-	// 選択中：黄色 + アニメーション透明度
 	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, alphaAnim);
-	// 非選択：灰色（半透明固定）
 	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f);
 
-
-	// ---------------------------------------------------------
-	// 適用
-	// ---------------------------------------------------------
 	if (selectedButton == 0) {
-		// --- Edit選択中 (アニメーション) ---
-		editButton->transform.SetScale(scaleSelectedAnim);
-		editButton->material.SetColor(colorSelected);
-
-		// --- Play非選択 (固定) ---
+		exitButton->transform.SetScale(scaleSelectedAnim);
+		exitButton->material.SetColor(colorSelected);
 		playButton->transform.SetScale(scaleNormal);
 		playButton->material.SetColor(colorNormal);
 	}
 	else {
-		// --- Play選択中 (アニメーション) ---
 		playButton->transform.SetScale(scaleSelectedAnim);
 		playButton->material.SetColor(colorSelected);
-
-		// --- Edit非選択 (固定) ---
-		editButton->transform.SetScale(scaleNormal);
-		editButton->material.SetColor(colorNormal);
+		exitButton->transform.SetScale(scaleNormal);
+		exitButton->material.SetColor(colorNormal);
 	}
 }
 
 void TitleCanvas::OnButtonPressed()
 {
 	if (selectedButton == 0) {
-		ShowEditScene();
+		// GetMain() を経由してインスタンスを取得し、Exit() を呼ぶ
+		app::Application* mainApp = app::Application::GetMain();
+		if (mainApp) {
+			mainApp->Exit();
+		}
 	}
 	else {
 		ShowSongSelectScene();
@@ -335,7 +305,6 @@ bool TitleCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* bu
 	Vector3 pos = button->transform.GetPosition();
 	Vector3 scale = button->transform.GetScale();
 
-	// TextImageの当たり判定
 	float width = scale.x * 80.0f;
 	float height = scale.y * 40.0f;
 
@@ -355,7 +324,6 @@ Vector2 TitleCanvas::GetMousePosition()
 	HWND hwnd = GetActiveWindow();
 	ScreenToClient(hwnd, &mousePoint);
 
-	// 画面中心を原点(0,0)とし、Y軸を上がプラスになるよう変換
 	float uiX = static_cast<float>(mousePoint.x) - screenWidth * 0.5f;
 	float uiY = screenHeight * 0.5f - static_cast<float>(mousePoint.y);
 
@@ -370,29 +338,5 @@ void TitleCanvas::ShowSongSelectScene()
 	auto actor = actorRef.Target();
 	if (actor) {
 		actor->GetScene().DeActivate();
-	}
-}
-
-void TitleCanvas::ShowEditScene()
-{
-	if (sceneEdit->StandbyThisScene()) {
-		sceneEdit->Activate();
-	}
-	auto actor = actorRef.Target();
-	if (actor) {
-		actor->GetScene().DeActivate();
-	}
-}
-
-int TitleCanvas::GetSelectedButton() const
-{
-	return selectedButton;
-}
-
-void TitleCanvas::SetSelectedButton(int buttonIndex)
-{
-	if (buttonIndex >= 0 && buttonIndex <= 1) {
-		selectedButton = buttonIndex;
-		UpdateButtonSelection();
 	}
 }

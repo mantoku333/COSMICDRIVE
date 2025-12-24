@@ -23,7 +23,7 @@ HRESULT sf::dx::MainDevice::Create(HWND hwnd)
 	swapChainDesc.Windowed = TRUE;
 
 	//画面比率おかしくなったときはここをコメントアウト消して戻す
-	//swapChainDesc.Windowed = FALSE;
+	swapChainDesc.Windowed = FALSE;
 
 	//DirectX11を使用
 	D3D_FEATURE_LEVEL m_FeatureLevel = D3D_FEATURE_LEVEL_11_0;

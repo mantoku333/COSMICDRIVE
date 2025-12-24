@@ -95,7 +95,7 @@ namespace app::test {
             m_context->HSSetShader(nullptr, nullptr, 0);
             m_context->DSSetShader(nullptr, nullptr, 0);
 
-            // トポロジーも念のためリセット
+            // トポロジーも念のためリセット（EffekseerはTriangleListを使いますが、念のため）
             m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             efkRenderer->BeginRendering();

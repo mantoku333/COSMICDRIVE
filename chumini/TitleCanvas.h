@@ -21,7 +21,7 @@ namespace app
 			// --- UIオブジェクト（ImageからTextImageに変更） ---
 			sf::ui::TextImage* titleLogo = nullptr;
 			sf::ui::TextImage* playButton = nullptr;
-			sf::ui::TextImage* editButton = nullptr;
+			sf::ui::TextImage* exitButton = nullptr;
 
 			float totalWidth = 0.0f; // 追加：ジャケット列の端から端までの長さ
 
