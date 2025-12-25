@@ -14,52 +14,45 @@ namespace app
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
 
-			int GetSelectedButton() const;
-			void SetSelectedButton(int buttonIndex);
-
 		private:
-			// --- UIオブジェクト（ImageからTextImageに変更） ---
-			sf::ui::TextImage* titleLogo = nullptr;
+			sf::command::Command<> updateCommand;
+			sf::SafePtr<SceneChangeComponent> sceneChanger;// シーン遷移用
+
+			// ボタンUI
 			sf::ui::TextImage* playButton = nullptr;
 			sf::ui::TextImage* exitButton = nullptr;
 
-			float totalWidth = 0.0f; // 追加：ジャケット列の端から端までの長さ
+			// --- 状態管理 ---
+			int selectedButton = 0; // 0: EXIT, 1: PLAY
 
-
-			// --- 追加: ジャケットループ背景用 ---
+			// ジャケットループ背景用
 			struct ScrollingJacket {
 				sf::ui::Image* uiImage;
 				float posX; // 初期配置のズレ
 			};
-			std::vector<sf::Texture> jacketTextures;
 
-			std::vector<ScrollingJacket> scrollingJacketsTop; // 名前を変更
+			std::vector<sf::Texture> jacketTextures;
+			std::vector<ScrollingJacket> scrollingJacketsTop;
 			std::vector<ScrollingJacket> scrollingJacketsBottom;
 
+			float totalWidth = 0.0f;                 // ジャケット列の端から端までの長さ
 			const float jacketSpeedTop = 120.0f;     // 上段の速度（正の値）
 			const float jacketSpeedBottom = -150.0f; // 下段の速度（負の値で少し速くすると遠近感が出る）
-
-			const float jacketScale = 2.5f;
-			const float jacketInterval = 270.0f;
-
-			void InitializeJacketFlow(); // ジャケット読み込みと生成
-
-			// --- 状態管理 ---
-			int selectedButton = 0; // 0: エディット, 1: プレイ
+			const float jacketScale = 2.5f; 		 // ジャケットの拡大率
+			const float jacketInterval = 270.0f;     // ジャケット同士の間隔 
 
 			// --- メソッド ---
-			void HandleInput(const sf::command::ICommand& command);
-			void UpdateButtonSelection();
-			void OnButtonPressed();
 
+			
+
+			void InitializeJacketFlow(); // ジャケット周り初期化
+			void HandleInput(const sf::command::ICommand& command); // 入力処理
+			void UpdateButtonSelection(); // ボタンUIのUpdate
+			void OnButtonPressed(); // ボタンが押されたときの処理
 			void ShowSongSelectScene();
-			void ShowEditScene();
 
-			// マウス座標取得用
-			Vector2 GetMousePosition();
-
-			// 当たり判定 (引数を TextImage* に変更)
-			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
+			Vector2 GetMousePosition();// マウス座標取得用
+			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);// 当たり判定 (引数を TextImage* に変更)
 
 			// 画面サイズ
 			static constexpr float screenWidth = 1920.0f;
@@ -68,12 +61,6 @@ namespace app
 			float animationTimer = 0.0f;
 
 
-			sf::command::Command<> updateCommand;
-
-			// シーン
-			sf::SafePtr<sf::IScene> scene;
-			sf::SafePtr<sf::IScene> sceneEdit;
-			sf::SafePtr<SceneChangeComponent> sceneChanger;
 		};
 	}
 }

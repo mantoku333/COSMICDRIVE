@@ -17,7 +17,7 @@ namespace app::test {
 		auto context = dx11->GetMainDevice().GetDevice();
 
 
-		// --- SceneChangeComponentの取得 ---
+		// SceneChangeComponent取得
 		if (auto actor = actorRef.Target()) {
 			auto* changer = actor->GetComponent<SceneChangeComponent>();
 			if (changer) {
@@ -29,7 +29,7 @@ namespace app::test {
 		// テキストUIの生成と配置
 		// =========================================================
 
-		// --- "RESULT" 
+		// --- RESULTラベル ---
 		resultLabel = AddUI<sf::ui::TextImage>();
 		resultLabel->transform.SetPosition(Vector3(0, 350, 0));
 		resultLabel->transform.SetScale(Vector3(8, 2, 0));
@@ -42,6 +42,7 @@ namespace app::test {
 			512, 128
 		);
 
+		// --- 操作ガイド
 		guideText = AddUI<sf::ui::TextImage>();
 		guideText->transform.SetPosition(Vector3(0, -400, 0)); 
 		guideText->transform.SetScale(Vector3(5, 1.5f, 0));
@@ -231,13 +232,6 @@ namespace app::test {
 				rankOutline[i]->SetText(rankStr);
 				rankOutline[i]->material.SetColor({ edgeColor.r, edgeColor.g, edgeColor.b, 1.0f });
 			}
-		}
-
-		// =========================================================
-		// 6. シーン遷移準備
-		// =========================================================
-		if (nextScene.isNull()) {
-			nextScene = SelectScene::StandbyScene();
 		}
 
 		updateCommand.Bind(std::bind(&ResultCanvas::Update, this, std::placeholders::_1));

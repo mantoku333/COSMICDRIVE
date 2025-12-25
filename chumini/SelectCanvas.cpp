@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include "TestScene.h"
+#include "TitleScene.h"
 #include "Easing.h"
 
 // テキスト描画に必要
@@ -75,13 +76,16 @@ namespace app::test {
     void SelectCanvas::Begin() {
         sf::ui::Canvas::Begin();
 
+        if (auto actor = actorRef.Target()) {
+            auto* changer = actor->GetComponent<SceneChangeComponent>();
+            if (changer) {
+                sceneChanger = changer;
+            }
+        }
+
         InitializeTextures();
         InitializeSongs();
         InitializeUI();
-
-        if (scene.isNull()) {
-            scene = TestScene::StandbyScene();
-        }
 
         selectedIndex = std::clamp(selectedIndex, 0, (int)songs.size() - 1);
         targetIndex = selectedIndex;
@@ -213,11 +217,6 @@ namespace app::test {
 
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();
-
-       /* backgroundGradient = AddUI<sf::ui::Image>();
-        backgroundGradient->transform.SetPosition(Vector3(0, 0, -10));
-        backgroundGradient->transform.SetScale(Vector3(14.0f, 8.0f, 1.0f));
-        backgroundGradient->material.texture = &textureBack;*/
 
         selectFrame = AddUI<sf::ui::Image>();
         selectFrame->transform.SetPosition(Vector3(CENTER_X, CENTER_Y, 1));
@@ -547,27 +546,25 @@ namespace app::test {
     }
 
     void SelectCanvas::CancelSelection() {
-        sf::debug::Debug::Log("Cancel selection - returning to previous screen");
+        if (sceneChanger.isNull()) return;
+
+        sf::debug::Debug::Log("タイトルに遷移");
+
+        sceneChanger->ChangeScene(TitleScene::StandbyScene());
     }
 
     void SelectCanvas::ConfirmSelection() {
         if (songs.empty()) return;
+        if (sceneChanger.isNull()) return;
+
         const SongInfo& selected = songs[targetIndex];
+        auto next = TestScene::StandbyScene();
 
-        // ★文字化け対策
-        sf::debug::Debug::Log("選択しました: " + Utf8ToShiftJis(selected.title));
-
-        if (scene->StandbyThisScene()) {
-            if (auto* testScene = dynamic_cast<app::test::TestScene*>(scene.Get())) {
-                testScene->SetSelectedSong(selected);
-            }
-            scene->Activate();
+        if (next) {
+            sf::debug::Debug::Log("インゲームに遷移");
+            next->SetSelectedSong(selected);
         }
-
-        if (auto actor = actorRef.Target()) {
-            auto* thisscene = &actor->GetScene();
-            thisscene->DeActivate();
-        }
+        sceneChanger->ChangeScene(next);
     }
 
     const SongInfo& SelectCanvas::GetSelectedSong() const {

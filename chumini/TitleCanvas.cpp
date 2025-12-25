@@ -171,12 +171,6 @@ void TitleCanvas::Begin()
 	selectedButton = 1; // 初期選択はPLAYにしておく
 	UpdateButtonSelection();
 
-	// シーンのスタンバイ
-	if (scene.isNull()) {
-		scene = SelectScene::StandbyScene();
-	}
-	// EXITにしたのでEditSceneのスタンバイは不要であれば削除可
-
 	updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
 }
 

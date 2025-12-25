@@ -2,15 +2,13 @@
 #include "App.h"
 #include "SongInfo.h"
 #include "TextImage.h"
+#include "SceneChangeComponent.h"
 
 
 namespace app {
     namespace test {
-
-        // 曲セレクト用キャンバス（スケーラブルなカルーセル対応）
         class SelectCanvas : public sf::ui::Canvas {
         public:
-            // ライフサイクル
             void Begin() override;
             void Update(const sf::command::ICommand&);
 
@@ -27,6 +25,9 @@ namespace app {
             sf::ui::TextImage* songTitleText = nullptr; // 現在選択中の曲タイトル表示用
 
         private:
+            sf::command::Command<>  updateCommand;
+            sf::SafePtr<SceneChangeComponent> sceneChanger;
+
             // =========================
             // リソース（テクスチャ）
             // =========================
@@ -50,20 +51,16 @@ namespace app {
             // =========================
             // UI参照
             // =========================
-            sf::ui::Image* backgroundGradient = nullptr;
-            sf::ui::Image* titlePanel = nullptr;
             sf::ui::Image* selectFrame = nullptr;
-            sf::ui::Image* songInfoPanel = nullptr; // INFO=ジャケット流用
             sf::ui::Image* CC = nullptr;
 
-            // 旧：固定配列UI（不要なら削除可／互換のため残置）
-            std::vector<sf::ui::Image*> jacketImages;
-            std::vector<sf::ui::Image*> difficultyBars;
-
-            // 新：プール方式（画面に出すUIは一定数で再利用）
+            // ジャケット用プール
             std::vector<sf::ui::Image*> jacketPool;
 
             sf::ui::TextImage* titleText = nullptr;
+            sf::ui::TextImage* titleOutline[4] = { nullptr };
+            sf::ui::TextImage* artistText = nullptr;
+            sf::ui::TextImage* bpmText = nullptr;
 
             // =========================
             // レイアウト / 見た目
@@ -76,67 +73,45 @@ namespace app {
             float DEPTH_NEAR = 0.0f;     // 手前Z
             float DEPTH_FAR = -2.0f;    // 奥Z
 
-            sf::ui::TextImage* titleOutline[4] = { nullptr };
-
-            sf::ui::TextImage* artistText = nullptr;
-            sf::ui::TextImage* bpmText = nullptr;
-
-            // 画面中央座標（既存定義と合わせる）
+            // 画面中央
             static constexpr float CENTER_X = 0.0f;
             static constexpr float CENTER_Y = -100.0f;
 
             // =========================
             // 選択 / アニメ
             // =========================
-            // 旧API互換用：UI外部から初期値を渡すなら使用（内部的には targetIndex に同期）
             int   selectedIndex = 0;
-
-            // 実際の選択は targetIndex（整数）。表示は currentIndex（連続値）で補間
-            float currentIndex = 0.0f;     // 見た目上の選択位置（連続値）
+            float currentIndex = 0.0f;     // 見た目上の選択位置（連続値）  // 実際の選択は targetIndex（整数）。表示は currentIndex（連続値）で補間
             int   targetIndex = 0;        // 実選択（整数）
+            float animationTime = 0.0f;
+
             float slideSpeed = 12.0f;    // スライド補間速度（指数Lerp）
             float snapEps = 0.001f;   // スナップ許容誤差
-
-            float animationTime = 0.0f;
 
             // 入力制御
             float inputCooldown = 0.0f;
             static constexpr float INPUT_DELAY = 0.15f;
 
-            // =========================
-            // シーン
-            // =========================
-            sf::SafePtr<sf::IScene> scene;
-            sf::command::Command<>  updateCommand;
+            // スライド補間用
+            float slideStartIdx = 0.0f;     // 補間開始時の currentIndex
+            float slideTimer = 0.0f;     // 経過時間
+            float slideDuration = 0.25f;    // 補間時間（秒）
+
 
             // =========================
-            // 初期化
+            // 内部メソッド
             // =========================
             void InitializeTextures();
             void InitializeSongs();
             void InitializeUI();
-
-            // プール再構築（CreateJacketImages の置き換え）
             void RebuildJacketPool();
-
-            // =========================
-            // 更新処理
-            // =========================
             void UpdateInput();
             void UpdateAnimation();        // currentIndex → targetIndex へ補間
             void UpdateJacketPositions();  // 位置/スケール/深度の更新
             void UpdateSelectedFrame();    // 枠は中央スロットへ
             void UpdateSongInfo();         // INFO=ジャケット流用
-
-            // =========================
-            // ヘルパ
-            // =========================
             static float ScaleByDistance(float d, float scaleCenter, float scaleEdge);
 
-            // スライド補間用
-            float slideStartIdx = 0.0f;     // 補間開始時の currentIndex
-            float slideTimer = 0.0f;     // 経過時間
-            float slideDuration = 0.25f;    // 補間時間（秒）
         };
 
     } // namespace test

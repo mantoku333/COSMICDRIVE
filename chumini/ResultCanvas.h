@@ -10,23 +10,19 @@ namespace app::test {
 		void Update(const sf::command::ICommand&);
 
 	private:
-		sf::Texture textureBackground;
-
-		sf::ui::TextImage* resultLabel = nullptr;
-		sf::ui::TextImage* scoreText = nullptr;
-
-		// ランク表示用
-		sf::ui::TextImage* rankText = nullptr;       // メイン（手前）
-		sf::ui::TextImage* rankOutline[4] = { nullptr }; // ★追加: ふち用（奥）
-
-		sf::ui::TextImage* comboText = nullptr;
-		sf::ui::TextImage* judgeDetailText = nullptr;
-
-		sf::ui::TextImage* guideText = nullptr;
-		float timer = 0.0f;
-
 		sf::command::Command<> updateCommand;
-		sf::SafePtr<sf::IScene> nextScene;
-		sf::SafePtr<SceneChangeComponent> sceneChanger;
+		sf::SafePtr<SceneChangeComponent> sceneChanger; //シーン遷移用
+
+		sf::ui::TextImage* resultLabel = nullptr; // "RESULT"
+		sf::ui::TextImage* scoreText = nullptr; // スコア
+		sf::ui::TextImage* rankText = nullptr;       // ランク（本体）
+		sf::ui::TextImage* rankOutline[4] = { nullptr }; // ランク（縁取り）
+		sf::ui::TextImage* comboText = nullptr; //最大コンボ
+		sf::ui::TextImage* judgeDetailText = nullptr; //判定内訳
+		sf::ui::TextImage* guideText = nullptr; // 操作ガイド
+
+		float timer = 0.0f; //アニメーション用
+
+		
 	};
 }
