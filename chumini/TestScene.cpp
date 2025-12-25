@@ -26,8 +26,8 @@ void app::test::TestScene::Init()
         managerActor = Instantiate();
         managerActor.Target()->AddComponent<app::test::NoteManager>();
         managerActor.Target()->AddComponent<TestCanvas>();
-        //managerActor.Target()->AddComponent<app::test::PlayerComponent>();
         managerActor.Target()->AddComponent<app::test::SoundComponent>();
+        managerActor.Target()->AddComponent<SceneChangeComponent>();
        
         bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
 

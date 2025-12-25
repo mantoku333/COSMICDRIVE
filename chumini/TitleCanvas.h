@@ -1,7 +1,7 @@
 #pragma once
 #include "App.h"
 #include "TextImage.h" // 追加: TextImageを使用するために必要
-
+#include "SceneChangeComponent.h"
 #include "SongInfo.h"
 
 namespace app
@@ -73,6 +73,7 @@ namespace app
 			// シーン
 			sf::SafePtr<sf::IScene> scene;
 			sf::SafePtr<sf::IScene> sceneEdit;
+			sf::SafePtr<SceneChangeComponent> sceneChanger;
 		};
 	}
 }

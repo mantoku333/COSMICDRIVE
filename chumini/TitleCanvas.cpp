@@ -94,6 +94,13 @@ void TitleCanvas::Begin()
 	auto* dx11 = sf::dx::DirectX11::Instance();
 	auto context = dx11->GetMainDevice().GetDevice();
 
+	if (auto actor = actorRef.Target()) {
+		auto* changer = actor->GetComponent<SceneChangeComponent>();
+		if (changer) {
+			sceneChanger = changer;
+		}
+	}
+
 	// ---------------------------------------------------------
 	// 名前・学校名の表示
 	// ---------------------------------------------------------
@@ -332,11 +339,7 @@ Vector2 TitleCanvas::GetMousePosition()
 
 void TitleCanvas::ShowSongSelectScene()
 {
-	if (scene->StandbyThisScene()) {
-		scene->Activate();
-	}
-	auto actor = actorRef.Target();
-	if (actor) {
-		actor->GetScene().DeActivate();
+	if (!sceneChanger.isNull()) {
+		sceneChanger->ChangeScene(SelectScene::StandbyScene());
 	}
 }

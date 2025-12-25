@@ -17,6 +17,14 @@ namespace app::test {
 		auto context = dx11->GetMainDevice().GetDevice();
 
 
+		// --- SceneChangeComponentの取得 ---
+		if (auto actor = actorRef.Target()) {
+			auto* changer = actor->GetComponent<SceneChangeComponent>();
+			if (changer) {
+				sceneChanger = changer;
+			}
+		}
+
 		// =========================================================
 		// テキストUIの生成と配置
 		// =========================================================
@@ -246,11 +254,12 @@ namespace app::test {
 
 		// スペースキーでセレクト画面へ戻る
 		if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-			if (nextScene->StandbyThisScene()) {
-				nextScene->Activate();
+			// ★リファクタリングポイント：isNull() でチェックして丸投げ！
+			if (!sceneChanger.isNull()) {
+				sf::debug::Debug::Log("Selectへ遷移");
 
-				auto owner = actorRef.Target();
-				if (owner) owner->GetScene().DeActivate();
+				// 遷移先のシーンを生成して渡すだけ。あとの面倒はコンポーネントがみます。
+				sceneChanger->ChangeScene(SelectScene::StandbyScene());
 			}
 		}
 	}

@@ -4,6 +4,7 @@
 #include <vector>
 #include <string>   // ← 追加（judgeResultToStringで使用）
 #include "App.h"
+#include "SceneChangeComponent.h"
 
 // ===================== 判定可視・調整用 定数 =====================
 
@@ -121,6 +122,9 @@ namespace app::test {
         // size = lanes, 各要素は noteSequence のインデックス
         std::vector<std::vector<int>> laneOrder;
         std::vector<size_t>           laneHeads;
+
+        sf::SafePtr<SceneChangeComponent> sceneChanger;
+
     };
 
 } // namespace app::test

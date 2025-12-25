@@ -16,6 +16,8 @@
 #include "ResultScene.h"
 #include "TestCanvas.h" // ★これが必要
 
+
+
 #include <filesystem> 
 
 namespace app::test {
@@ -96,6 +98,14 @@ namespace app::test {
 
 		if (resultScene.isNull()) {
 			resultScene = ResultScene::StandbyScene();
+		}
+
+
+		if (auto actor = actorRef.Target()) {
+			auto* changer = actor->GetComponent<SceneChangeComponent>();
+			if (changer) {
+				sceneChanger = changer;
+			}
 		}
 
 		isPlaying = false;
@@ -368,16 +378,15 @@ namespace app::test {
 
 				if (songTime > noteSequence[i].hittime + J_WIN_GOOD) {
 					if (noteSequence[i].type == NoteType::SongEnd) {
-						if (resultScene->StandbyThisScene()) {
+						if (!sceneChanger.isNull()) {
 							sf::debug::Debug::Log("リザルトへ遷移します");
-							sf::Mesh::ClearAllRegistered();
 
+							// 描画・システムのクリーンアップ
+							sf::Mesh::ClearAllRegistered();
 							ShowCursor(TRUE);
-							resultScene->Activate();
-							auto owner = actorRef.Target();
-							if (owner) {
-								owner->GetScene().DeActivate();
-							}
+
+							// 遷移を依頼（あとの面倒はすべてコンポーネントがやってくれる）
+							sceneChanger->ChangeScene(resultScene);
 						}
 						noteSequence[i].judged = true;
 						return;

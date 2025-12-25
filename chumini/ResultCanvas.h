@@ -1,6 +1,7 @@
 #pragma once
 #include "App.h"
 #include "TextImage.h"
+#include "SceneChangeComponent.h"
 
 namespace app::test {
 	class ResultCanvas : public sf::ui::Canvas {
@@ -26,5 +27,6 @@ namespace app::test {
 
 		sf::command::Command<> updateCommand;
 		sf::SafePtr<sf::IScene> nextScene;
+		sf::SafePtr<SceneChangeComponent> sceneChanger;
 	};
 }
