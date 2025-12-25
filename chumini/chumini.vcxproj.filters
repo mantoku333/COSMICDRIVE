@@ -381,6 +381,12 @@
     <ClCompile Include="EffectManager.cpp">
       <Filter>App</Filter>
     </ClCompile>
+    <ClCompile Include="LoadingScene.cpp">
+      <Filter>App\Scene\LoadingScene</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadingCanvas.cpp">
+      <Filter>App\Scene\LoadingScene\LoadingCanvas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -746,6 +752,12 @@
     <ClInclude Include="EffectManager.h">
       <Filter>App</Filter>
     </ClInclude>
+    <ClInclude Include="LoadingScene.h">
+      <Filter>App\Scene\LoadingScene</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadingCanvas.h">
+      <Filter>App\Scene\LoadingScene\LoadingCanvas</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -1014,6 +1026,12 @@
     </Filter>
     <Filter Include="App\Scene\SelectScene\SelectCanvas">
       <UniqueIdentifier>{3c240543-c4f6-4880-9a6d-ec14f41122b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\LoadingScene">
+      <UniqueIdentifier>{8f0c883b-1fd7-457b-b80b-aef8bcc50042}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\LoadingScene\LoadingCanvas">
+      <UniqueIdentifier>{a059d3aa-c152-402c-b745-3ac2cb52e3a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

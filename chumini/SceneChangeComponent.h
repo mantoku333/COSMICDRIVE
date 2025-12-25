@@ -5,12 +5,13 @@ namespace app::test {
     class SceneChangeComponent : public sf::Component {
     public:
         void Begin() override;
-
+        void Update(const sf::command::ICommand&);
+        
         // 外部から遷移をリクエストする関数
         void ChangeScene(sf::SafePtr<sf::IScene> nextScene);
 
     private:
-        void Update();
+        
 
         sf::command::Command<> updateCommand;
         sf::SafePtr<sf::IScene> nextScene;

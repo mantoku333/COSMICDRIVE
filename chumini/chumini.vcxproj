@@ -214,6 +214,8 @@
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="JobSystem.cpp" />
     <ClCompile Include="JudgeStatsService.cpp" />
+    <ClCompile Include="LoadingCanvas.cpp" />
+    <ClCompile Include="LoadingScene.cpp" />
     <ClCompile Include="LookAtComponent.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainDevice.cpp" />
@@ -329,6 +331,8 @@
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="JobSystem.h" />
     <ClInclude Include="JudgeStatsService.h" />
+    <ClInclude Include="LoadingCanvas.h" />
+    <ClInclude Include="LoadingScene.h" />
     <ClInclude Include="LookAtComponent.h" />
     <ClInclude Include="MainDevice.h" />
     <ClInclude Include="Material.h" />

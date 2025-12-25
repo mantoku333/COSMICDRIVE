@@ -12,6 +12,7 @@
 #include "DWriteContext.h"
 #include "DirectX11.h"
 #include <Windows.h> 
+#include "LoadingScene.h"
 
 #include <filesystem>
 #include "ChedParser.h" 
@@ -558,12 +559,14 @@ namespace app::test {
         if (sceneChanger.isNull()) return;
 
         const SongInfo& selected = songs[targetIndex];
-        auto next = TestScene::StandbyScene();
 
+        auto next = TestScene::StandbyScene();
         if (next) {
-            sf::debug::Debug::Log("インゲームに遷移");
             next->SetSelectedSong(selected);
         }
+
+        LoadingScene::SetNextSongInfo(selected);
+
         sceneChanger->ChangeScene(next);
     }
 

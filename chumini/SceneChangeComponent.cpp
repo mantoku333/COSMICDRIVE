@@ -1,20 +1,31 @@
 #include "SceneChangeComponent.h"
 #include "DynamicScene.h"
-#include "Actor.h"  // GetActor() の戻り値を扱うために必要
+#include "Actor.h"
+#include "LoadingScene.h"
 
 void app::test::SceneChangeComponent::Begin() {
-    updateCommand.Bind(std::bind(&SceneChangeComponent::Update, this));
+
+    updateCommand.Bind(std::bind(&SceneChangeComponent::Update, this, std::placeholders::_1));
 }
 
-void app::test::SceneChangeComponent::ChangeScene(sf::SafePtr<sf::IScene> scene) {
-    // ! 演算子の代わりに isNull() を使用
-    if (scene.isNull()) return;
+void app::test::SceneChangeComponent::ChangeScene(sf::SafePtr<sf::IScene> next) {
+    if (next.isNull()) return;
 
-    this->nextScene = scene; // メンバ変数の nextScene (または scene) に代入
-    // isChanging フラグ等があればここで true にする
+    // 1. LoadingScene に「次に行く場所」を預ける
+    LoadingScene::SetNextScene(next);
+
+    // 2. LoadingScene を即座に起動
+    // (演出が必要なら、LoadingScene側が開始時にフェードインすればいい)
+    auto loader = LoadingScene::StandbyScene();
+    loader->Activate();
+
+    // 3. 自身のシーンを終了
+    if (auto owner = actorRef.Target()) {
+        owner->GetScene().DeActivate();
+    }
 }
 
-void app::test::SceneChangeComponent::Update() {
+void app::test::SceneChangeComponent::Update(const sf::command::ICommand&) {
     // 1. シーンがセットされていなければ何もしない
     if (nextScene.isNull()) return;
 
