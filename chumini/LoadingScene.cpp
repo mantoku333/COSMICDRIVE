@@ -6,6 +6,7 @@ namespace app::test {
     // Ã“I•Ï”‚ÌÀ‘Ì’è‹`
     sf::SafePtr<sf::IScene> LoadingScene::pendingNextScene = nullptr;
     SongInfo LoadingScene::pendingSongInfo = { "", "", "" };
+    LoadingType LoadingScene::pendingType = LoadingType::Common;
 
     void LoadingScene::SetNextScene(sf::SafePtr<sf::IScene> scene) {
         pendingNextScene = scene;
@@ -13,6 +14,10 @@ namespace app::test {
     // š’Ç‰Á: ‹Èî•ñ‚ğ•Û‘¶
     void LoadingScene::SetNextSongInfo(const SongInfo& info) {
         pendingSongInfo = info;
+    }
+
+    void LoadingScene::SetLoadingType(LoadingType type) {
+        pendingType = type;
     }
 
     void LoadingScene::Init() {
@@ -30,6 +35,7 @@ namespace app::test {
             pendingNextScene = nullptr;
         }
 
+        canvas->SetLoadingType(pendingType);
         canvas->SetSongInfo(pendingSongInfo);
         pendingSongInfo = { "", "", "" };
 

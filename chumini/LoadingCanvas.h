@@ -2,6 +2,7 @@
 #include "App.h"
 #include "TextImage.h"
 #include "SongInfo.h"
+#include "LoadingScene.h"
 
 namespace app::test {
 
@@ -10,9 +11,10 @@ namespace app::test {
         void Begin() override;
         void Update(const sf::command::ICommand&);
 
-        // 次のシーンをセットする
+        // シーンから指示を受け取る関数
         void SetTargetScene(sf::SafePtr<sf::IScene> scene);
         void SetSongInfo(const SongInfo& info);
+        void SetLoadingType(LoadingType type);
 
     private:
         sf::command::Command<> updateCommand;
@@ -23,11 +25,14 @@ namespace app::test {
         sf::ui::TextImage* songTitleText = nullptr;
         sf::ui::TextImage* artistText = nullptr;
 
+        sf::ui::Image* jacketImage = nullptr;
         // UIパーツ
         sf::ui::TextImage* loadingText = nullptr;
         float timer = 0.0f;
         bool isLoadCompleted = false;
 
-		const float MIN_LOADING_TIME = 3.0f; // 最低表示時間
+		const float MIN_LOADING_TIME = 1.0f; // 最低表示時間
+
+        LoadingType currentType = LoadingType::Common;
     };
 }

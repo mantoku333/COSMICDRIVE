@@ -61,6 +61,10 @@ namespace app::test {
     }
 
     void LoadingCanvas::SetSongInfo(const SongInfo& info) {
+
+        if (currentType != LoadingType::InGame) {
+            return; 
+        }
         // 受け取った情報をUIにセット
         if (info.title.empty()) {
             if (songTitleText) songTitleText->SetVisible(false);
@@ -88,6 +92,17 @@ namespace app::test {
         }
     }
 
+    void LoadingCanvas::SetLoadingType(LoadingType type) {
+        this->currentType = type;
+
+        // Commonなら強制非表示
+        if (currentType == LoadingType::Common) {
+            if (songTitleText) songTitleText->SetVisible(false);
+            if (artistText) artistText->SetVisible(false);
+            if (jacketImage) jacketImage->SetVisible(false);
+        }
+    }
+
     void LoadingCanvas::Update(const sf::command::ICommand&) {
         // 1. タイマーは常に進める
         timer += sf::Time::DeltaTime();
@@ -100,7 +115,7 @@ namespace app::test {
 
         if (targetScene.isNull()) return;
 
-        // 2. 裏で常にロードチェックを行う（3秒経ってなくてもやる！）
+        // 2. 裏で常にロードチェックを行う（n秒経ってなくてもやる！）
         if (!isLoadCompleted) {
             if (targetScene->StandbyThisScene()) {
                 isLoadCompleted = true; // ロード終わった！
@@ -120,4 +135,5 @@ namespace app::test {
         }
 
     }
+
 }
