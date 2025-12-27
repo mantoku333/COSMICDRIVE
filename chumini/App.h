@@ -4,6 +4,7 @@
 #include "Time.h"
 #include "SInput.h"
 #include "SkyBox.h"
+#include "AppModel.h"
 
 namespace app
 {
@@ -99,5 +100,7 @@ namespace app
 		bool exit = false;
 
 		sf::file::TextFile fpsFile = sf::file::TextFile("log\\fps.txt");
+
+		AppModel* live2DModel = nullptr;
 	};
 }

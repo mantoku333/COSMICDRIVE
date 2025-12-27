@@ -2,6 +2,7 @@
 #include "SceneChangeComponent.h"
 #include "SelectScene.h"
 #include "EditScene.h"
+#include "LoadingScene.h"
 
 // 必要なインクルード
 #include "DirectX11.h"       // デバイス取得用
@@ -334,6 +335,7 @@ Vector2 TitleCanvas::GetMousePosition()
 void TitleCanvas::ShowSongSelectScene()
 {
 	if (!sceneChanger.isNull()) {
+		LoadingScene::SetLoadingType(LoadingType::Common);
 		sceneChanger->ChangeScene(SelectScene::StandbyScene());
 	}
 }

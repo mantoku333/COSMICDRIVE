@@ -565,6 +565,7 @@ namespace app::test {
             next->SetSelectedSong(selected);
         }
 
+        LoadingScene::SetLoadingType(LoadingType::InGame);
         LoadingScene::SetNextSongInfo(selected);
 
         sceneChanger->ChangeScene(next);

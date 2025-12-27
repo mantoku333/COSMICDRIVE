@@ -14,7 +14,8 @@
 #include "JudgeStatsService.h"
 #include "ChedParser.h"
 #include "ResultScene.h"
-#include "TestCanvas.h" // ★これが必要
+#include "TestCanvas.h" 
+#include "LoadingScene.h"
 
 
 
@@ -385,7 +386,7 @@ namespace app::test {
 							sf::Mesh::ClearAllRegistered();
 							ShowCursor(TRUE);
 
-							// 遷移を依頼（あとの面倒はすべてコンポーネントがやってくれる）
+							LoadingScene::SetLoadingType(LoadingType::Common);
 							sceneChanger->ChangeScene(resultScene);
 						}
 						noteSequence[i].judged = true;

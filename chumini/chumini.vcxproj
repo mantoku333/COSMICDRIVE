@@ -145,24 +145,25 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>C:\DirectX11\NEWchumini\NEWchumini\chumini\Effekseer\include\Effekseer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Effekseer\include\Effekseer;$(ProjectDir)Live2D\Core\include;$(ProjectDir)Live2D\Framework\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\DirectX11\NEWchumini\NEWchumini\chumini\Effekseer\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Effekseer.lib;EffekseerRendererDX11.lib;LLGI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)Effekseer\lib;$(ProjectDir)Live2D\Core\lib\windows\x86_64\143;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Effekseer.lib;EffekseerRendererDX11.lib;LLGI.lib;Live2DCubismCore_MT.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="App.cpp" />
+    <ClCompile Include="AppModel.cpp" />
     <ClCompile Include="AutoRef.cpp" />
     <ClCompile Include="BGMComponent.cpp" />
     <ClCompile Include="BinaryFile.cpp" />
@@ -214,6 +215,46 @@
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="JobSystem.cpp" />
     <ClCompile Include="JudgeStatsService.cpp" />
+    <ClCompile Include="Live2D\Framework\src\CubismCdiJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\CubismDefaultParameterId.cpp" />
+    <ClCompile Include="Live2D\Framework\src\CubismFramework.cpp" />
+    <ClCompile Include="Live2D\Framework\src\CubismModelSettingJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Effect\CubismBreath.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Effect\CubismEyeBlink.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Effect\CubismPose.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Id\CubismId.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Id\CubismIdManager.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismMath.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismMatrix44.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismModelMatrix.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismTargetPoint.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismVector2.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Math\CubismViewMatrix.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Model\CubismMoc.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Model\CubismModel.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Model\CubismModelUserData.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Model\CubismModelUserDataJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Model\CubismUserModel.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\ACubismMotion.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismExpressionMotion.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismExpressionMotionManager.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismMotion.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismMotionJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismMotionManager.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismMotionQueueEntry.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Motion\CubismMotionQueueManager.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Physics\CubismPhysics.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Physics\CubismPhysicsJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Rendering\CubismRenderer.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Rendering\D3D11\CubismOffscreenSurface_D3D11.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Rendering\D3D11\CubismRenderer_D3D11.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Rendering\D3D11\CubismRenderState_D3D11.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Rendering\D3D11\CubismShader_D3D11.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Type\csmRectF.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Type\csmString.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Utils\CubismDebug.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Utils\CubismJson.cpp" />
+    <ClCompile Include="Live2D\Framework\src\Utils\CubismString.cpp" />
     <ClCompile Include="LoadingCanvas.cpp" />
     <ClCompile Include="LoadingScene.cpp" />
     <ClCompile Include="LookAtComponent.cpp" />
@@ -274,6 +315,8 @@
   <ItemGroup>
     <ClInclude Include="Actor.h" />
     <ClInclude Include="App.h" />
+    <ClInclude Include="AppAllocator.h" />
+    <ClInclude Include="AppModel.h" />
     <ClInclude Include="AutoRef.h" />
     <ClInclude Include="BGMComponent.h" />
     <ClInclude Include="BinaryFile.h" />
@@ -331,6 +374,59 @@
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="JobSystem.h" />
     <ClInclude Include="JudgeStatsService.h" />
+    <ClInclude Include="Live2DManager.h" />
+    <ClInclude Include="Live2D\Framework\src\CubismCdiJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\CubismDefaultParameterId.hpp" />
+    <ClInclude Include="Live2D\Framework\src\CubismFramework.hpp" />
+    <ClInclude Include="Live2D\Framework\src\CubismFrameworkConfig.hpp" />
+    <ClInclude Include="Live2D\Framework\src\CubismJsonHolder.hpp" />
+    <ClInclude Include="Live2D\Framework\src\CubismModelSettingJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Effect\CubismBreath.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Effect\CubismEyeBlink.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Effect\CubismPose.hpp" />
+    <ClInclude Include="Live2D\Framework\src\ICubismAllocator.hpp" />
+    <ClInclude Include="Live2D\Framework\src\ICubismModelSetting.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Id\CubismId.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Id\CubismIdManager.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Live2DCubismCore.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismMath.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismMatrix44.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismModelMatrix.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismTargetPoint.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismVector2.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Math\CubismViewMatrix.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Model\CubismMoc.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Model\CubismModel.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Model\CubismModelUserData.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Model\CubismModelUserDataJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Model\CubismUserModel.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\ACubismMotion.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismExpressionMotion.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismExpressionMotionManager.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotion.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotionInternal.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotionJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotionManager.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotionQueueEntry.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Motion\CubismMotionQueueManager.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Physics\CubismPhysics.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Physics\CubismPhysicsInternal.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Physics\CubismPhysicsJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\CubismRenderer.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismNativeInclude_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismOffscreenSurface_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismRenderer_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismRenderState_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismShader_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Rendering\D3D11\CubismType_D3D11.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Type\csmMap.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Type\csmRectF.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Type\csmString.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Type\csmVector.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Type\CubismBasicType.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Utils\CubismDebug.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Utils\CubismJson.hpp" />
+    <ClInclude Include="Live2D\Framework\src\Utils\CubismString.hpp" />
     <ClInclude Include="LoadingCanvas.h" />
     <ClInclude Include="LoadingScene.h" />
     <ClInclude Include="LookAtComponent.h" />
