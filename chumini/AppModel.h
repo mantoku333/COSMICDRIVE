@@ -2,30 +2,31 @@
 
 #include <CubismFramework.hpp>
 #include <Model/CubismUserModel.hpp>
-#include <Rendering/D3D11/CubismRenderer_D3D11.hpp>
+#include <CubismModelSettingJson.hpp> 
+#include "Live2D/Framework/src/Rendering/D3D11/CubismRenderer_D3D11.hpp" 
 #include <vector>
-#include "Texture.h" 
+#include <string>
+#include "D3D.h"
 
-using namespace Live2D::Cubism::Framework;
-using namespace Live2D::Cubism::Framework::Rendering;
+namespace sf { class Texture; }
 
-// ƒNƒ‰ƒX–¼‚ð•ÏX: LAppModel -> AppModel
-class AppModel : public CubismUserModel {
+class AppModel : public Live2D::Cubism::Framework::CubismUserModel
+{
 public:
     AppModel();
     virtual ~AppModel();
 
     void LoadAssets(ID3D11Device* device, const std::string& dir, const std::string& fileName);
-    void Update();
-    void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Csm::CubismMatrix44& matrix);
+    void Update(); 
+    void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Live2D::Cubism::Framework::CubismMatrix44& matrix);
 
-    CubismRenderer_D3D11* GetMyRenderer() const { return _myRenderer; }
-
-protected:
-    Csm::csmInt32 GetTextureDirectoryIndex(const Csm::csmString& path);
+    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* GetMyRenderer() const { return _myRenderer; }
 
 private:
-    CubismRenderer_D3D11* _myRenderer = nullptr;
+    void SetupTextures(ID3D11Device* device);
+
+    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* _myRenderer;
+    Live2D::Cubism::Framework::CubismModelSettingJson* _modelSetting; 
     std::string _modelHomeDir;
-    std::vector<sf::Texture*> _loadedTextures;
+    std::vector<sf::Texture*> _loadedTextures; // Use explicit type
 };
