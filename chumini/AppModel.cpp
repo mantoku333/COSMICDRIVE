@@ -27,17 +27,20 @@ namespace {
     }
 }
 
-// コンストラクタ
-AppModel::AppModel() : _renderer(nullptr)
-{
-}
+AppModel::AppModel() : _myRenderer(nullptr) {}
 
 // デストラクタ
 AppModel::~AppModel()
 {
-    if (_renderer) {
-        CubismRenderer::Delete(_renderer);
-        _renderer = nullptr;
+    if (_myRenderer) {
+        CubismRenderer::Delete(_myRenderer);
+        _myRenderer = nullptr;
+    }
+
+    auto renderer = GetRenderer<CubismRenderer_D3D11>();
+    if (renderer) {
+        CubismRenderer::Delete(renderer);
+        // _renderer = nullptr; // セッターがない場合もあるので、DeleteだけでOK（内部で処理されるはず）
     }
 
     for (auto texture : _loadedTextures) {
@@ -68,13 +71,10 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
     LoadModel(buffer, size);
     free(buffer);
 
-    // 3. レンダラー作成と初期化 【ここを修正】
-    _renderer = static_cast<CubismRenderer_D3D11*>(CubismRenderer_D3D11::Create());
+    // 3. レンダラー作成
+    _myRenderer = static_cast<CubismRenderer_D3D11*>(CubismRenderer_D3D11::Create());
+    _myRenderer->Initialize(GetModel());
 
-    // ★修正1: Initializeには Device ではなく GetModel() を渡します
-    _renderer->Initialize(GetModel());
-
-    // ★修正2: BindModel は存在しないので削除しました（Initializeで紐づけ済みです）
 
     // 4. テクスチャ読み込み
     int textureCount = modelSetting->GetTextureCount();
@@ -82,13 +82,15 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
     {
         std::string texturePath = dir + modelSetting->GetTextureFileName(i);
 
+        OutputDebugStringA(("Texture Load: " + texturePath + "\n").c_str());
+
         sf::Texture* texture = new sf::Texture();
         if (texture->LoadTextureFromFile(texturePath))
         {
             _loadedTextures.push_back(texture);
 
-            // テクスチャをバインド
-            _renderer->BindTexture(i, texture->srv);
+            _myRenderer->BindTexture(i, texture->srv);
+            OutputDebugStringA(" -> [OK] Success\n");
         }
         else
         {
@@ -119,11 +121,11 @@ void AppModel::Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Cs
     Csm::CubismMatrix44 viewMatrix = matrix;
     projection.MultiplyByMatrix(&viewMatrix);
 
-    _renderer->SetMvpMatrix(&projection);
+    _myRenderer->SetMvpMatrix(&projection);
 
+    OutputDebugStringA("Drawing Model...\n");
 
-    // モデル描画
-    _renderer->DrawModel();
+    _myRenderer->DrawModel();
 
 
 }

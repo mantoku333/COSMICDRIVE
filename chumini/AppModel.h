@@ -19,11 +19,13 @@ public:
     void Update();
     void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Csm::CubismMatrix44& matrix);
 
+    CubismRenderer_D3D11* GetMyRenderer() const { return _myRenderer; }
+
 protected:
     Csm::csmInt32 GetTextureDirectoryIndex(const Csm::csmString& path);
 
 private:
-    CubismRenderer_D3D11* _renderer;
+    CubismRenderer_D3D11* _myRenderer = nullptr;
     std::string _modelHomeDir;
     std::vector<sf::Texture*> _loadedTextures;
 };

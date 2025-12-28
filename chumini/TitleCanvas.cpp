@@ -104,9 +104,31 @@ void TitleCanvas::Begin()
 	CubismRenderer_D3D11::InitializeConstantSettings(1, device);
 
 	_hiyoriModel = new AppModel();
-	_hiyoriModel->LoadAssets(device, "Assets/Live2D/Hiyori/", "Hiyori.model3.json");
+	// -------------------- 確認用コード 開始 --------------------
+	namespace fs = std::filesystem;
 
-	auto renderer = _hiyoriModel->GetRenderer<CubismRenderer_D3D11>();
+	// あなたが LoadAssets に渡しているパス
+	std::string dir = "Assets/Live2D/Hiyori/";
+	std::string name = "Hiyori.model3.json";
+	std::string fullPath = dir + name;
+
+	// 1. 今どこにいるか？
+	OutputDebugStringA("\n========== PATH CHECK ==========\n");
+	OutputDebugStringA(("Current Dir: " + fs::current_path().string() + "\n").c_str());
+
+	// 2. ファイルはあるか？
+	if (fs::exists(fullPath)) {
+		OutputDebugStringA(("【OK】File FOUND: " + fs::absolute(fullPath).string() + "\n").c_str());
+	}
+	else {
+		OutputDebugStringA(("【NG】File NOT FOUND: " + fs::absolute(fullPath).string() + "\n").c_str());
+	}
+	OutputDebugStringA("================================\n\n");
+	// -------------------- 確認用コード 終了 --------------------
+
+	_hiyoriModel->LoadAssets(device, dir.c_str(), name.c_str());
+
+	auto renderer = _hiyoriModel->GetMyRenderer();
 
 	if (renderer != nullptr) {
 		renderer->Initialize(_hiyoriModel->GetModel());
@@ -204,6 +226,7 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 	// ★追加: Live2Dモデルの更新
 	if (_hiyoriModel) {
 		_hiyoriModel->Update();
+		OutputDebugStringA("Model Updated\n");
 	}
 	if (totalWidth <= 0.0f) return;
 
@@ -372,10 +395,10 @@ TitleCanvas::~TitleCanvas()
 		_hiyoriModel = nullptr;
 	}
 }
-
 void TitleCanvas::Draw()
 {
-	// 1. 親クラスの描画
+	// 1. 親クラス（UIなど）を描画
+	// ここでGPUの設定がUI用（Live2Dには不向きな状態）書き換わってしまっています
 	sf::ui::Canvas::Draw();
 
 	// 2. Live2Dの描画
@@ -385,20 +408,74 @@ void TitleCanvas::Draw()
 		auto device = dx11->GetMainDevice().GetDevice();
 		auto context = dx11->GetMainDevice().GetContext();
 
-		// ★★★ 追加 1: 描画開始の合図（描画設定をLive2D用に切り替える） ★★★
-		// 第3,4引数には画面サイズ(ビューポートサイズ)を渡します
-		// TitleCanvas内で定義されている screenWidth, screenHeight を使います
+		// =========================================================
+		// ★★★ 【対策1】トポロジーの強制リセット ★★★
+		// 前の処理が「TriangleStrip」などを使っているとLive2Dは壊れます。
+		// 必ず「TriangleList」に戻す必要があります。
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		// =========================================================
+
+		// =========================================================
+		// ★★★ 【対策2】ブレンドステート（透明処理）の強制有効化 ★★★
+		// これがないと、透明なポリゴンが「見えない」か「黒く」なります。
+		D3D11_BLEND_DESC blendDesc = {};
+		blendDesc.AlphaToCoverageEnable = FALSE;
+		blendDesc.IndependentBlendEnable = FALSE;
+		blendDesc.RenderTarget[0].BlendEnable = TRUE;             // ブレンド有効
+		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+		ID3D11BlendState* blendState = nullptr;
+		if (SUCCEEDED(device->CreateBlendState(&blendDesc, &blendState)))
+		{
+			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			context->OMSetBlendState(blendState, blendFactor, 0xffffffff);
+			blendState->Release(); // セットしたら即解放してOK
+		}
+		// =========================================================
+
+		// =========================================================
+		// ★★★ 【対策3】カリング（裏面削除）なし ★★★
+		D3D11_RASTERIZER_DESC rasterDesc = {};
+		rasterDesc.FillMode = D3D11_FILL_SOLID;
+		rasterDesc.CullMode = D3D11_CULL_NONE; // 両面描画
+		rasterDesc.FrontCounterClockwise = FALSE;
+		rasterDesc.DepthClipEnable = TRUE;
+
+		ID3D11RasterizerState* rasterState = nullptr;
+		if (SUCCEEDED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
+		{
+			context->RSSetState(rasterState);
+			rasterState->Release();
+		}
+		// =========================================================
+
+		// 【対策4】奥行き判定無効（手前に描画）
+		context->OMSetDepthStencilState(nullptr, 0);
+
+		// 【対策5】余計なシェーダーをオフ
+		context->GSSetShader(nullptr, nullptr, 0);
+		context->HSSetShader(nullptr, nullptr, 0);
+		context->DSSetShader(nullptr, nullptr, 0);
+
+		// ---------------------------------------------------------
+		// ここから描画実行
+		// ---------------------------------------------------------
 		CubismRenderer_D3D11::StartFrame(device, context, 1920, 1080);
 
-		// 行列作成
 		Csm::CubismMatrix44 matrix;
-		matrix.Translate(0.0f, -0.3f);
-		matrix.Scale(1.0f, 1.0f);
+		// スケール調整（少し大きめにしてみる）
+		matrix.Scale(1.0f / 800.0f, 1.0f / 800.0f);
+		matrix.ScaleRelative(1.0f / (1920.0f / 1080.0f), 1.0f);
+		matrix.Translate(0.0f, -0.5f); // 少し下にずらしてみる
 
-		// モデル描画
 		_hiyoriModel->Draw(device, context, matrix);
 
-		// ★★★ 追加 2: 描画終了の合図（設定を元に戻す） ★★★
 		CubismRenderer_D3D11::EndFrame(device);
 	}
 }
