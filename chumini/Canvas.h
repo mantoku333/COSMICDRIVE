@@ -11,7 +11,7 @@ namespace sf
 		class Canvas :public Component
 		{
 		public:
-			~Canvas();
+			virtual ~Canvas();
 			void Begin()override;
 
 			void Activate()override;
@@ -44,8 +44,8 @@ namespace sf
 
 			std::list<UI*> uis;
 
-		private:
-			void Draw();
+		protected:
+			virtual void Draw();
 
 		private:
 			static std::list<Canvas*> canvasies;

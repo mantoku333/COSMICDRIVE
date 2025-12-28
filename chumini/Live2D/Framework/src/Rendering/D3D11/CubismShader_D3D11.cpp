@@ -10,6 +10,10 @@
 #include "CubismRenderer_D3D11.hpp"
 #include <d3dcompiler.h>
 
+#include <fstream>
+#include <windows.h>
+#include <vector>
+
 //------------ LIVE2D NAMESPACE ------------
 namespace Live2D { namespace Cubism { namespace Framework { namespace Rendering {
 
@@ -77,24 +81,35 @@ void CubismShader_D3D11::GenerateShaders(ID3D11Device* device)
     do
     {
         // シェーダーソースコードが記述されているファイルを読み込み
-        const csmChar* frameworkShaderPath = "FrameworkShaders/CubismEffect.fx";
+        const csmChar* frameworkShaderPath = "CubismEffect.fx";
+
         csmLoadFileFunction fileLoader = Csm::CubismFramework::GetLoadFileFunction();
         csmReleaseBytesFunction bytesReleaser = Csm::CubismFramework::GetReleaseBytesFunction();
 
-        if (!fileLoader)
-        {
-            CubismLogError("File loader is not set.");
-            break;
+      
+        // シェーダーファイルを開く
+        std::ifstream file(frameworkShaderPath, std::ios::binary | std::ios::ate);
+        csmByte* shaderSrc = nullptr;
+        csmSizeInt shaderSize = 0;
+
+        if (file.is_open()) {
+            // サイズ取得
+            shaderSize = static_cast<csmSizeInt>(file.tellg());
+            file.seekg(0, std::ios::beg);
+
+            // メモリ確保
+            shaderSrc = (csmByte*)malloc(shaderSize);
+
+            if (shaderSrc) {
+                file.read((char*)shaderSrc, shaderSize);
+            }
+            file.close();
+        }
+        else {
+            CubismLogError("Failed to load shader file: %s", frameworkShaderPath);
+            break; // 読み込めなかったら抜ける
         }
 
-        if (!bytesReleaser)
-        {
-            CubismLogError("Byte releaser is not set.");
-            break;
-        }
-
-        csmSizeInt shaderSize;
-        csmByte* shaderSrc = fileLoader(frameworkShaderPath, &shaderSize);
         if (shaderSrc == NULL)
         {
             CubismLogError("Failed to load shader");
@@ -109,7 +124,7 @@ void CubismShader_D3D11::GenerateShaders(ID3D11Device* device)
         }
 
         // ファイル読み込みで確保したバイト列を開放
-        bytesReleaser(shaderSrc);
+        free(shaderSrc);
 
         // マスク
         if(!LoadShaderProgram(device, false, ShaderNames_SetupMask, static_cast<const csmChar*>("VertSetupMask")))

@@ -3,6 +3,7 @@
 #include "SelectScene.h"
 #include "EditScene.h"
 #include "LoadingScene.h"
+#include "Rendering/D3D11/CubismRenderer_D3D11.hpp"
 
 // 必要なインクルード
 #include "DirectX11.h"       // デバイス取得用
@@ -93,7 +94,27 @@ void TitleCanvas::Begin()
 
 	// DirectXデバイスの取得
 	auto* dx11 = sf::dx::DirectX11::Instance();
-	auto context = dx11->GetMainDevice().GetDevice();
+	// ★修正ポイント1：ここで変数を作成（1回だけ！）
+	// 名前を context ではなく、中身に合わせて device にしました
+	ID3D11Device* device = dx11->GetMainDevice().GetDevice();
+	ID3D11DeviceContext* context = dx11->GetMainDevice().GetContext();
+
+	Live2DManager::GetInstance()->Initialize(); // 全体の初期化
+
+	CubismRenderer_D3D11::InitializeConstantSettings(1, device);
+
+	_hiyoriModel = new AppModel();
+	_hiyoriModel->LoadAssets(device, "Assets/Live2D/Hiyori/", "Hiyori.model3.json");
+
+	auto renderer = _hiyoriModel->GetRenderer<CubismRenderer_D3D11>();
+
+	if (renderer != nullptr) {
+		renderer->Initialize(_hiyoriModel->GetModel());
+	}
+	else {
+		// 読み込み失敗の可能性大
+		OutputDebugStringA("【エラー】モデルの読み込みに失敗しました。renderer が nullptr です。\n");
+	}
 
 	if (auto actor = actorRef.Target()) {
 		auto* changer = actor->GetComponent<SceneChangeComponent>();
@@ -110,7 +131,7 @@ void TitleCanvas::Begin()
 	titleText->transform.SetScale(Vector3(10, 2, 0));
 
 	titleText->Create(
-		context,
+		device,
 		L"萬徳倫功",
 		L"Assets/Fonts/Hangyaku.ttf",
 		100.0f,
@@ -142,7 +163,7 @@ void TitleCanvas::Begin()
 	playButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	playButton->Create(
-		context,
+		device,
 		L"PLAY",
 		L"Assets/Fonts/ゴチカクット.ttf",
 		150.0f,
@@ -158,7 +179,7 @@ void TitleCanvas::Begin()
 	exitButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	exitButton->Create(
-		context,
+		device,
 		L"EXIT",
 		L"Assets/Fonts/ゴチカクット.ttf",
 		150.0f,
@@ -180,6 +201,10 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 	animationTimer += sf::Time::DeltaTime();
 	float dt = sf::Time::DeltaTime();
 
+	// ★追加: Live2Dモデルの更新
+	if (_hiyoriModel) {
+		_hiyoriModel->Update();
+	}
 	if (totalWidth <= 0.0f) return;
 
 	// 境界線（画面端より少し外側）
@@ -337,5 +362,43 @@ void TitleCanvas::ShowSongSelectScene()
 	if (!sceneChanger.isNull()) {
 		LoadingScene::SetLoadingType(LoadingType::Common);
 		sceneChanger->ChangeScene(SelectScene::StandbyScene());
+	}
+}
+
+TitleCanvas::~TitleCanvas()
+{
+	if (_hiyoriModel) {
+		delete _hiyoriModel;
+		_hiyoriModel = nullptr;
+	}
+}
+
+void TitleCanvas::Draw()
+{
+	// 1. 親クラスの描画
+	sf::ui::Canvas::Draw();
+
+	// 2. Live2Dの描画
+	if (_hiyoriModel)
+	{
+		auto* dx11 = sf::dx::DirectX11::Instance();
+		auto device = dx11->GetMainDevice().GetDevice();
+		auto context = dx11->GetMainDevice().GetContext();
+
+		// ★★★ 追加 1: 描画開始の合図（描画設定をLive2D用に切り替える） ★★★
+		// 第3,4引数には画面サイズ(ビューポートサイズ)を渡します
+		// TitleCanvas内で定義されている screenWidth, screenHeight を使います
+		CubismRenderer_D3D11::StartFrame(device, context, 1920, 1080);
+
+		// 行列作成
+		Csm::CubismMatrix44 matrix;
+		matrix.Translate(0.0f, -0.3f);
+		matrix.Scale(1.0f, 1.0f);
+
+		// モデル描画
+		_hiyoriModel->Draw(device, context, matrix);
+
+		// ★★★ 追加 2: 描画終了の合図（設定を元に戻す） ★★★
+		CubismRenderer_D3D11::EndFrame(device);
 	}
 }

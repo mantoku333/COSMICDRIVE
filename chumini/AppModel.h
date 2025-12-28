@@ -15,7 +15,7 @@ public:
     AppModel();
     virtual ~AppModel();
 
-    void LoadAssets(const std::string& dir, const std::string& fileName);
+    void LoadAssets(ID3D11Device* device, const std::string& dir, const std::string& fileName);
     void Update();
     void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Csm::CubismMatrix44& matrix);
 

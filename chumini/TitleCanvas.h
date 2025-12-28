@@ -4,6 +4,9 @@
 #include "SceneChangeComponent.h"
 #include "SongInfo.h"
 
+#include "AppModel.h"
+#include "Live2DManager.h"
+
 namespace app
 {
 	namespace test
@@ -14,7 +17,12 @@ namespace app
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
 
+			void Draw() override;
+			virtual ~TitleCanvas();
 		private:
+
+			AppModel* _hiyoriModel = nullptr;
+
 			sf::command::Command<> updateCommand;
 			sf::SafePtr<SceneChangeComponent> sceneChanger;// ÉVÅ[ÉìëJà⁄óp
 

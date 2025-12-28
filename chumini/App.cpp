@@ -1,7 +1,6 @@
 #include "App.h"
 #include "DirectX11.h"
 #include "ResidentScene.h"
-#include "Live2DManager.h"
 
 app::Application* app::Application::main = nullptr;
 
@@ -119,10 +118,6 @@ void app::Application::Init()
 	//スカイボックスの初期化
 	skybox.Init();
 
-	Live2DManager::GetInstance()->Initialize();
-	live2DModel = new AppModel();
-	live2DModel->LoadAssets("Assets/Live2D/Hiyori/", "Hiyori.model3.json");
-
 	//ResidentSceneを読み込む(常に存在するシーン)
 	auto scene = ResidentScene::StandbyScene();
 
@@ -144,11 +139,6 @@ void app::Application::UnInit()
 	for (auto& i : activeScene) {
 		delete i;
 	}
-	if (live2DModel) {
-		delete live2DModel;
-		live2DModel = nullptr;
-	}
-	Live2DManager::GetInstance()->Release();
 
 	OnApplicationExit();
 
@@ -248,28 +238,6 @@ void app::Application::Loop()
 
 				for (auto* scene : activeScene) {
 					scene->Draw();
-				}
-
-				if (live2DModel) {
-					// 行列の作成（単位行列＝画面中央）
-					Live2D::Cubism::Framework::CubismMatrix44 matrix;
-					matrix.LoadIdentity();
-
-					// 必要ならサイズ調整 (1.0だと画面いっぱいすぎるかも)
-					// matrix.Scale(1.0f, 1.0f); 
-
-					// 描画実行
-					// GetDevice()などはご自身のエンジンに合わせて取得してください
-					live2DModel->Draw(
-						dx11->GetMainDevice().GetDevice(),
-						dx11->GetMainDevice().GetContext(),
-						matrix
-					);
-
-					// ★重要：Live2Dは描画ステート（ブレンドやシェーダー）を書き換えます。
-					// 次の処理（デバッグライン描画や2D描画）で表示がおかしくなる場合は、
-					// ここで「レンダリングステートを元に戻す処理」が必要です。
-					// いったんこのまま動かしてみましょう。
 				}
 
 				//デバッグラインの描画
@@ -452,11 +420,16 @@ bool app::Application::OnGUI()
 bool app::Application::CreateGameWindow()
 {
 	gameWindow.wc.lpfnWndProc = WndProc;
-	gameWindow.windowName = "Window1";
+	gameWindow.windowName = "COZMIC DRIVE";
 	gameWindow.className = "Class1";
 
-	return gameWindow.Create(WS_POPUP);
-	return gameWindow.Create();
+	bool result = gameWindow.Create(WS_POPUP);
+
+	// ★これを追加！
+	// 生成されたウィンドウに対して「常に最前面」属性を強制的に解除する命令です
+	SetWindowPos(gameWindow.hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+
+	return result;
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler

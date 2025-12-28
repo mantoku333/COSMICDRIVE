@@ -46,11 +46,12 @@ AppModel::~AppModel()
     _loadedTextures.clear();
 }
 
-void AppModel::LoadAssets(const std::string& dir, const std::string& fileName)
+void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const std::string& fileName)
 {
     _modelHomeDir = dir;
-    std::string filePath = dir + fileName;
 
+    // 1. .model3.json (設定ファイル) の読み込み
+    std::string filePath = dir + fileName;
     csmSizeType size = 0;
     csmByte* buffer = CreateBuffer(filePath.c_str(), &size);
     if (!buffer) {
@@ -60,18 +61,22 @@ void AppModel::LoadAssets(const std::string& dir, const std::string& fileName)
     CubismModelSettingJson* modelSetting = new CubismModelSettingJson(buffer, size);
     free(buffer);
 
+    // 2. .moc3 (モデル本体) の読み込み
     std::string moc3Path = dir + modelSetting->GetModelFileName();
     buffer = CreateBuffer(moc3Path.c_str(), &size);
 
     LoadModel(buffer, size);
     free(buffer);
 
-    // ★修正箇所: static_cast を追加
+    // 3. レンダラー作成と初期化 【ここを修正】
     _renderer = static_cast<CubismRenderer_D3D11*>(CubismRenderer_D3D11::Create());
 
+    // ★修正1: Initializeには Device ではなく GetModel() を渡します
     _renderer->Initialize(GetModel());
 
-    // テクスチャ読み込み
+    // ★修正2: BindModel は存在しないので削除しました（Initializeで紐づけ済みです）
+
+    // 4. テクスチャ読み込み
     int textureCount = modelSetting->GetTextureCount();
     for (int i = 0; i < textureCount; i++)
     {
@@ -81,6 +86,8 @@ void AppModel::LoadAssets(const std::string& dir, const std::string& fileName)
         if (texture->LoadTextureFromFile(texturePath))
         {
             _loadedTextures.push_back(texture);
+
+            // テクスチャをバインド
             _renderer->BindTexture(i, texture->srv);
         }
         else
@@ -89,6 +96,8 @@ void AppModel::LoadAssets(const std::string& dir, const std::string& fileName)
         }
     }
 
+    // 5. サイズ保存
+    GetModel()->SaveParameters();
     delete modelSetting;
 }
 
@@ -105,11 +114,18 @@ void AppModel::Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Cs
     if (GetModel() == nullptr) return;
 
     Csm::CubismMatrix44 projection;
+
+    // 行列計算
     Csm::CubismMatrix44 viewMatrix = matrix;
     projection.MultiplyByMatrix(&viewMatrix);
 
     _renderer->SetMvpMatrix(&projection);
+
+
+    // モデル描画
     _renderer->DrawModel();
+
+
 }
 
 Csm::csmInt32 AppModel::GetTextureDirectoryIndex(const Csm::csmString& path)
