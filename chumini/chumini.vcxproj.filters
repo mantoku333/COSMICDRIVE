@@ -510,6 +510,9 @@
     <ClCompile Include="AppModel.cpp">
       <Filter>App\Live2D\app</Filter>
     </ClCompile>
+    <ClCompile Include="Live2DComponent.cpp">
+      <Filter>App\Live2D\app</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1044,6 +1047,9 @@
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
     <ClInclude Include="AppModel.h">
+      <Filter>App\Live2D\app</Filter>
+    </ClInclude>
+    <ClInclude Include="Live2DComponent.h">
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
   </ItemGroup>

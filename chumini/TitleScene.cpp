@@ -3,6 +3,7 @@
 #include "SceneChangeComponent.h"
 #include "DirectWrite.h"
 #include "EffectManager.h"
+#include "Live2DComponent.h"
 
 // 追加インクルード
 #include "DirectX11.h"   // デバイス取得用
@@ -30,7 +31,7 @@ static Effekseer::Matrix44 ToEffekseerMatrix(const DirectX::XMMATRIX& mat) {
 
 namespace app::test {
 
-    // =================================================================
+// =================================================================
     // 初期化 (Init)
     // =================================================================
     void TitleScene::Init()
@@ -46,6 +47,15 @@ namespace app::test {
             bgmPlayer = uiManagerActor.Target()->AddComponent<app::test::BGMComponent>();
 
             uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
+        }
+        
+        // 2. Live2D表示用アクター
+        {
+            auto live2dActor = Instantiate();
+            l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
+            if (l2dComp.Get()) {
+                l2dComp->LoadModel("Assets/Live2D/Hiyori", "Hiyori.model3.json");
+            }
         }
 
         DirectWrite();
@@ -94,6 +104,10 @@ namespace app::test {
     // =================================================================
     void TitleScene::Update(const sf::command::ICommand& command)
     {
+        if (l2dComp.Get()) {
+            l2dComp->Update();
+        }
+
         // Fキーが押されたらエフェクト再生
         if (SInput::Instance().GetKeyDown(Key::KEY_F)) {
 
@@ -109,48 +123,32 @@ namespace app::test {
         }
     }
 
-    // =================================================================
-    // 描画 (Draw)
-    // =================================================================
     void TitleScene::Draw()
     {
+        // 1. 基底クラスの描画 (他のコンポーネント)
+        sf::Scene<TitleScene>::Draw();
+
+        // 2. Live2Dの描画
+        if (l2dComp.Get()) {
+            l2dComp->Draw();
+        }
+
+        // 3. Effekseer (既存処理)
         auto actor = uiManagerActor.Target();
         if (!actor) return;
 
         auto effectManager = actor->GetComponent<EffectManager>();
         if (!effectManager) return;
 
-        // -------------------------------------------------------------
-        // カメラ行列の作成 (デバッグ用)
-        // -------------------------------------------------------------
-        // 本来は sf::Camera::GetViewMatrix() などを使いますが、
-        // まずは確実に映るように手動で「原点を見るカメラ」を作ります。
-
-        // カメラの位置: (0, 0, -20) ... 手前20mから奥を見る
         XMVECTOR eye = XMVectorSet(0.0f, 0.0f, -20.0f, 0.0f);
-        // 注視点: (0, 0, 0) ... 原点を見る
         XMVECTOR focus = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-        // 上方向: Y軸
         XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-        // ビュー行列
         XMMATRIX viewMat = XMMatrixLookAtLH(eye, focus, up);
-
-        // プロジェクション行列 (画角60度, 画面比16:9)
         float aspect = 1920.0f / 1080.0f;
         XMMATRIX projMat = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), aspect, 0.1f, 1000.0f);
 
-        // ★もしsf::Cameraが使えるなら、上の計算を消して以下のように書いてください
-        // XMMATRIX viewMat = sf::Camera::GetViewMatrix();
-        // XMMATRIX projMat = sf::Camera::GetProjectionMatrix();
-
-
-        // -------------------------------------------------------------
-        // Effekseerに反映して描画
-        // -------------------------------------------------------------
         effectManager->SetCameraMatrix(ToEffekseerMatrix(viewMat));
         effectManager->SetProjectionMatrix(ToEffekseerMatrix(projMat));
-
         effectManager->DrawEffekseer();
     }
 }

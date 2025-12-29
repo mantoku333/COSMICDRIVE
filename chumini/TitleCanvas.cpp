@@ -419,153 +419,153 @@ void TitleCanvas::Draw()
 	// ここでGPUの設定がUI用（Live2Dには不向きな状態）書き換わってしまっています
 	sf::ui::Canvas::Draw();
 
-	// 2. Live2Dの描画
-	if (_hiyoriModel)
-	{
-		auto* dx11 = sf::dx::DirectX11::Instance();
-		auto device = dx11->GetMainDevice().GetDevice();
-		auto context = dx11->GetMainDevice().GetContext();
+	//// 2. Live2Dの描画
+	//if (_hiyoriModel)
+	//{
+	//	auto* dx11 = sf::dx::DirectX11::Instance();
+	//	auto device = dx11->GetMainDevice().GetDevice();
+	//	auto context = dx11->GetMainDevice().GetContext();
 
-		// =========================================================
-		// ★★★ 【対策1】トポロジーの強制リセット ★★★
-		// 前の処理が「TriangleStrip」などを使っているとLive2Dは壊れます。
-		// 必ず「TriangleList」に戻す必要があります。
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		// =========================================================
+	//	// =========================================================
+	//	// ★★★ 【対策1】トポロジーの強制リセット ★★★
+	//	// 前の処理が「TriangleStrip」などを使っているとLive2Dは壊れます。
+	//	// 必ず「TriangleList」に戻す必要があります。
+	//	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	//	// =========================================================
 
-		// =========================================================
-		// ★★★ 【対策2】ブレンドステート（透明処理）の強制有効化 ★★★
-		// これがないと、透明なポリゴンが「見えない」か「黒く」なります。
-		D3D11_BLEND_DESC blendDesc = {};
-		blendDesc.AlphaToCoverageEnable = FALSE;
-		blendDesc.IndependentBlendEnable = FALSE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;             // ブレンド有効
-		blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-		blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+	//	// =========================================================
+	//	// ★★★ 【対策2】ブレンドステート（透明処理）の強制有効化 ★★★
+	//	// これがないと、透明なポリゴンが「見えない」か「黒く」なります。
+	//	D3D11_BLEND_DESC blendDesc = {};
+	//	blendDesc.AlphaToCoverageEnable = FALSE;
+	//	blendDesc.IndependentBlendEnable = FALSE;
+	//	blendDesc.RenderTarget[0].BlendEnable = TRUE;             // ブレンド有効
+	//	blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	//	blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	//	blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	//	blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	//	blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	//	blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	//	blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-		ID3D11BlendState* blendState = nullptr;
-		if (SUCCEEDED(device->CreateBlendState(&blendDesc, &blendState)))
-		{
-			float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-			context->OMSetBlendState(blendState, blendFactor, 0xffffffff);
-			blendState->Release(); // セットしたら即解放してOK
-		}
-		// =========================================================
+	//	ID3D11BlendState* blendState = nullptr;
+	//	if (SUCCEEDED(device->CreateBlendState(&blendDesc, &blendState)))
+	//	{
+	//		float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	//		context->OMSetBlendState(blendState, blendFactor, 0xffffffff);
+	//		blendState->Release(); // セットしたら即解放してOK
+	//	}
+	//	// =========================================================
 
-		// =========================================================
-		// ★★★ 【対策3】カリング（裏面削除）なし ★★★
-		D3D11_RASTERIZER_DESC rasterDesc = {};
-		rasterDesc.FillMode = D3D11_FILL_SOLID;
-		rasterDesc.CullMode = D3D11_CULL_NONE; // 両面描画
-		rasterDesc.FrontCounterClockwise = FALSE;
-		rasterDesc.DepthClipEnable = TRUE;
+	//	// =========================================================
+	//	// ★★★ 【対策3】カリング（裏面削除）なし ★★★
+	//	D3D11_RASTERIZER_DESC rasterDesc = {};
+	//	rasterDesc.FillMode = D3D11_FILL_SOLID;
+	//	rasterDesc.CullMode = D3D11_CULL_NONE; // 両面描画
+	//	rasterDesc.FrontCounterClockwise = FALSE;
+	//	rasterDesc.DepthClipEnable = TRUE;
 
-		ID3D11RasterizerState* rasterState = nullptr;
-		if (SUCCEEDED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
-		{
-			context->RSSetState(rasterState);
-			rasterState->Release();
-		}
-		// =========================================================
+	//	ID3D11RasterizerState* rasterState = nullptr;
+	//	if (SUCCEEDED(device->CreateRasterizerState(&rasterDesc, &rasterState)))
+	//	{
+	//		context->RSSetState(rasterState);
+	//		rasterState->Release();
+	//	}
+	//	// =========================================================
 
-		// 【対策4】奥行き判定無効（手前に描画）
-		// Note: passing nullptr to OMSetDepthStencilState resets to DEFAULT, which is Depth Enabled.
-		// We must explicitly create a disabled state.
-		D3D11_DEPTH_STENCIL_DESC depthDesc = {};
-		depthDesc.DepthEnable = FALSE; // Disable depth test to draw on top
-		depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-		depthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-		depthDesc.StencilEnable = FALSE;
+	//	// 【対策4】奥行き判定無効（手前に描画）
+	//	// Note: passing nullptr to OMSetDepthStencilState resets to DEFAULT, which is Depth Enabled.
+	//	// We must explicitly create a disabled state.
+	//	D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+	//	depthDesc.DepthEnable = FALSE; // Disable depth test to draw on top
+	//	depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	//	depthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+	//	depthDesc.StencilEnable = FALSE;
 
-		ID3D11DepthStencilState* depthState = nullptr;
-		if (SUCCEEDED(device->CreateDepthStencilState(&depthDesc, &depthState)))
-		{
-			context->OMSetDepthStencilState(depthState, 0);
-			depthState->Release();
-		}
+	//	ID3D11DepthStencilState* depthState = nullptr;
+	//	if (SUCCEEDED(device->CreateDepthStencilState(&depthDesc, &depthState)))
+	//	{
+	//		context->OMSetDepthStencilState(depthState, 0);
+	//		depthState->Release();
+	//	}
 
-		// 【対策5】余計なシェーダーをオフ
-		context->GSSetShader(nullptr, nullptr, 0);
-		context->HSSetShader(nullptr, nullptr, 0);
-		context->DSSetShader(nullptr, nullptr, 0);
+	//	// 【対策5】余計なシェーダーをオフ
+	//	context->GSSetShader(nullptr, nullptr, 0);
+	//	context->HSSetShader(nullptr, nullptr, 0);
+	//	context->DSSetShader(nullptr, nullptr, 0);
 
-		// ---------------------------------------------------------
-		// ここから描画実行
-		// ---------------------------------------------------------
-        // 現在のビューポートを取得してLive2Dに渡す
-        UINT numViewports = 1;
-        D3D11_VIEWPORT vp;
-        context->RSGetViewports(&numViewports, &vp);
-        
-        Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
+	//	// ---------------------------------------------------------
+	//	// ここから描画実行
+	//	// ---------------------------------------------------------
+ //       // 現在のビューポートを取得してLive2Dに渡す
+ //       UINT numViewports = 1;
+ //       D3D11_VIEWPORT vp;
+ //       context->RSGetViewports(&numViewports, &vp);
+ //       
+ //       Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
 
-        // ---------------------------------------------------------
-        // 【重要】レンダリングステートのクリーンアップ
-        // UI描画によるシザー矩形（切り抜き）やステンシル設定が残っていると、
-        // モデルが意図しない形でマスクされたり非表示になったりします。
-        // ここで明示的にリセットします。
-        // ---------------------------------------------------------
-        
-        // 1. シザー矩形の無効化 (全画面描画許可)
-        context->RSSetScissorRects(0, nullptr);
+ //       // ---------------------------------------------------------
+ //       // 【重要】レンダリングステートのクリーンアップ
+ //       // UI描画によるシザー矩形（切り抜き）やステンシル設定が残っていると、
+ //       // モデルが意図しない形でマスクされたり非表示になったりします。
+ //       // ここで明示的にリセットします。
+ //       // ---------------------------------------------------------
+ //       
+ //       // 1. シザー矩形の無効化 (全画面描画許可)
+ //       context->RSSetScissorRects(0, nullptr);
 
-		auto renderer = _hiyoriModel->GetMyRenderer();
-		if (!renderer) {
-			OutputDebugStringA("Renderer is null in Draw!\n");
-		}
-		else {
-            // 2. Live2D標準のレンダーステート（ブレンド、深度、ステンシル等）を適用
-            renderer->SetDefaultRenderState();
-            
-            // ★追加策: 深度・ステンシルバッファのクリア
-            // 現在バインドされているDSVを取得してクリアします（API標準の方法）
-            ID3D11RenderTargetView* rtv = nullptr;
-            ID3D11DepthStencilView* dsv = nullptr;
-            context->OMGetRenderTargets(1, &rtv, &dsv);
-            
-            if (dsv) {
-                // UI描画で汚れたバッファをクリア
-                context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
-                dsv->Release(); // Getで参照カウントが増えているので解放
-            }
-            if (rtv) {
-                rtv->Release(); // Getで参照カウントが増えているので解放
-            }
-            
-            // ブレンドステートは SetDefaultRenderState (Normal時の設定) に任せるか、必要ならここで手動作成してセットする
-            // renderer->SetBlendState は private なので呼べない
-            
-			// 行列の構築
-			Csm::CubismMatrix44 matrix;
-			matrix.LoadIdentity();
+	//	auto renderer = _hiyoriModel->GetMyRenderer();
+	//	if (!renderer) {
+	//		OutputDebugStringA("Renderer is null in Draw!\n");
+	//	}
+	//	else {
+ //           // 2. Live2D標準のレンダーステート（ブレンド、深度、ステンシル等）を適用
+ //           renderer->SetDefaultRenderState();
+ //           
+ //           // ★追加策: 深度・ステンシルバッファのクリア
+ //           // 現在バインドされているDSVを取得してクリアします（API標準の方法）
+ //           ID3D11RenderTargetView* rtv = nullptr;
+ //           ID3D11DepthStencilView* dsv = nullptr;
+ //           context->OMGetRenderTargets(1, &rtv, &dsv);
+ //           
+ //           if (dsv) {
+ //               // UI描画で汚れたバッファをクリア
+ //               context->ClearDepthStencilView(dsv, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+ //               dsv->Release(); // Getで参照カウントが増えているので解放
+ //           }
+ //           if (rtv) {
+ //               rtv->Release(); // Getで参照カウントが増えているので解放
+ //           }
+ //           
+ //           // ブレンドステートは SetDefaultRenderState (Normal時の設定) に任せるか、必要ならここで手動作成してセットする
+ //           // renderer->SetBlendState は private なので呼べない
+ //           
+	//		// 行列の構築
+	//		Csm::CubismMatrix44 matrix;
+	//		matrix.LoadIdentity();
 
-            // モデルのキャンバスサイズを取得 (通常は 2000x2000 程度)
-            float modelCanvasW = _hiyoriModel->GetModel()->GetCanvasWidth();
-            float modelCanvasH = _hiyoriModel->GetModel()->GetCanvasHeight();
-            
-            if (modelCanvasH == 0) modelCanvasH = 2000.0f; // fallback
+ //           // モデルのキャンバスサイズを取得 (通常は 2000x2000 程度)
+ //           float modelCanvasW = _hiyoriModel->GetModel()->GetCanvasWidth();
+ //           float modelCanvasH = _hiyoriModel->GetModel()->GetCanvasHeight();
+ //           
+ //           if (modelCanvasH == 0) modelCanvasH = 2000.0f; // fallback
 
-            // 画面全体(-1 ~ 1 -> 幅2.0)にモデル全体(Width/Height)を収める
-            // アスペクト比維持
-            float aspect = vp.Width / vp.Height;
-            
-            // アスペクト補正を入れて、画面中央に表示してみる
-            matrix.LoadIdentity();
-            
-            // 安全策: 少し小さめに表示 (1.5 / canvasH)
-            float scale = 1.6f / modelCanvasH; 
-            matrix.Scale(scale / aspect, scale); 
-            // 縦位置調整 (少し下に下げる？)
-             matrix.Translate(0.0f, -0.5f); 
+ //           // 画面全体(-1 ~ 1 -> 幅2.0)にモデル全体(Width/Height)を収める
+ //           // アスペクト比維持
+ //           float aspect = vp.Width / vp.Height;
+ //           
+ //           // アスペクト補正を入れて、画面中央に表示してみる
+ //           matrix.LoadIdentity();
+ //           
+ //           // 安全策: 少し小さめに表示 (1.5 / canvasH)
+ //           float scale = 1.6f / modelCanvasH; 
+ //           matrix.Scale(scale / aspect, scale); 
+ //           // 縦位置調整 (少し下に下げる？)
+ //            matrix.Translate(0.0f, -0.5f); 
 
-			_hiyoriModel->Draw(device, context, matrix);
-		}
+	//		_hiyoriModel->Draw(device, context, matrix);
+	//	}
 
-		Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
-	}
+	//	Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
+	//}
 }

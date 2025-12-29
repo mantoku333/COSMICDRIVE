@@ -1,36 +1,28 @@
 #pragma once
 #include "App.h"
 #include "BGMComponent.h"
+#include "Live2DComponent.h" // Include this
+#include <functional>
 
+namespace app {
+    namespace test {
 
-namespace app
-{
-	namespace test
-	{
-		class TitleScene :public sf::Scene<TitleScene>
-		{
-		public:
+        class TitleScene : public sf::Scene<TitleScene> {
+        public:
+            void Init() override;
+            void Update(const sf::command::ICommand& command);
+            void Draw() override; // Restore Draw override
 
-			void Init()override;
-			void Update(const sf::command::ICommand& command) override;
+        private:
+            sf::ref::Ref<sf::Actor> uiManagerActor;
+            sf::SafePtr<app::test::BGMComponent> bgmPlayer;
+            sf::SafePtr<Live2DComponent> l2dComp; // Add pointer to Live2DComponent
 
-			void Draw() override;
+            sf::command::Command<> updateCommand;
 
-		private:
-			//更新コマンド
-			sf::command::Command<> updateCommand;
-			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
+            int selectedButton;
+            bool isButtonPressed;
+        };
 
-		
-			sf::geometry::GeometryCube g_cube;
-
-
-			sf::ref::Ref<sf::Actor> uiManagerActor;
-			sf::ref::Ref<sf::Actor> editButtonActor;
-			sf::ref::Ref<sf::Actor> playButtonActor;
-			int selectedButton;  // 0: エディット, 1: プレイ
-			bool isButtonPressed;
-
-		};
-	}
+    }
 }

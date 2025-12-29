@@ -29,7 +29,6 @@ public:
         Csm::CubismFramework::Initialize();
 
         _isInitialized = true;
-        OutputDebugStringA("Live2D Initialized.\n");
     }
 
     static void PrintLog(const Csm::csmChar* message) {

@@ -218,6 +218,7 @@
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="JobSystem.cpp" />
     <ClCompile Include="JudgeStatsService.cpp" />
+    <ClCompile Include="Live2DComponent.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismCdiJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismDefaultParameterId.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismFramework.cpp" />
@@ -377,6 +378,7 @@
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="JobSystem.h" />
     <ClInclude Include="JudgeStatsService.h" />
+    <ClInclude Include="Live2DComponent.h" />
     <ClInclude Include="Live2DManager.h" />
     <ClInclude Include="Live2D\Framework\src\CubismCdiJson.hpp" />
     <ClInclude Include="Live2D\Framework\src\CubismDefaultParameterId.hpp" />
