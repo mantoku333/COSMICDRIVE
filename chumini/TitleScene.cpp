@@ -10,6 +10,8 @@
 #include "SInput.h"      // 入力取得用
 #include <string>        // ログ出力用
 #include <DirectXMath.h> // 行列計算用
+#include <CubismFramework.hpp>
+#include <Id/CubismIdManager.hpp>
 
 using namespace DirectX; // 行列系を短く書くため
 
@@ -178,6 +180,63 @@ namespace app::test {
             if (l2dComp.Get()) {
                 l2dComp->PlayMotion("TapBody", 0, 3);
             }
+        }
+
+        ImGui::Separator();
+        ImGui::Text("Expression Test");
+
+        static bool manualOverride = false;
+        ImGui::Checkbox("Enable Manual Override", &manualOverride);
+
+        if (l2dComp.Get() && l2dComp->GetAppModel() && l2dComp->GetAppModel()->GetModel()) {
+             auto* model = l2dComp->GetAppModel()->GetModel();
+             auto* idManager = Live2D::Cubism::Framework::CubismFramework::GetIdManager();
+
+             // Static helpers to hold values (Not ideal for multiple instances, but fine for singleton TitleScene)
+             static float v_mouth = 0.0f;
+             static float v_eyeL = 1.0f;
+             static float v_eyeR = 1.0f;
+             static float v_browL = 0.0f;
+             static float v_browR = 0.0f;
+             static float v_angX = 0.0f;
+             static float v_angY = 0.0f;
+             static float v_angZ = 0.0f;
+             static float v_bodyX = 0.0f;
+
+             if (!manualOverride) {
+                 l2dComp->GetAppModel()->ClearParamOverrides();
+             }
+
+             auto ProcessParam = [&](const char* label, const char* idStr, float* valPtr, float min, float max) {
+                 Live2D::Cubism::Framework::CubismIdHandle pid = idManager->GetId(idStr);
+                 int idx = model->GetParameterIndex(pid);
+                 if (idx >= 0) {
+                     // If NOT manual, sync slider to model
+                     if (!manualOverride) {
+                         *valPtr = model->GetParameterValue(idx);
+                     }
+                     
+                     // Display Slider
+                     ImGui::SliderFloat(label, valPtr, min, max);
+
+                     // If manual, force value using override system
+                     if (manualOverride) {
+                         l2dComp->GetAppModel()->SetParamOverride(idStr, *valPtr);
+                     }
+                 }
+             };
+
+             ProcessParam("Mouth Open", "ParamMouthOpenY", &v_mouth, 0.0f, 1.0f);
+             ProcessParam("EyeL Open", "ParamEyeLOpen", &v_eyeL, 0.0f, 1.0f);
+             ProcessParam("EyeR Open", "ParamEyeROpen", &v_eyeR, 0.0f, 1.0f);
+             ProcessParam("BrowL Y", "ParamBrowLY", &v_browL, -1.0f, 1.0f);
+             ProcessParam("BrowR Y", "ParamBrowRY", &v_browR, -1.0f, 1.0f);
+             
+             ImGui::Separator();
+             ProcessParam("Angle X", "ParamAngleX", &v_angX, -30.0f, 30.0f);
+             ProcessParam("Angle Y", "ParamAngleY", &v_angY, -30.0f, 30.0f);
+             ProcessParam("Angle Z", "ParamAngleZ", &v_angZ, -30.0f, 30.0f);
+             ProcessParam("Body X", "ParamBodyAngleX", &v_bodyX, -10.0f, 10.0f);
         }
 
         ImGui::End();

@@ -4,8 +4,13 @@
 #include <Model/CubismUserModel.hpp>
 #include <CubismModelSettingJson.hpp> 
 #include "Live2D/Framework/src/Rendering/D3D11/CubismRenderer_D3D11.hpp" 
+
 #include <Motion/CubismMotionManager.hpp>
 #include <Effect/CubismPose.hpp>
+#include <Effect/CubismEyeBlink.hpp>
+#include <Effect/CubismBreath.hpp>
+#include <Physics/CubismPhysics.hpp>
+
 #include <vector>
 #include <string>
 #include "D3D.h"
@@ -22,7 +27,11 @@ public:
     void Update(); 
     void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Live2D::Cubism::Framework::CubismMatrix44& matrix);
 
-    void StartMotion(const char* group, int no, int priority); // Animation trigger
+    void StartMotion(const char* group, int no, int priority); 
+
+    // Manual Override
+    void SetParamOverride(const char* id, float value);
+    void ClearParamOverrides();
 
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* GetMyRenderer() const { return _myRenderer; }
 
@@ -34,7 +43,14 @@ private:
     std::string _modelHomeDir;
     std::vector<sf::Texture*> _loadedTextures; 
 
+    // Overrides
+    struct OverrideParam { const char* id; float value; };
+    std::vector<OverrideParam> _overrides; 
+
     // Managers
     Live2D::Cubism::Framework::CubismMotionManager* _motionManager;
     Live2D::Cubism::Framework::CubismPose* _pose;
+    Live2D::Cubism::Framework::CubismEyeBlink* _eyeBlink;
+    Live2D::Cubism::Framework::CubismBreath* _breath;
+    Live2D::Cubism::Framework::CubismPhysics* _physics;
 };

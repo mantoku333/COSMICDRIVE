@@ -24,12 +24,14 @@ namespace {
 
 // Include for ACubismMotion
 #include <Motion/CubismMotion.hpp>
+#include <CubismDefaultParameterId.hpp>
+#include <Id/CubismIdManager.hpp>
 
 // Helper for loading file (re-use existing or ensure visibility)
 // Since the previous LoadFileAsBytes was in anonymous namespace, we can assume it's available or move it if needed.
 // Checking previous view, it was in same file.
 
-AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr), _motionManager(nullptr), _pose(nullptr) {
+AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr), _motionManager(nullptr), _pose(nullptr), _eyeBlink(nullptr), _breath(nullptr), _physics(nullptr) {
 }
 
 AppModel::~AppModel() {
@@ -44,8 +46,20 @@ AppModel::~AppModel() {
         _motionManager = nullptr;
     }
     if (_pose) {
-        CubismPose::Delete(_pose); // Use factory delete
+        CubismPose::Delete(_pose); 
         _pose = nullptr;
+    }
+    if (_eyeBlink) {
+        CubismEyeBlink::Delete(_eyeBlink);
+        _eyeBlink = nullptr;
+    }
+    if (_breath) {
+        CubismBreath::Delete(_breath);
+        _breath = nullptr;
+    }
+    if (_physics) {
+        CubismPhysics::Delete(_physics);
+        _physics = nullptr;
     }
 
     // _myRenderer's destructor is protected, and it's managed by the framework/model usually?
@@ -102,6 +116,34 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
         auto poseBytes = LoadFileAsBytes(posePath);
         if (!poseBytes.empty()) {
             _pose = CubismPose::Create(poseBytes.data(), static_cast<csmSizeInt>(poseBytes.size()));
+        }
+    }
+
+    // Initialize EyeBlink
+    _eyeBlink = CubismEyeBlink::Create(_modelSetting);
+
+    // Initialize Breath
+    _breath = CubismBreath::Create();
+    
+    // Default setup for breath
+    csmVector<CubismBreath::BreathParameterData> breathParam;
+    CubismIdManager* idManager = CubismFramework::GetIdManager();
+    
+    breathParam.PushBack(CubismBreath::BreathParameterData(idManager->GetId(DefaultParameterId::ParamAngleX),     0.0f, 15.0f, 6.5345f, 0.5f));
+    breathParam.PushBack(CubismBreath::BreathParameterData(idManager->GetId(DefaultParameterId::ParamAngleY),     0.0f, 8.0f, 3.5345f, 0.5f));
+    breathParam.PushBack(CubismBreath::BreathParameterData(idManager->GetId(DefaultParameterId::ParamAngleZ),     0.0f, 10.0f, 5.5345f, 0.5f));
+    breathParam.PushBack(CubismBreath::BreathParameterData(idManager->GetId(DefaultParameterId::ParamBodyAngleX), 0.0f, 4.0f, 15.5345f, 0.5f));
+    breathParam.PushBack(CubismBreath::BreathParameterData(idManager->GetId(DefaultParameterId::ParamBreath),     0.5f, 0.5f, 3.2345f, 0.5f));
+
+    _breath->SetParameters(breathParam);
+
+    // Initialize Physics
+    const csmChar* physicsFileName = _modelSetting->GetPhysicsFileName();
+    if (physicsFileName != nullptr) {
+        std::string physicsPath = _modelHomeDir + "/" + physicsFileName;
+        auto physicsBytes = LoadFileAsBytes(physicsPath);
+        if (!physicsBytes.empty()) {
+            _physics = CubismPhysics::Create(physicsBytes.data(), static_cast<csmSizeInt>(physicsBytes.size()));
         }
     }
     
@@ -168,12 +210,54 @@ void AppModel::Update() {
 
     _model->SaveParameters();
 
-    // Update Pose (Parts switching)
+    // 1. EyeBlink
+    if (_eyeBlink) {
+        _eyeBlink->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
+    // 2. Breath
+    if (_breath) {
+        _breath->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
+    // 3. Physics
+    if (_physics) {
+        _physics->Evaluate(_model, deltaTimeSeconds);
+    }
+
+    // 4. Pose (Parts switching)
     if (_pose) {
          _pose->UpdateParameters(_model, deltaTimeSeconds);
     }
 
+    // 5. Manual Overrides
+    if (!_overrides.empty()) {
+        Live2D::Cubism::Framework::CubismIdManager* idManager = Live2D::Cubism::Framework::CubismFramework::GetIdManager();
+        for (const auto& o : _overrides) {
+            Live2D::Cubism::Framework::CubismIdHandle id = idManager->GetId(o.id);
+            int idx = _model->GetParameterIndex(id);
+            if (idx >= 0) {
+                _model->SetParameterValue(idx, o.value);
+            }
+        }
+    }
+
     _model->Update();
+}
+
+void AppModel::SetParamOverride(const char* id, float value) {
+    // Check if exists and update, or add
+    for (auto& o : _overrides) {
+        if (std::string(o.id) == id) {
+             o.value = value;
+             return;
+        }
+    }
+    _overrides.push_back({ id, value });
+}
+
+void AppModel::ClearParamOverrides() {
+    _overrides.clear();
 }
 
 void AppModel::StartMotion(const char* group, int no, int priority) {
