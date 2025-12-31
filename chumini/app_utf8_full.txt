@@ -1,4 +1,4 @@
-#include "App.h"
+﻿#include "App.h"
 #include "DirectX11.h"
 #include "ResidentScene.h"
 
@@ -9,7 +9,7 @@ int app::Application::height = 1080;
 
 app::Application::Application()
 {
-	sf::debug::Debug::Log("Application Start");
+	sf::debug::Debug::Log("繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ髢句ｧ・);
 
 	if (main == nullptr)
 	{
@@ -17,7 +17,7 @@ app::Application::Application()
 	}
 	else
 	{
-		sf::debug::Debug::LogError("Multiple applications exist");
+		sf::debug::Debug::LogError("隍・焚縺ｮ繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺悟酔譎ゅ↓蟄伜惠縺励※縺・∪縺・);
 	}
 
 	sf::debug::Debug::WriteLogFile();
@@ -34,7 +34,7 @@ app::Application::~Application()
 		main = nullptr;
 	}
 
-	sf::debug::Debug::Log("Application End");
+	sf::debug::Debug::Log("繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ邨ゆｺ・);
 
 	exit = false;
 }
@@ -43,14 +43,14 @@ void app::Application::Run()
 {
 	try
 	{
-		sf::debug::Debug::Log("Starting Application Init");
+		sf::debug::Debug::Log("繧｢繝励Μ繧ｱ繝ｼ繧ｷ繝ｧ繝ｳ縺ｮ蛻晄悄蛹悶ｒ髢句ｧ九＠縺ｾ縺・);
 		Init();
 	}
 	catch (const std::exception& log)
 	{
 
 		sf::debug::Debug::LogError(log.what());
-		sf::debug::Debug::LogError("Force quitting game");
+		sf::debug::Debug::LogError("繧ｲ繝ｼ繝繧貞ｼｷ蛻ｶ邨ゆｺ・＠縺ｾ縺・);
 
 		return;
 	}
@@ -66,7 +66,7 @@ void app::Application::ActivateScene(sf::IScene* scene)
 	{
 		std::lock_guard<std::mutex> lock(scenesMtx);
 		activeScene.push_back(scene);
-		sf::debug::Debug::LogEngine("Scene Activated:" + std::string(typeid(*scene).name()));
+		sf::debug::Debug::LogEngine("繧ｷ繝ｼ繝ｳ縺後い繧ｯ繝・ぅ繝吶・繝医＆繧後∪縺励◆:" + std::string(typeid(*scene).name()));
 	}
 }
 
@@ -90,24 +90,24 @@ void app::Application::Exit()
 
 void app::Application::Init()
 {
-	//ウィンドウ作成
+	//繧ｦ繧｣繝ｳ繝峨え菴懈・
 	CreateGameWindow();
 
-	//サウンドリソースの初期化
+	//繧ｵ繧ｦ繝ｳ繝峨Μ繧ｽ繝ｼ繧ｹ縺ｮ蛻晄悄蛹・
 	sf::sound::SoundResource::Init();
 
-	//入力の初期化
+	//蜈･蜉帙・蛻晄悄蛹・
 	SInput::Init();
 
-	//時間の初期化
+	//譎る俣縺ｮ蛻晄悄蛹・
 	sf::Time::Init();
 
-	//DirectXの初期化
+	//DirectX縺ｮ蛻晄悄蛹・
 	sf::dx::DirectX11::Init();
 	sf::dx::DirectX11::Instance()->Create(gameWindow.hwnd);
 
 #ifdef USEGUI
-	//GUIの初期化
+	//GUI縺ｮ蛻晄悄蛹・
 	sf::gui::GUI::Init(
 		gameWindow.hwnd,
 		sf::dx::DirectX11::Instance()->GetMainDevice().GetDevice(),
@@ -115,22 +115,22 @@ void app::Application::Init()
 	);
 #endif
 
-	//スカイボックスの初期化
+	//繧ｹ繧ｫ繧､繝懊ャ繧ｯ繧ｹ縺ｮ蛻晄悄蛹・
 	skybox.Init();
 
-	//ResidentSceneを読み込む(常に存在するシーン)
+	//ResidentScene繧定ｪｭ縺ｿ霎ｼ繧(蟶ｸ縺ｫ蟄伜惠縺吶ｋ繧ｷ繝ｼ繝ｳ)
 	auto scene = ResidentScene::StandbyScene();
 
 	while (1)
 	{
-		//ResidentSceneの読み込みを待つ
+		//ResidentScene縺ｮ隱ｭ縺ｿ霎ｼ縺ｿ繧貞ｾ・▽
 		if (ResidentScene::Standby())
 		{
 			break;
 		}
 	}
 
-	//ResidentSceneをアクティベート状態にする
+	//ResidentScene繧偵い繧ｯ繝・ぅ繝吶・繝育憾諷九↓縺吶ｋ
 	scene->Activate();
 }
 
@@ -157,7 +157,7 @@ void app::Application::Loop()
 	//sf::Time::SetFPS(0);
 	sf::Time::SetFPS(60);
 
-	sf::debug::Debug::Log("Game Loop");
+	sf::debug::Debug::Log("繧ｲ繝ｼ繝繝ｫ繝ｼ繝励〒縺・);
 	MSG msg{};
 	while (1)
 	{
@@ -172,17 +172,17 @@ void app::Application::Loop()
 		{
 			if (sf::Time::Update())
 			{
-				//入力の更新
+				//蜈･蜉帙・譖ｴ譁ｰ
 				SInput::Instance().Update();
 
 				if (live2DModel) {
 					live2DModel->Update();
 				}
 
-				//DirectX11の取得
+				//DirectX11縺ｮ蜿門ｾ・
 				sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
-				//GPUにシステム情報を送信する
+				//GPU縺ｫ繧ｷ繧ｹ繝・Β諠・ｱ繧帝∽ｿ｡縺吶ｋ
 				static float t = 0.0f;
 				t += sf::Time::DeltaTime();
 				System sys;
@@ -191,85 +191,83 @@ void app::Application::Loop()
 				dx11->systemBuffer.SetGPU(sys, dx11->GetMainDevice());
 
 #ifdef USEGUI
-				//GUI描画
+				//GUI謠冗判
 				sf::gui::GUI::Begin();
 
-				//デバッグライン
+				//繝・ヰ繝・げ繝ｩ繧､繝ｳ
 //				const float l = 5.0f;
-//				// X 軸
+//				// X 霆ｸ
 //				sf::debug::Debug::DrawLine({ -l,0,0 }, { +l,0,0 }, { 1,0,0,1 });
-//				// Y 軸
+//				// Y 霆ｸ
 //				sf::debug::Debug::DrawLine({ 0,-l,0 }, { 0,+l,0 }, { 0,1,0,1 });
-//				// Z 軸
+//				// Z 霆ｸ
 //				sf::debug::Debug::DrawLine({ 0,0,-l }, { 0,0,+l }, { 0,0,1,1 });
 #endif
 
-				//RTVの塗りつぶし
+				//RTV縺ｮ蝪励ｊ縺､縺ｶ縺・
 				dx11->SetViewPort(1920, 1080);
 
-				//全コマンドの実装
+				//蜈ｨ繧ｳ繝槭Φ繝峨・螳溯｣・
 				sf::command::ICommand::CallAll();
 
-				//影の描画
+				//蠖ｱ縺ｮ謠冗判
 				DrawShadow();
 
-				//カメラ情報をGPUに転送
+				//繧ｫ繝｡繝ｩ諠・ｱ繧竪PU縺ｫ霆｢騾・
 				sf::Camera::SetGPU();
 
-				//次のレンダリングバッファに切り替え
+				//谺｡縺ｮ繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ繝舌ャ繝輔ぃ縺ｫ蛻・ｊ譖ｿ縺・
 				dx11->SetNextRenderingDoubleBuffer3D();
 
-				//スカイボックス描画設定
+				//繧ｹ繧ｫ繧､繝懊ャ繧ｯ繧ｹ謠冗判險ｭ螳・
 				dx11->SetRenderingDoubleBuffer3DSkyBox();
 
-				//スカイボックス描画
+				//繧ｹ繧ｫ繧､繝懊ャ繧ｯ繧ｹ謠冗判
 				skybox.Draw();
 
-				//3D描画開始
+				//3D謠冗判髢句ｧ・
 				dx11->SetRenderingDoubleBuffer3D();
 
-				//シャドウマップをGPUに転送
+				//繧ｷ繝｣繝峨え繝槭ャ繝励ｒGPU縺ｫ霆｢騾・
 				ID3D11ShaderResourceView* srv = nullptr;
 				dx11->GetMainDevice().GetContext()->PSSetShaderResources(3, 1, &srv);
 				dx11->shadowRTV.SetTexture(dx11->GetMainDevice(), 3);
 
-				//メッシュの描画
+				//繝｡繝・す繝･縺ｮ謠冗判
 				sf::Mesh::DrawAll();
 
 				for (auto* scene : activeScene) {
 					scene->Draw();
 				}
 
-				//デバッグラインの描画
+				//繝・ヰ繝・げ繝ｩ繧､繝ｳ縺ｮ謠冗判
 				sf::debug::Debug::DrawLog();
 
-				//2D描画開始
+				//2D謠冗判髢句ｧ・
 				dx11->SetRenderingDoubleBuffer2D();
 
-				//UI描画
+				//UI謠冗判
 				sf::ui::Canvas::DrawCanvasies();
 
-
-
-				//オンスクリーン描画開始
-				dx11->OnScreenRendering();
-
-				// 最前面描画 (Live2Dなど)
+				// Live2D縺ｮ謠冗判 (譛蜑埼擇)
 				for (auto* scene : activeScene) {
-					scene->DrawOverlay();
+					scene->DrawLive2D();
 				}
+
+				//繧ｪ繝ｳ繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ謠冗判髢句ｧ・
+				dx11->OnScreenRendering();
 
 				bool exitFg = false;
 #ifdef USEGUI
 				exitFg = OnGUI();
 #endif
-				//ダブルバッファ切り替え
+				//繝繝悶Ν繝舌ャ繝輔ぃ蛻・ｊ譖ｿ縺・
 				dx11->Flip();
 
-				//アクターの破棄
+				//繧｢繧ｯ繧ｿ繝ｼ縺ｮ遐ｴ譽・
 				sf::Actor::DestroyActors();
 
-				//シーンの破棄
+				//繧ｷ繝ｼ繝ｳ縺ｮ遐ｴ譽・
 				sf::IScene::DestroyScenes();
 
 				if (exitFg)break;
@@ -283,7 +281,7 @@ void app::Application::Loop()
 
 				if (fps < 30)
 				{
-					sf::debug::Debug::LogEngine("FPS Dropping:" + strFps);
+					sf::debug::Debug::LogEngine("FPS縺御ｽ惹ｸ九＠縺ｦ縺・∪縺・" + strFps);
 				}
 			}
 		}
@@ -292,10 +290,10 @@ void app::Application::Loop()
 
 void app::Application::DrawShadow()
 {
-	//DX11の取得
+	//DX11縺ｮ蜿門ｾ・
 	sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
-	//塗りつぶし
+	//蝪励ｊ縺､縺ｶ縺・
 	float color[] = { 0,0,0,1 };
 	dx11->GetMainDevice().GetContext()->ClearRenderTargetView(dx11->shadowRTV.GetRTV(), color);
 	ID3D11RenderTargetView* rtv[]
@@ -303,24 +301,24 @@ void app::Application::DrawShadow()
 		dx11->shadowRTV.GetRTV(),
 	};
 
-	//RTV,DSVをGPUにセット
+	//RTV,DSV繧竪PU縺ｫ繧ｻ繝・ヨ
 	dx11->GetMainDevice().GetContext()->ClearDepthStencilView(dx11->depth, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 	dx11->GetMainDevice().GetContext()->OMSetRenderTargets(ARRAYSIZE(rtv), rtv, dx11->depth);
 
-	//影用ピクセルシェーダーをGPUにセット
+	//蠖ｱ逕ｨ繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ繧竪PU縺ｫ繧ｻ繝・ヨ
 	dx11->psShadow.SetGPU(dx11->GetMainDevice());
 
-	//カメラ情報をGPUに転送
+	//繧ｫ繝｡繝ｩ諠・ｱ繧竪PU縺ｫ霆｢騾・
 	sf::Camera::shadow->SetGPUShadow();
 
 	{
-		//ピクセルシェーダーの切り替えをロック
+		//繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｮ蛻・ｊ譖ｿ縺医ｒ繝ｭ繝・け
 		sf::dx::shader::PixelShader::Lock();
 
-		//シャドウマップに描画
+		//繧ｷ繝｣繝峨え繝槭ャ繝励↓謠冗判
 		sf::Mesh::DrawShadowAll();
 
-		//ピクセルシェーダーの切り替えを案ロック
+		//繝斐け繧ｻ繝ｫ繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｮ蛻・ｊ譖ｿ縺医ｒ譯医Ο繝・け
 		sf::dx::shader::PixelShader::UnLock();
 	}
 
@@ -333,7 +331,7 @@ void app::Application::DrawShadow()
 
 bool app::Application::OnGUI()
 {
-	//DirectX11の取得
+	//DirectX11縺ｮ蜿門ｾ・
 	sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
 
@@ -349,38 +347,38 @@ bool app::Application::OnGUI()
 	s.x = 200;
 	s.y = 200;
 
-	ImGui::Text((const char*)u8"\u30EC\u30F3\u30C0\u30EA\u30F3\u30B0\u30D0\u30C3\u30D5\u30A1");
+	ImGui::Text(sf::ConvertToUTF8("繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ繝舌ャ繝輔ぃ").c_str());
 
-	ImGui::Text((const char*)u8"3D\u30D9\u30FC\u30B9\u30AB\u30E9\u30FC");
+	ImGui::Text(sf::ConvertToUTF8("3D繝吶・繧ｹ繧ｫ繝ｩ繝ｼ").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb3d.Get().GetBaseColorRTV().GetSRV()),
 		s);
 
-	ImGui::Text((const char*)u8"3D\u6CD5\u7DDA");
+	ImGui::Text(sf::ConvertToUTF8("3D豕慕ｷ・).c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb3d.Get().GetNormalRTV().GetSRV()),
 		s);
-	ImGui::Text((const char*)u8"3D\u30A2\u30EB\u30D5\u30A1\u6DF1\u5EA6");
+	ImGui::Text(sf::ConvertToUTF8("3D繧｢繝ｫ繝輔ぃ豺ｱ蠎ｦ").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb3d.Get().GetAlphaRTV().GetSRV()),
 		s);
-	ImGui::Text((const char*)u8"\u881D\u5EA6");
+	ImGui::Text(sf::ConvertToUTF8("霈晏ｺｦ").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb3d.Get().GetLuminanceRTV().GetSRV()),
 		s);
-	ImGui::Text("DownX");
+	ImGui::Text(sf::ConvertToUTF8("DownX").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->downX.GetSRV()),
 		s);
-	ImGui::Text("DownY");
+	ImGui::Text(sf::ConvertToUTF8("DownY").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->downY.GetSRV()),
 		s);
-	ImGui::Text((const char*)u8"2D\u30D9\u30FC\u30B9\u30AB\u30E9\u30FC");
+	ImGui::Text(sf::ConvertToUTF8("2D繝吶・繧ｹ繧ｫ繝ｩ繝ｼ").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb2d.GetBaseColorRTV().GetSRV()),
 		s);
-	ImGui::Text((const char*)u8"2D\u30A2\u30EB\u30D5\u30A1\u5024");
+	ImGui::Text(sf::ConvertToUTF8("2D繧｢繝ｫ繝輔ぃ蛟､").c_str());
 	ImGui::Image(
 		(ImTextureID)(dx11->rb2d.GetAlphaRTV().GetSRV()),
 		s);
@@ -392,18 +390,17 @@ bool app::Application::OnGUI()
 	bool exitFg = false;
 	if (ImGui::Button("Exit"))
 	{
-		// Unicode escape for Japanese "Execute Stop?"
-		int i = MessageBoxW(nullptr, L"\u5B9F\u884C\u3092\u505C\u6B62\u3057\u307E\u3059\u304B\uFF1F", L"Exit", MB_YESNO);
+		int i = MessageBox(nullptr, "螳溯｡後ｒ蛛懈ｭ｢縺励∪縺吶°・・, "Exit", MB_YESNO);
 		if (i == IDYES)
 		{
 			exitFg = true;
 		}
 	}
 
-	if (ImGui::Button((const char*)u8"\u52D5\u7684\u30B3\u30F3\u30D1\u30A4\u30EB"))
+	if (ImGui::Button(sf::ConvertToUTF8("蜍慕噪繧ｳ繝ｳ繝代う繝ｫ").c_str()))
 	{
-		// Press F5 for dynamic compile
-		__debugbreak();  // Visual Studio break
+		//蜍慕噪繧ｳ繝ｳ繝代う繝ｫ繧定｡後≧縺ｫ縺ｯF5繧呈款縺励※荳九＆縺・
+		__debugbreak();  // Visual Studio縺ｮ繝・ヰ繝・ぎ縺ｧ蛛懈ｭ｢縺励∪縺・
 	}
 
 	float c = 0;
@@ -415,9 +412,8 @@ bool app::Application::OnGUI()
 	fps[0] = sf::Time::GetFPS();
 	c += fps[0];
 	c /= 60.0f;
-	// "Actual FPS: %f" and "Avg FPS: %f" in Unicode escape
-	ImGui::Text((const char*)u8"\u5B9F\u969B\u306EFPS: %f", sf::Time::GetFPS());
-	ImGui::Text((const char*)u8"\u5E73\u5747FPS: %f", c);
+	ImGui::Text(sf::ConvertToUTF8(std::string("螳滄圀縺ｮFPS:" + std::to_string(sf::Time::GetFPS()))).c_str());
+	ImGui::Text(sf::ConvertToUTF8(std::string("蟷ｳ蝮⑦PS:" + std::to_string(c))).c_str());
 
 	ImGui::End();
 
@@ -434,7 +430,8 @@ bool app::Application::CreateGameWindow()
 
 	bool result = gameWindow.Create(WS_POPUP);
 
-	// Force disable TOPMOST
+	// 笘・％繧後ｒ霑ｽ蜉・・
+	// 逕滓・縺輔ｌ縺溘え繧｣繝ｳ繝峨え縺ｫ蟇ｾ縺励※縲悟ｸｸ縺ｫ譛蜑埼擇縲榊ｱ樊ｧ繧貞ｼｷ蛻ｶ逧・↓隗｣髯､縺吶ｋ蜻ｽ莉､縺ｧ縺・
 	SetWindowPos(gameWindow.hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 
 	return result;
@@ -455,11 +452,11 @@ LRESULT app::Application::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		PostQuitMessage(0);
 		break;
 
-	case WM_KEYDOWN:			//Key Down
+	case WM_KEYDOWN:			//菴輔°縺励ｉ縺ｮ繧ｭ繝ｼ縺梧款縺輔ｌ縺溘ｉ
 		SInput::Instance().SetKeyDown(static_cast<int>(wp));
 		break;
 
-	case WM_KEYUP:				//Key Up
+	case WM_KEYUP:				//菴輔°縺励ｉ縺ｮ繧ｭ繝ｼ縺碁屬縺輔ｌ縺滓凾
 		SInput::Instance().SetKeyUp(static_cast<int>(wp));
 		break;
 	case WM_LBUTTONDOWN:

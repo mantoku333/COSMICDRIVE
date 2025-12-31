@@ -128,11 +128,6 @@ namespace app::test {
         // 1. 基底クラスの描画 (他のコンポーネント)
         sf::Scene<TitleScene>::Draw();
 
-        // 2. Live2Dの描画
-        if (l2dComp.Get()) {
-            l2dComp->Draw();
-        }
-
         // 3. Effekseer (既存処理)
         auto actor = uiManagerActor.Target();
         if (!actor) return;
@@ -150,5 +145,13 @@ namespace app::test {
         effectManager->SetCameraMatrix(ToEffekseerMatrix(viewMat));
         effectManager->SetProjectionMatrix(ToEffekseerMatrix(projMat));
         effectManager->DrawEffekseer();
+    }
+
+    void TitleScene::DrawOverlay()
+    {
+        // 2. Live2Dの描画 (最前面)
+        if (l2dComp.Get()) {
+            l2dComp->Draw();
+        }
     }
 }

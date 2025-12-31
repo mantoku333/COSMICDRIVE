@@ -11,7 +11,9 @@ namespace app {
         public:
             void Init() override;
             void Update(const sf::command::ICommand& command);
-            void Draw() override; // Restore Draw override
+            void Draw() override;
+            void DrawOverlay() override;
+
 
         private:
             sf::ref::Ref<sf::Actor> uiManagerActor;

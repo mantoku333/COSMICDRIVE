@@ -1,0 +1,20 @@
+﻿				}
+
+				//デバッグラインの描画
+				sf::debug::Debug::DrawLog();
+
+				//2D描画開始
+				dx11->SetRenderingDoubleBuffer2D();
+
+				//UI描画
+				sf::ui::Canvas::DrawCanvasies();
+
+				//オンスクリーン描画開始
+				dx11->OnScreenRendering();
+
+				bool exitFg = false;
+#ifdef USEGUI
+				exitFg = OnGUI();
+#endif
+				//ダブルバッファ切り替え
+				dx11->Flip();

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <mutex>
 #include "Actor.h"
 #include "Ref.h"
@@ -44,8 +44,6 @@ namespace sf
 		virtual void OnGUI();
 
 		virtual void Draw() {}
-		virtual void DrawOverlay() {}
-
 
 	public:
 		virtual void Update(const sf::command::ICommand& command) {}
