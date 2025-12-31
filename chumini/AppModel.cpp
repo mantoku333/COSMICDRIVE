@@ -22,7 +22,14 @@ namespace {
     }
 }
 
-AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr) {
+// Include for ACubismMotion
+#include <Motion/CubismMotion.hpp>
+
+// Helper for loading file (re-use existing or ensure visibility)
+// Since the previous LoadFileAsBytes was in anonymous namespace, we can assume it's available or move it if needed.
+// Checking previous view, it was in same file.
+
+AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr), _motionManager(nullptr), _pose(nullptr) {
 }
 
 AppModel::~AppModel() {
@@ -31,6 +38,16 @@ AppModel::~AppModel() {
         _modelSetting = nullptr;
     }
     
+    // Managers cleanup
+    if (_motionManager) {
+        delete _motionManager;
+        _motionManager = nullptr;
+    }
+    if (_pose) {
+        CubismPose::Delete(_pose); // Use factory delete
+        _pose = nullptr;
+    }
+
     // _myRenderer's destructor is protected, and it's managed by the framework/model usually?
     // Or we should just leave it for now as previously decided to avoid compilation errors.
     // if (_myRenderer) { delete _myRenderer; }
@@ -73,6 +90,20 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
 
     // Setup Textures
     SetupTextures(device);
+
+    // Initialize Motion Manager
+    _motionManager = new CubismMotionManager();
+    // _motionManager->SetUserData(this); // REMOVED: Not a member or needed for basic playback
+
+    // Initialize Pose (Fixes "Four Hands" issue)
+    const csmChar* poseFileName = _modelSetting->GetPoseFileName();
+    if (poseFileName != nullptr) {
+        std::string posePath = _modelHomeDir + "/" + poseFileName;
+        auto poseBytes = LoadFileAsBytes(posePath);
+        if (!poseBytes.empty()) {
+            _pose = CubismPose::Create(poseBytes.data(), static_cast<csmSizeInt>(poseBytes.size()));
+        }
+    }
     
     GetModel()->SaveParameters(); // Save initial state
 }
@@ -126,8 +157,39 @@ void AppModel::SetupTextures(ID3D11Device* device) {
 }
 
 void AppModel::Update() {
-    // Basic update:
-    GetModel()->Update();
+    // 1/60 fixed or use actual delta
+    const csmFloat32 deltaTimeSeconds = 1.0f / 60.0f; 
+
+    _model->LoadParameters();
+
+    if (_motionManager) {
+        _motionManager->UpdateMotion(_model, deltaTimeSeconds);
+    }
+
+    _model->SaveParameters();
+
+    // Update Pose (Parts switching)
+    if (_pose) {
+         _pose->UpdateParameters(_model, deltaTimeSeconds);
+    }
+
+    _model->Update();
+}
+
+void AppModel::StartMotion(const char* group, int no, int priority) {
+    if (!_modelSetting || !_motionManager) return;
+
+    std::string fileName = _modelSetting->GetMotionFileName(group, no);
+    if (fileName.empty()) return;
+
+    std::string path = _modelHomeDir + "/" + fileName;
+    auto motionBytes = LoadFileAsBytes(path);
+
+    if (!motionBytes.empty()) {
+        // Create motion (ACubismMotion is base, using CubismMotion)
+        CubismMotion* motion = CubismMotion::Create(motionBytes.data(), static_cast<csmSizeInt>(motionBytes.size()));
+        _motionManager->StartMotionPriority(motion, false, priority);
+    }
 }
 
 // MATCH HEADER SIGNATURE: const ... & matrix

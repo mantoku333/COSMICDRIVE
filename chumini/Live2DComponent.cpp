@@ -41,6 +41,12 @@ void Live2DComponent::Update() {
     }
 }
 
+void Live2DComponent::PlayMotion(const char* group, int no, int priority) {
+    if (_model) {
+        _model->StartMotion(group, no, priority);
+    }
+}
+
 void Live2DComponent::Draw() {
     if (!_model) return;
 

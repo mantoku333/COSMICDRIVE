@@ -55,6 +55,8 @@ namespace app::test {
             l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
             if (l2dComp.Get()) {
                 l2dComp->LoadModel("Assets/Live2D/Hiyori", "Hiyori.model3.json");
+                // Start Idle animation
+                l2dComp->PlayMotion("Idle", 0, 3);
             }
         }
 
@@ -108,6 +110,13 @@ namespace app::test {
             l2dComp->Update();
         }
 
+        // Check for M key to play TapBody motion
+        if (SInput::Instance().GetKeyDown(Key::KEY_M)) {
+            if (l2dComp.Get()) {
+                l2dComp->PlayMotion("TapBody", 0, 3);
+            }
+        }
+
         // Fキーが押されたらエフェクト再生
         if (SInput::Instance().GetKeyDown(Key::KEY_F)) {
 
@@ -153,5 +162,24 @@ namespace app::test {
         if (l2dComp.Get()) {
             l2dComp->Draw();
         }
+    }
+
+    void TitleScene::OnGUI()
+    {
+        ImGui::Begin("Live2D Control");
+        
+        if (ImGui::Button("Play Idle")) {
+            if (l2dComp.Get()) {
+                l2dComp->PlayMotion("Idle", 0, 3);
+            }
+        }
+
+        if (ImGui::Button("Play TapBody")) {
+            if (l2dComp.Get()) {
+                l2dComp->PlayMotion("TapBody", 0, 3);
+            }
+        }
+
+        ImGui::End();
     }
 }

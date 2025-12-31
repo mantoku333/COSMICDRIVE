@@ -13,6 +13,7 @@ namespace app {
             void Update(const sf::command::ICommand& command);
             void Draw() override;
             void DrawOverlay() override;
+            void OnGUI() override;
 
 
         private:
