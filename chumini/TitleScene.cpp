@@ -38,6 +38,20 @@ static Effekseer::Matrix44 ToEffekseerMatrix(const DirectX::XMMATRIX& mat) {
     return ret;
 }
 
+// =================================================================
+// Model Configuration (Change these paths to switch models)
+// =================================================================
+namespace Config {
+    // Relative path to the model directory
+    const std::string MODEL_DIR = "Assets/Live2D/CyberCat";
+    
+    // Model .model3.json filename
+    const std::string MODEL_FILE = "CyberCat.model3.json";
+    
+    // Glitch Motion Name (File name without extension or Group name)
+    const std::string GLITCH_MOTION_NAME = "GlitchNoise"; 
+}
+
 namespace app::test {
 
 // =================================================================
@@ -63,8 +77,8 @@ namespace app::test {
             auto live2dActor = Instantiate();
             l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
             if (l2dComp.Get()) {
-                // Testing CyberCat (Model Spec: Transparent Eyes)
-                l2dComp->LoadModel("Assets/Live2D/CyberCat", "CyberCat.model3.json");
+                // Load Model using Config
+                l2dComp->LoadModel(Config::MODEL_DIR, Config::MODEL_FILE);
 
                 // Set Half Size
                 live2dActor.Target()->transform.SetScale({ 0.7f, 1.f, 1.0f });
@@ -73,7 +87,8 @@ namespace app::test {
                 l2dComp->PlayMotion("Idle", 0, 3);
                 
                 // Start Loop Glitch Animation (Parallel)
-                l2dComp->StartGlitchMotion("GlitchNoise", 0);
+                sf::debug::Debug::Log("TitleScene: Calling StartGlitchMotion...");
+                l2dComp->StartGlitchMotion(Config::GLITCH_MOTION_NAME.c_str(), 0);
             }
 
             // [Hack] Reverted g_cube approach
@@ -296,9 +311,9 @@ namespace app::test {
         }
 
         ImGui::Separator();
-        if (ImGui::Button("Play GlitchNoise")) {
+        if (ImGui::Button(("Play " + Config::GLITCH_MOTION_NAME).c_str())) {
             if (l2dComp.Get()) {
-                l2dComp->PlayMotion("GlitchNoise", 0, 3);
+                l2dComp->PlayMotion(Config::GLITCH_MOTION_NAME.c_str(), 0, 3);
             }
         }
 

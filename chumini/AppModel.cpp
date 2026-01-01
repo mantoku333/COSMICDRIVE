@@ -219,6 +219,14 @@ void AppModel::Update() {
     }
     if (_glitchManager) {
         _glitchManager->UpdateMotion(_model, deltaTimeSeconds);
+        
+        // ★Manual Loop Check
+        bool finished = _glitchManager->IsFinished();
+        if (_isGlitchLooping && finished) {
+             OutputDebugStringA("AppModel: Glitch Finished! Restarting...\n");
+             // Restart
+             StartGlitchMotion(_glitchGroup.c_str(), _glitchNo);
+        }
     }
 
     _model->SaveParameters();
@@ -321,9 +329,19 @@ void AppModel::StartMotion(const char* group, int no, int priority) {
 }
 
 void AppModel::StartGlitchMotion(const char* group, int no) {
+    OutputDebugStringA(("AppModel: StartGlitchMotion called (Group: " + std::string(group) + ")\n").c_str());
     if (!_modelSetting || !_glitchManager) return;
 
     std::string fileName = _modelSetting->GetMotionFileName(group, no);
+    
+    // Fallback: If group not found, try using group name as filename directly
+    if (fileName.empty()) {
+        std::string directName = std::string(group) + ".motion3.json";
+        // Check if file exists in dir? Just try loading it.
+        fileName = directName;
+        OutputDebugStringA(("AppModel: Group lookup failed. Trying direct filename: " + fileName + "\n").c_str());
+    }
+
     if (fileName.empty()) return;
 
     std::string path = _modelHomeDir + "/" + fileName;
@@ -332,12 +350,17 @@ void AppModel::StartGlitchMotion(const char* group, int no) {
     if (!motionBytes.empty()) {
         CubismMotion* motion = CubismMotion::Create(motionBytes.data(), static_cast<csmSizeInt>(motionBytes.size()));
         
-        // Force Loop to True (User reported it wasn't looping)
-        motion->IsLoop(true); 
+        // Force Loop to FALSE to rely on Manual Restart (since SDK loop seems invisible?)
+        motion->IsLoop(false); 
         
-        // Priority 3 = Force. autoDelete = true (Manager handles memory)
+        // Priority 3. autoDelete = true.
         _glitchManager->StartMotionPriority(motion, true, 3); 
         
+        // ★Store state for manual loop in Update
+        _isGlitchLooping = true;
+        _glitchGroup = group;
+        _glitchNo = no;
+
         OutputDebugStringA(("TitleCanvas: Started Glitch Motion Loop (Attr: " + std::to_string(motion->IsLoop()) + ")\n").c_str());
     }
 }

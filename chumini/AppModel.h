@@ -45,6 +45,11 @@ private:
     float _targetX = 0.0f;
     float _targetY = 0.0f;
 
+    // Glitch Loop State
+    bool _isGlitchLooping = false;
+    std::string _glitchGroup;
+    int _glitchNo = 0;
+
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* _myRenderer;
     Live2D::Cubism::Framework::CubismModelSettingJson* _modelSetting; 
     std::string _modelHomeDir;
