@@ -1,12 +1,14 @@
 #pragma once
 #include "App.h"
 #include "TextImage.h"
-#include "AppModel.h" // 追加: TextImageを使用するために必要
+#include "AppModel.h"
 #include "SceneChangeComponent.h"
 #include "SongInfo.h"
-
-#include "AppModel.h"
 #include "Live2DManager.h"
+
+// Ensure these are included for Image and Texture members
+#include "Image.h"
+#include "Texture.h"
 
 namespace app
 {
@@ -25,52 +27,51 @@ namespace app
 			AppModel* _hiyoriModel = nullptr;
 
 			sf::command::Command<> updateCommand;
-			sf::SafePtr<SceneChangeComponent> sceneChanger;// シーン遷移用
+			sf::SafePtr<SceneChangeComponent> sceneChanger;
 
-			// ボタンUI
+			// UI Buttons
 			sf::ui::TextImage* playButton = nullptr;
 			sf::ui::TextImage* exitButton = nullptr;
+			
+			// White Backing (For Black Background behind Live2D)
+			// Changed to Image* to support texture
+			sf::ui::Image* whiteBacking = nullptr; 
+			sf::Texture backTexture; 
 
-			// --- 状態管理 ---
+			// --- State ---
 			int selectedButton = 0; // 0: EXIT, 1: PLAY
 
-			// ジャケットループ背景用
+			// Background Jacket Flow
 			struct ScrollingJacket {
 				sf::ui::Image* uiImage;
-				float posX; // 初期配置のズレ
+				float posX; 
 			};
 
 			std::vector<sf::Texture> jacketTextures;
 			std::vector<ScrollingJacket> scrollingJacketsTop;
 			std::vector<ScrollingJacket> scrollingJacketsBottom;
 
-			float totalWidth = 0.0f;                 // ジャケット列の端から端までの長さ
-			const float jacketSpeedTop = 120.0f;     // 上段の速度（正の値）
-			const float jacketSpeedBottom = -150.0f; // 下段の速度（負の値で少し速くすると遠近感が出る）
-			const float jacketScale = 2.5f; 		 // ジャケットの拡大率
-			const float jacketInterval = 270.0f;     // ジャケット同士の間隔 
+			float totalWidth = 0.0f;                 
+			const float jacketSpeedTop = 120.0f;     
+			const float jacketSpeedBottom = -150.0f; 
+			const float jacketScale = 2.5f; 		 
+			const float jacketInterval = 270.0f;      
 
-			// --- メソッド ---
+			// --- Methods ---
 
-			
-
-			void InitializeJacketFlow(); // ジャケット周り初期化
-			void HandleInput(const sf::command::ICommand& command); // 入力処理
-			void UpdateButtonSelection(); // ボタンUIのUpdate
-			void OnButtonPressed(); // ボタンが押されたときの処理
+			void InitializeJacketFlow();
+			void HandleInput(const sf::command::ICommand& command);
+			void UpdateButtonSelection();
+			void OnButtonPressed();
 			void ShowSongSelectScene();
 
-			Vector2 GetMousePosition();// マウス座標取得用
-			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);// 当たり判定 (引数を TextImage* に変更)
+			Vector2 GetMousePosition();
+			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
 
-			// 画面サイズ
 			static constexpr float screenWidth = 1920.0f;
 			static constexpr float screenHeight = 1080.0f;
 
 			float animationTimer = 0.0f;
-
-
-
-};
+		};
 	}
 }

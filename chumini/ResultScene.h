@@ -18,6 +18,7 @@ namespace app
 			void Init()override;
  			void Update(const sf::command::ICommand& command);
             void DrawOverlay() override;
+            void OnActivated() override;
  
 		private:
 			sf::command::Command<> updateCommand;

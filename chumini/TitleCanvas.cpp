@@ -117,7 +117,7 @@ void TitleCanvas::Begin()
 	Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device); // ★重要: シェーダー生成
 
 	// 4. Live2Dモデルの生成 (必ずInitializeの後に)
-	_hiyoriModel = new AppModel();
+	// _hiyoriModel = new AppModel();
 	// -------------------- 確認用コード 開始 --------------------
 	namespace fs = std::filesystem;
 
@@ -126,22 +126,11 @@ void TitleCanvas::Begin()
 	std::string name = "Hiyori.model3.json";
 	std::string fullPath = dir + name;
 
-	// 1. 今どこにいるか？
-	OutputDebugStringA("\n========== PATH CHECK ==========\n");
-	OutputDebugStringA(("Current Dir: " + fs::current_path().string() + "\n").c_str());
+	// ... debug logs ...
 
-	// 2. ファイルはあるか？
-	if (fs::exists(fullPath)) {
-		OutputDebugStringA(("【OK】File FOUND: " + fs::absolute(fullPath).string() + "\n").c_str());
-	}
-	else {
-		OutputDebugStringA(("【NG】File NOT FOUND: " + fs::absolute(fullPath).string() + "\n").c_str());
-	}
-	OutputDebugStringA("================================\n\n");
-	// -------------------- 確認用コード 終了 --------------------
+	// _hiyoriModel->LoadAssets(device, dir.c_str(), name.c_str());
 
-	_hiyoriModel->LoadAssets(device, dir.c_str(), name.c_str());
-
+	/*
 	auto renderer = _hiyoriModel->GetMyRenderer();
 
 	if (renderer != nullptr) {
@@ -151,6 +140,7 @@ void TitleCanvas::Begin()
 		// 読み込み失敗の可能性大
 		OutputDebugStringA("【エラー】モデルの読み込みに失敗しました。renderer が nullptr です。\n");
 	}
+	*/
 
 	if (auto actor = actorRef.Target()) {
 		auto* changer = actor->GetComponent<SceneChangeComponent>();
@@ -195,7 +185,8 @@ void TitleCanvas::Begin()
 	// 2. プレイボタン
 	// ---------------------------------------------------------
 	playButton = AddUI<sf::ui::TextImage>();
-	playButton->transform.SetPosition(Vector3(0, -100, 0)); // 中央
+	// Position: Left side, same height as Exit (-300)
+	playButton->transform.SetPosition(Vector3(-350, -300, 0)); 
 	playButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	playButton->Create(
@@ -208,10 +199,11 @@ void TitleCanvas::Begin()
 	);
 
 	// ---------------------------------------------------------
-	// 3. EXITボタン (EDITから変更)
+	// 3. EXITボタン
 	// ---------------------------------------------------------
 	exitButton = AddUI<sf::ui::TextImage>();
-	exitButton->transform.SetPosition(Vector3(0, -300, 0)); // 下の方
+	// Position: Right side, height -300
+	exitButton->transform.SetPosition(Vector3(350, -300, 0)); 
 	exitButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	exitButton->Create(
@@ -222,6 +214,50 @@ void TitleCanvas::Begin()
 		D2D1::ColorF(D2D1::ColorF::White),
 		512, 128
 	);
+
+	// ... (Backing code omitted/unchanged) ...
+
+// ... inside HandleInput ...
+
+	// --- キーボード操作 ---
+	const int BUTTON_COUNT = 2;
+
+	// 左右キーまたはADキーで選択切り替え (0: EXIT, 1: PLAY)
+	// Left/A -> PLAY (1)
+	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
+		selectedButton = 1;
+	}
+	// Right/D -> EXIT (0)
+	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
+		selectedButton = 0;
+	}
+	
+	// 上下キー(WS)も残すが、横並びなら本来不要かも？一応トグルとして機能させる
+	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W) ||
+		SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
+		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
+	}
+
+	// ---------------------------------------------------------
+	// 4. Backing Image (Using Assets/Texture/BACK.png)
+	// ---------------------------------------------------------
+	// Load the texture provided by user
+	if (backTexture.LoadTextureFromFile("Assets/Texture/BACK.png")) {
+		OutputDebugStringA("TitleCanvas: Loaded BACK.png successfully.\n");
+		whiteBacking = AddUI<sf::ui::Image>();
+		
+		// Position: Lowered from 250 -> 200 based on user feedback
+		whiteBacking->transform.SetPosition(Vector3(-13, 10.0f, 5.0f)); 
+		
+		// Scale: Increased from 3.0 -> 4.5 based on "Motto Ookiku"
+		whiteBacking->transform.SetScale(Vector3(4.9f, 2.5f, 0));       
+		
+		whiteBacking->material.texture = &backTexture;
+		whiteBacking->material.SetColor({ 1, 1, 1, 1 }); 
+	}
+	else {
+		OutputDebugStringA("TitleCanvas: FAILED to load Assets/Texture/BACK.png\n");
+	}
 
 	// ---------------------------------------------------------
 	// 初期設定
@@ -301,11 +337,19 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 	// --- キーボード操作 ---
 	const int BUTTON_COUNT = 2;
 
-	// 上下キーまたはWSキーで選択切り替え
-	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W)) {
-		selectedButton = (selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+	// 左右キーまたはADキーで選択切り替え (0: EXIT, 1: PLAY)
+	// Left/A -> PLAY (1)
+	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
+		selectedButton = 1;
 	}
-	else if (SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
+	// Right/D -> EXIT (0)
+	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
+		selectedButton = 0;
+	}
+
+	// 上下キーまたはWSキーで選択切り替え (Toggle)
+	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W) ||
+		SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
 		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
 	}
 

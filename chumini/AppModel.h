@@ -28,15 +28,22 @@ public:
     void Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Live2D::Cubism::Framework::CubismMatrix44& matrix);
 
     void StartMotion(const char* group, int no, int priority); 
+    void StartGlitchMotion(const char* group, int no); // ★New Method for Glitch 
 
     // Manual Override
     void SetParamOverride(const char* id, float value);
     void ClearParamOverrides();
 
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* GetMyRenderer() const { return _myRenderer; }
+    
+    // Look At
+    void SetDragging(float x, float y);
 
 private:
-    void SetupTextures(ID3D11Device* device);
+    void SetupTextures(ID3D11Device* device); 
+    
+    float _targetX = 0.0f;
+    float _targetY = 0.0f;
 
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11* _myRenderer;
     Live2D::Cubism::Framework::CubismModelSettingJson* _modelSetting; 
@@ -49,6 +56,7 @@ private:
 
     // Managers
     Live2D::Cubism::Framework::CubismMotionManager* _motionManager;
+    Live2D::Cubism::Framework::CubismMotionManager* _glitchManager; // ★Additional Manager for Parallel/Loop Glitch
     Live2D::Cubism::Framework::CubismPose* _pose;
     Live2D::Cubism::Framework::CubismEyeBlink* _eyeBlink;
     Live2D::Cubism::Framework::CubismBreath* _breath;

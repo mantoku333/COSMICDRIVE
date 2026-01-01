@@ -1,0 +1,26 @@
+{
+	"Version": 3,
+	"Parameters": [
+		{
+			"Id": "ParamNoise",
+			"GroupId": "",
+			"Name": "noise"
+		},
+		{
+			"Id": "Param",
+			"GroupId": "",
+			"Name": "色収差"
+		}
+	],
+	"ParameterGroups": [],
+	"Parts": [
+		{
+			"Id": "Part2",
+			"Name": "グリッチノイズねこ.psd（対応無し）"
+		},
+		{
+			"Id": "Part",
+			"Name": "フォルダー 1"
+		}
+	]
+}

@@ -20,10 +20,23 @@ void app::test::ResultScene::Init()
         // Load Model
         live2DManager->LoadModel("Assets/Live2D/Hiyori", "Hiyori.model3.json");
 
-        // Transform setup: Live2DComponent is attached to l2dActor
+        // Transform setup
         l2dActor.Target()->transform.SetPosition({ 0.0f, -0.6f, 0.0f }); 
         l2dActor.Target()->transform.SetScale({ 1.0f, 1.0f, 1.0f }); 
     }
+
+    // 2. UI Actor
+	uiManagerActor = Instantiate();
+	uiManagerActor.Target()->AddComponent<ResultCanvas>();
+    uiManagerActor.Target()->AddComponent<SceneChangeComponent>(); // Add SceneChangeComponent
+
+	updateCommand.Bind(std::bind(&ResultScene::Update, this, std::placeholders::_1));
+}
+
+void app::test::ResultScene::OnActivated()
+{
+    // Score logic moved here because Init() runs at game start (when score is 0)
+    // OnActivated runs when the scene actually appears after gameplay.
 
     // Score Calculation
     int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
@@ -46,13 +59,6 @@ void app::test::ResultScene::Init()
             live2DManager->PlayMotion("TapBody", 0, 3);
         }
     }
-
-    // 2. UI Actor
-	uiManagerActor = Instantiate();
-	uiManagerActor.Target()->AddComponent<ResultCanvas>();
-    uiManagerActor.Target()->AddComponent<SceneChangeComponent>(); // Add SceneChangeComponent
-
-	updateCommand.Bind(std::bind(&ResultScene::Update, this, std::placeholders::_1));
 }
 
 void app::test::ResultScene::Update(const sf::command::ICommand& command)

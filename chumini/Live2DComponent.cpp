@@ -1,6 +1,7 @@
 #include "Live2DComponent.h"
 #include "Live2DManager.h"
 #include "DirectX11.h"
+#include "Actor.h"
 
 using namespace app::test;
 using namespace sf;
@@ -44,6 +45,18 @@ void Live2DComponent::Update() {
 void Live2DComponent::PlayMotion(const char* group, int no, int priority) {
     if (_model) {
         _model->StartMotion(group, no, priority);
+    }
+}
+
+void Live2DComponent::StartGlitchMotion(const char* group, int no) {
+    if (_model) {
+        _model->StartGlitchMotion(group, no);
+    }
+}
+
+void Live2DComponent::SetDragging(float x, float y) {
+    if (_model) {
+        _model->SetDragging(x, y);
     }
 }
 
@@ -138,16 +151,46 @@ void Live2DComponent::Draw() {
 
         float aspect = vp.Width / vp.Height;
         
-        // 画面に収まるようにスケール調整
+        // 画面に収まるようにスケール調整 (Base Fit)
         float scale = 2.0f / modelCanvasH; 
         matrix.Scale(scale / aspect, scale);
-        // 位置調整（必要に応じて）
-        // matrix.Translate(0.0f, -0.5f);
+
+        // Apply Actor Transform (Position & Scale)
+        if (auto owner = actorRef.Target()) {
+            Vector3 pos = owner->transform.GetPosition();
+            Vector3 scl = owner->transform.GetScale();
+            
+            // Translate first or after? 
+            // In CubismMatrix, operations are multiplied.
+            // We want to move the fitted model.
+            matrix.Translate(pos.x, pos.y);
+            matrix.Scale(scl.x, scl.y);
+        }
 
         _model->Draw(device, context, matrix);
     }
 
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
+
+    // =========================================================
+    // 【重要】レンダリングステートのリセット (後片付け)
+    // =========================================================
+    
+    // 1. シザー矩形の無効化 (これが残っているとUIなどが消滅する)
+    context->RSSetScissorRects(0, nullptr);
+
+    // 2. シェーダーの解除 (次の描画への干渉防止)
+    context->VSSetShader(nullptr, nullptr, 0);
+    context->PSSetShader(nullptr, nullptr, 0);
+    context->GSSetShader(nullptr, nullptr, 0);
+    context->HSSetShader(nullptr, nullptr, 0);
+    context->DSSetShader(nullptr, nullptr, 0);
+
+    // 3. インプットレイアウトの解除
+    context->IASetInputLayout(nullptr);
+
+    // 4. トポロジーを基本のTriangleListに戻す
+    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
 Live2DComponent::~Live2DComponent() {

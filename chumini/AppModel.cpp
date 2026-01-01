@@ -31,7 +31,7 @@ namespace {
 // Since the previous LoadFileAsBytes was in anonymous namespace, we can assume it's available or move it if needed.
 // Checking previous view, it was in same file.
 
-AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr), _motionManager(nullptr), _pose(nullptr), _eyeBlink(nullptr), _breath(nullptr), _physics(nullptr) {
+AppModel::AppModel() : _modelSetting(nullptr), _myRenderer(nullptr), _motionManager(nullptr), _glitchManager(nullptr), _pose(nullptr), _eyeBlink(nullptr), _breath(nullptr), _physics(nullptr) {
 }
 
 AppModel::~AppModel() {
@@ -44,6 +44,10 @@ AppModel::~AppModel() {
     if (_motionManager) {
         delete _motionManager;
         _motionManager = nullptr;
+    }
+    if (_glitchManager) {
+        delete _glitchManager;
+        _glitchManager = nullptr;
     }
     if (_pose) {
         CubismPose::Delete(_pose); 
@@ -102,11 +106,17 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
     renderer->Initialize(GetModel());
     _myRenderer = static_cast<CubismRenderer_D3D11*>(renderer); // Cast to D3D11 specific renderer
 
+    // Fix for "Transparent Eyes" (Double Alpha Multiply)
+    // If the model looks ghostly/transparent, enable this. 
+    // Most modern exports might be premultiplied.
+    // _myRenderer->IsPremultipliedAlpha(true); // Reverted as per user request
+
     // Setup Textures
     SetupTextures(device);
 
     // Initialize Motion Manager
     _motionManager = new CubismMotionManager();
+    _glitchManager = new CubismMotionManager(); // ★Init Glitch Manager
     // _motionManager->SetUserData(this); // REMOVED: Not a member or needed for basic playback
 
     // Initialize Pose (Fixes "Four Hands" issue)
@@ -207,6 +217,9 @@ void AppModel::Update() {
     if (_motionManager) {
         _motionManager->UpdateMotion(_model, deltaTimeSeconds);
     }
+    if (_glitchManager) {
+        _glitchManager->UpdateMotion(_model, deltaTimeSeconds);
+    }
 
     _model->SaveParameters();
 
@@ -218,6 +231,32 @@ void AppModel::Update() {
     // 2. Breath
     if (_breath) {
         _breath->UpdateParameters(_model, deltaTimeSeconds);
+    }
+    
+    // 2.5 Apply Look At (Target)
+    // Direct set, Physics will pick up the change for hair movement
+    if (_model) {
+        Live2D::Cubism::Framework::CubismIdManager* idManager = Live2D::Cubism::Framework::CubismFramework::GetIdManager();
+        
+        // Face Angle
+        int idxX = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamAngleX));
+        int idxY = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamAngleY));
+        int idxZ = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamAngleZ));
+        
+        if (idxX >= 0) _model->AddParameterValue(idxX, _targetX * 30.0f); // Add to motion/idle
+        if (idxY >= 0) _model->AddParameterValue(idxY, _targetY * 30.0f); 
+        if (idxZ >= 0) _model->AddParameterValue(idxZ, _targetX * _targetY * -20.0f); // Little tilt
+        
+        // Eye Ball
+        int idxEyeX = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamEyeBallX));
+        int idxEyeY = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamEyeBallY));
+        
+        if (idxEyeX >= 0) _model->AddParameterValue(idxEyeX, _targetX);
+        if (idxEyeY >= 0) _model->AddParameterValue(idxEyeY, _targetY);
+        
+        // Body (slight turn)
+        int idxBodyX = _model->GetParameterIndex(idManager->GetId(DefaultParameterId::ParamBodyAngleX));
+        if (idxBodyX >= 0) _model->AddParameterValue(idxBodyX, _targetX * 10.0f);
     }
 
     // 3. Physics
@@ -260,6 +299,11 @@ void AppModel::ClearParamOverrides() {
     _overrides.clear();
 }
 
+void AppModel::SetDragging(float x, float y) {
+    _targetX = x;
+    _targetY = y;
+}
+
 void AppModel::StartMotion(const char* group, int no, int priority) {
     if (!_modelSetting || !_motionManager) return;
 
@@ -273,6 +317,28 @@ void AppModel::StartMotion(const char* group, int no, int priority) {
         // Create motion (ACubismMotion is base, using CubismMotion)
         CubismMotion* motion = CubismMotion::Create(motionBytes.data(), static_cast<csmSizeInt>(motionBytes.size()));
         _motionManager->StartMotionPriority(motion, false, priority);
+    }
+}
+
+void AppModel::StartGlitchMotion(const char* group, int no) {
+    if (!_modelSetting || !_glitchManager) return;
+
+    std::string fileName = _modelSetting->GetMotionFileName(group, no);
+    if (fileName.empty()) return;
+
+    std::string path = _modelHomeDir + "/" + fileName;
+    auto motionBytes = LoadFileAsBytes(path);
+
+    if (!motionBytes.empty()) {
+        CubismMotion* motion = CubismMotion::Create(motionBytes.data(), static_cast<csmSizeInt>(motionBytes.size()));
+        
+        // Force Loop to True (User reported it wasn't looping)
+        motion->IsLoop(true); 
+        
+        // Priority 3 = Force. autoDelete = true (Manager handles memory)
+        _glitchManager->StartMotionPriority(motion, true, 3); 
+        
+        OutputDebugStringA(("TitleCanvas: Started Glitch Motion Loop (Attr: " + std::to_string(motion->IsLoop()) + ")\n").c_str());
     }
 }
 

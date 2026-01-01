@@ -12,6 +12,13 @@
 #include <DirectXMath.h> // 行列計算用
 #include <CubismFramework.hpp>
 #include <Id/CubismIdManager.hpp>
+#include <CubismFramework.hpp>
+#include <Id/CubismIdManager.hpp>
+#include <Windows.h> 
+#include <algorithm>
+#include "Mesh.h"
+#include "Geometry.h"
+//#include "GeometryCube.h" // Reverted
 
 using namespace DirectX; // 行列系を短く書くため
 
@@ -56,10 +63,20 @@ namespace app::test {
             auto live2dActor = Instantiate();
             l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
             if (l2dComp.Get()) {
-                l2dComp->LoadModel("Assets/Live2D/Hiyori", "Hiyori.model3.json");
+                // Testing CyberCat (Model Spec: Transparent Eyes)
+                l2dComp->LoadModel("Assets/Live2D/CyberCat", "CyberCat.model3.json");
+
+                // Set Half Size
+                live2dActor.Target()->transform.SetScale({ 0.7f, 1.f, 1.0f });
+
                 // Start Idle animation
                 l2dComp->PlayMotion("Idle", 0, 3);
+                
+                // Start Loop Glitch Animation (Parallel)
+                l2dComp->StartGlitchMotion("GlitchNoise", 0);
             }
+
+            // [Hack] Reverted g_cube approach
         }
 
         DirectWrite();
@@ -86,7 +103,7 @@ namespace app::test {
 
                 effectManager->LoadEffekseer("Test", u"Assets/Effects/meteo.efk");
 
-                auto handle = effectManager->PlayEffekseer("Icon", -1.0f, 1.0f, 0.0f);
+                auto handle = effectManager->PlayEffekseer("Icon", -3.0f, 1.0f, 0.0f);
 
                 auto handle2 = effectManager->PlayEffekseer("Test", 0.0f,-5.0f, 0.0f);
 
@@ -110,6 +127,33 @@ namespace app::test {
     {
         if (l2dComp.Get()) {
             l2dComp->Update();
+
+            // Eye Tracking (Mouse Follow)
+            POINT p;
+            if (GetCursorPos(&p)) {
+                auto* dx11 = sf::dx::DirectX11::Instance();
+                if (HWND hwnd = dx11->GetHWND()) {
+                    ScreenToClient(hwnd, &p);
+
+                    // Get Window Size (Using Client Rect for accuracy)
+                    RECT rc;
+                    GetClientRect(hwnd, &rc);
+                    float w = static_cast<float>(rc.right - rc.left);
+                    float h = static_cast<float>(rc.bottom - rc.top);
+
+                    if (w > 0 && h > 0) {
+                        // Normalize to -1.0 ~ 1.0 (Center is 0,0)
+                        float nx = (p.x / w) * 2.0f - 1.0f;
+                        float ny = -((p.y / h) * 2.0f - 1.0f); // Invert Y
+
+                        // Clamp (Keep within screen + margin)
+                        nx = std::max(-1.5f, std::min(1.5f, nx));
+                        ny = std::max(-1.5f, std::min(1.5f, ny));
+
+                        l2dComp->SetDragging(nx, ny);
+                    }
+                }
+            }
         }
 
         // Check for M key to play TapBody motion
@@ -237,6 +281,25 @@ namespace app::test {
              ProcessParam("Angle Y", "ParamAngleY", &v_angY, -30.0f, 30.0f);
              ProcessParam("Angle Z", "ParamAngleZ", &v_angZ, -30.0f, 30.0f);
              ProcessParam("Body X", "ParamBodyAngleX", &v_bodyX, -10.0f, 10.0f);
+
+             ImGui::Separator();
+             ImGui::Text("Glitch Parameters");
+             static float v_noise = 0.0f;
+             static float v_chroma = 0.0f;
+             static float v_pink = 0.0f;
+             static float v_cyan = 0.0f;
+
+             ProcessParam("Noise", "ParamNoise", &v_noise, -30.0f, 30.0f);
+             ProcessParam("Chromatic Aberration", "ParamChromaticAberration", &v_chroma, 0.0f, 1.0f);
+             ProcessParam("Noise Pink", "ParamNoisePink", &v_pink, 0.0f, 1.0f);
+             ProcessParam("Noise Cyan", "ParamNoiseCyan", &v_cyan, 0.0f, 1.0f);
+        }
+
+        ImGui::Separator();
+        if (ImGui::Button("Play GlitchNoise")) {
+            if (l2dComp.Get()) {
+                l2dComp->PlayMotion("GlitchNoise", 0, 3);
+            }
         }
 
         ImGui::End();

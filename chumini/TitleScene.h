@@ -2,7 +2,7 @@
 #include "App.h"
 #include "BGMComponent.h"
 #include "Live2DComponent.h" // Include this
-#include <functional>
+//#include "GeometryCube.h" // Reverted
 
 namespace app {
     namespace test {
@@ -20,6 +20,7 @@ namespace app {
             sf::ref::Ref<sf::Actor> uiManagerActor;
             sf::SafePtr<app::test::BGMComponent> bgmPlayer;
             sf::SafePtr<Live2DComponent> l2dComp; // Add pointer to Live2DComponent
+            // sf::geometry::GeometryCube g_cube; // Reverted
 
             sf::command::Command<> updateCommand;
 
