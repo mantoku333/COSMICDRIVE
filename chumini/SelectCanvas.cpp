@@ -15,6 +15,7 @@
 #include "LoadingScene.h"
 
 #include <filesystem>
+#include <fstream>
 #include "ChedParser.h" 
 
 namespace app::test {
@@ -168,6 +169,23 @@ namespace app::test {
                                 std::wstring waveW = Utf8ToWstring(parser.waveFile);
                                 fs::path fullWavePath = parentDir / waveW;
                                 info.musicPath = WstringToUtf8(fullWavePath.wstring());
+                            }
+
+                            // .pvファイル読み込み (プレビュー開始位置)
+                            // 譜面ファイルと同じディレクトリにある、拡張子.pvのファイルを探す
+                            // 例: GOODTEK.pv
+                            // ファイル名の特定方法: フォルダ名優先か、譜面ファイル名ベースか (今回は譜面ファイル名ベースで探索)
+                            fs::path pvPath = fileEntry.path();
+                            pvPath.replace_extension(".pv");
+
+                            if (fs::exists(pvPath)) {
+                                std::ifstream ifs(pvPath);
+                                if (ifs) {
+                                    float startTime = 0.0f;
+                                    ifs >> startTime;
+                                    info.previewStartTime = startTime;
+                                    sf::debug::Debug::Log("PV Time Loaded: " + std::to_string(startTime));
+                                }
                             }
 
                             info.bpm = std::to_string(parser.bpm);
@@ -613,7 +631,7 @@ namespace app::test {
 
         previewPlayer.SetResource(previewResource);
         previewPlayer.SetVolume(1.0f); // 必要に応じて調整
-        previewPlayer.Play();
+        previewPlayer.Play(info.previewStartTime);
     }
 
 } // namespace app::test

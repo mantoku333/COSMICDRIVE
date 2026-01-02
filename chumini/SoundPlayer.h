@@ -5,26 +5,26 @@ namespace sf
 {
 	namespace sound
 	{
-		//音再生コンポーネント
+		// Sound Player Component
 		class SoundPlayer :public Component
 		{
 		public:
 			~SoundPlayer();
 			void DeActivate()override;
 
-			void Play();
+			void Play(float startTime = 0.0f);
 			void Stop();
 
 			void SetResource(sf::ref::Ref<SoundResource> _v);
 
-			// 音量制御メソッドを追加
+			// Volume control methods
 			void SetVolume(float volume);
 			float GetVolume() const;
 			IXAudio2SourceVoice* GetSourceVoice() const { return source; }
 
 
 		private:
-			void SetSound();
+			void SetSound(float startTime = 0.0f);
 
 		private:
 			sf::ref::Ref<SoundResource> resource;
