@@ -111,6 +111,8 @@ namespace app::test {
             bpmText->SetText(bpmStr);
         }
 
+        PlayPreview();
+
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
     }
 
@@ -514,6 +516,8 @@ namespace app::test {
 
         // ★文字化け対策: Shift-JIS変換してログ出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
+        
+        PlayPreview();
     }
 
     // ===== 前へ =====
@@ -544,6 +548,8 @@ namespace app::test {
 
         // ★文字化け対策
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
+
+        PlayPreview();
     }
 
     void SelectCanvas::CancelSelection() {
@@ -578,6 +584,36 @@ namespace app::test {
         }
         int idx = std::clamp(targetIndex, 0, (int)songs.size() - 1);
         return songs[idx];
+    }
+
+    // ===== プレビュー再生 =====
+    void SelectCanvas::PlayPreview() {
+        // 前の曲を止める
+        previewPlayer.Stop();
+        previewResource = nullptr;
+
+        if (songs.empty()) return;
+
+        int idx = std::clamp(targetIndex, 0, (int)songs.size() - 1);
+        const auto& info = songs[idx];
+
+        if (info.musicPath.empty()) return;
+
+        // パスをShift-JISに変換
+        std::string sjisPath = Utf8ToShiftJis(info.musicPath);
+
+        // 新しいリソースを作成
+        previewResource = new sf::sound::SoundResource();
+
+        // ロード失敗したら再生しない
+        if (FAILED(previewResource.Target()->LoadSound(sjisPath, true))) { // true = loop
+            sf::debug::Debug::Log("Preview Load Failed: " + sjisPath);
+            return;
+        }
+
+        previewPlayer.SetResource(previewResource);
+        previewPlayer.SetVolume(1.0f); // 必要に応じて調整
+        previewPlayer.Play();
     }
 
 } // namespace app::test
