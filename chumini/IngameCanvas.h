@@ -17,7 +17,7 @@ namespace app
 {
 	namespace test
 	{
-		class TestCanvas : public sf::ui::Canvas
+		class IngameCanvas : public sf::ui::Canvas
 		{
 		public:
 			// EffectManager‚ªAddUI‚ğg‚¦‚é‚æ‚¤‚ÉŒöŠJ

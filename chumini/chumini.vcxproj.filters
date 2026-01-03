@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="gs2d.hlsl">
@@ -315,11 +315,11 @@
     <ClCompile Include="ResidentScene.cpp">
       <Filter>App\Scene\ResidentScene</Filter>
     </ClCompile>
-    <ClCompile Include="TestScene.cpp">
-      <Filter>App\Scene\TestScene</Filter>
+    <ClCompile Include="IngameScene.cpp">
+      <Filter>App\Scene\IngameScene</Filter>
     </ClCompile>
-    <ClCompile Include="TestCanvas.cpp">
-      <Filter>App\Scene\TestScene\TestCanvas</Filter>
+    <ClCompile Include="IngameCanvas.cpp">
+      <Filter>App\Scene\IngameScene\IngameCanvas</Filter>
     </ClCompile>
     <ClCompile Include="TitleScene.cpp">
       <Filter>App\Scene\TitleScene</Filter>
@@ -800,11 +800,11 @@
     <ClInclude Include="ResidentScene.h">
       <Filter>App\Scene\ResidentScene</Filter>
     </ClInclude>
-    <ClInclude Include="TestScene.h">
-      <Filter>App\Scene\TestScene</Filter>
+    <ClInclude Include="IngameScene.h">
+      <Filter>App\Scene\IngameScene</Filter>
     </ClInclude>
-    <ClInclude Include="TestCanvas.h">
-      <Filter>App\Scene\TestScene\TestCanvas</Filter>
+    <ClInclude Include="IngameCanvas.h">
+      <Filter>App\Scene\IngameScene\IngameCanvas</Filter>
     </ClInclude>
     <ClInclude Include="TitleScene.h">
       <Filter>App\Scene\TitleScene</Filter>
@@ -1267,7 +1267,7 @@
     <Filter Include="App\Scene\ResultScene">
       <UniqueIdentifier>{c676f0b9-ec5e-42f7-9cf2-9f9b03376235}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Scene\TestScene">
+    <Filter Include="App\Scene\IngameScene">
       <UniqueIdentifier>{db6d7ddd-b2c3-4271-9611-df91b05f8dfe}</UniqueIdentifier>
     </Filter>
     <Filter Include="App\Scene\TitleScene">
@@ -1282,7 +1282,7 @@
     <Filter Include="App\Scene\DynamicScene">
       <UniqueIdentifier>{1c719a5f-0a9d-4892-a14f-c7bcce0253a7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Scene\TestScene\TestCanvas">
+    <Filter Include="App\Scene\IngameScene\IngameCanvas">
       <UniqueIdentifier>{1a2197b8-c71b-4c59-9b7d-5a86924bf4b5}</UniqueIdentifier>
     </Filter>
     <Filter Include="App\Scene\TitleScene\TitleCanvas">

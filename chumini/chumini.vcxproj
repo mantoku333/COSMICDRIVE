@@ -299,8 +299,8 @@
     <ClCompile Include="Subset.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="SwatMotionArray.cpp" />
-    <ClCompile Include="TestCanvas.cpp" />
-    <ClCompile Include="TestScene.cpp" />
+    <ClCompile Include="IngameCanvas.cpp" />
+    <ClCompile Include="IngameScene.cpp" />
     <ClCompile Include="SoundComponent.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextComponent.cpp" />
@@ -479,8 +479,8 @@
     <ClInclude Include="Subset.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="SwatMotionArray.h" />
-    <ClInclude Include="TestCanvas.h" />
-    <ClInclude Include="TestScene.h" />
+    <ClInclude Include="IngameCanvas.h" />
+    <ClInclude Include="IngameScene.h" />
     <ClInclude Include="SoundComponent.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="TextComponent.h" />

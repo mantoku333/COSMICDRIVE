@@ -1,6 +1,6 @@
 #include "SoundComponent.h"
 #include "SongInfo.h"
-#include "TestScene.h"
+#include "IngameScene.h"
 #include "Config.h"
 
 void app::test::SoundComponent::Begin()

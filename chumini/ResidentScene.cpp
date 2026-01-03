@@ -1,5 +1,5 @@
 #include "ResidentScene.h"
-#include "TestScene.h"
+#include "IngameScene.h"
 #include "TitleScene.h"
 #include "SelectScene.h"	
 #include "ControlCamera.h"
@@ -28,7 +28,7 @@ void app::ResidentScene::LoadLoadingScene()
 	//初期シーンはメインスレッド内でロード、アクティベートさせる
 	auto scene = test::TitleScene::StandbyScene();
 	//auto scene = test::SelectScene::StandbyScene();
-	//auto scene = test::TestScene::StandbyScene();
+	//auto scene = test::IngameScene::StandbyScene();
 	//auto scene = test::ResultScene::StandbyScene();
 
 	while (1)

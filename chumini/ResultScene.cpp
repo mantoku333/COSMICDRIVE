@@ -1,6 +1,6 @@
 #include "ResultScene.h"
 #include "ResultCanvas.h"
-#include "TestCanvas.h"
+#include "IngameCanvas.h"
 #include "JudgeStatsService.h"
 #include "JudgeStatsService.h"
 #include "Actor.h"

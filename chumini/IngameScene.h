@@ -17,7 +17,7 @@ namespace app
 {
 	namespace test
 	{
-		class TestScene :public sf::Scene<TestScene>
+		class IngameScene :public sf::Scene<IngameScene>
 		{
 		public:
 
