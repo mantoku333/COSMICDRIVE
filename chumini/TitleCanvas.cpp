@@ -55,13 +55,15 @@ void TitleCanvas::InitializeJacketFlow() {
 
 	// 1. フォルダ走査（既存ロジック）
 	if (fs::exists(rootPath)) {
-		for (const auto& dir : fs::directory_iterator(rootPath)) {
-			if (!dir.is_directory()) continue;
-			for (const auto& file : fs::directory_iterator(dir.path())) {
+		for (const auto& file : fs::recursive_directory_iterator(rootPath)) {
+			{
+				// Removed outer loop
+                if (!file.is_regular_file()) continue;
+
 				std::string ext = file.path().extension().string();
 				if (ext == ".png" || ext == ".jpg") {
 					jacketPaths.push_back(file.path().string());
-					break;
+					// break; // Removed to allow finding all jackets
 				}
 			}
 		}
@@ -153,12 +155,12 @@ void TitleCanvas::Begin()
 	// 名前・学校名の表示
 	// ---------------------------------------------------------
 	auto titleText = AddUI<sf::ui::TextImage>();
-	titleText->transform.SetPosition(Vector3(-650, -400, 0));
+	titleText->transform.SetPosition(Vector3(-650, -450, 0));
 	titleText->transform.SetScale(Vector3(10, 2, 0));
 
 	titleText->Create(
 		device,
-		L"\u842C\u5FB3\u502B\u529F",
+		L"dev",
 		L"Assets/Fonts/Hangyaku.ttf",
 		100.0f,
 		D2D1::ColorF(D2D1::ColorF::Tomato),

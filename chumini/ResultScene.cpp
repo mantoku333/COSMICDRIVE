@@ -21,7 +21,7 @@ void app::test::ResultScene::Init()
         live2DManager->LoadModel("Assets/Live2D/CyberCat", "CyberCat.model3.json");
 
         // Transform setup
-        l2dActor.Target()->transform.SetPosition({ 0.0f, -0.6f, 0.0f }); 
+        l2dActor.Target()->transform.SetPosition({ 1.0f, -0.6f, 0.0f }); 
         l2dActor.Target()->transform.SetScale({ 1.0f, 1.0f, 1.0f }); 
     }
 

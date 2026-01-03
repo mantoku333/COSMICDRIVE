@@ -38,7 +38,7 @@ void app::test::IngameScene::Init()
         auto mesh = player.Target()->AddComponent<sf::Mesh>();
         mesh->SetGeometry(g_cube); // CubeƒƒbƒVƒ…
         player.Target()->transform.SetScale({ 0.5f, 0.5f, 0.5f });
-        mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 0.3f });
+        mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 1.0f });
         player.Target()->AddComponent<PlayerComponent>(); // ©‚±‚±‚ÉˆÚ“®ˆ—ŠÜ‚Ş
 
         

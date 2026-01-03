@@ -14,23 +14,25 @@ namespace app::test {
 
        // 1. "NOW LOADING..."
         loadingText = AddUI<sf::ui::TextImage>();
+        loadingText->transform.SetScale(Vector3(5.0f, 1.5f, 1.0f));
         loadingText->Create(
             context,
             L"NOW LOADING...",
             L"851ゴチカクット",
-            60.0f,
+            150.0f,
             D2D1::ColorF(D2D1::ColorF::White),
-            512, 128
+            2000, 128
         );
-        loadingText->transform.SetPosition(Vector3(700, -450, 0));
+        loadingText->transform.SetPosition(Vector3(550, -400, 0));
 
         // 2. 曲タイトル (画面中央などでっかく)
         songTitleText = AddUI<sf::ui::TextImage>();
+        songTitleText->transform.SetScale(Vector3(5.0f, 2.5f, 1.0f));
         songTitleText->Create(
             context,
             L"", // 初期値は空
             L"851ゴチカクット",
-            80.0f,
+            150.0f,
             D2D1::ColorF(D2D1::ColorF::DeepSkyBlue),
             1024, 200
         );
@@ -41,11 +43,12 @@ namespace app::test {
 
         // 3. アーティスト (その下)
         artistText = AddUI<sf::ui::TextImage>();
+        artistText->transform.SetScale(Vector3(3.0f, 1.5f, 1.0f));
         artistText->Create(
             context,
             L"",
             L"851ゴチカクット",
-            50.0f,
+            100.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray),
             1024, 100
         );
