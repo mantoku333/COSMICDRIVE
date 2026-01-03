@@ -18,7 +18,7 @@ void app::test::ResultScene::Init()
 
     if (live2DManager.Get()) {
         // Load Model
-        live2DManager->LoadModel("Assets/Live2D/Hiyori", "Hiyori.model3.json");
+        live2DManager->LoadModel("Assets/Live2D/CyberCat", "CyberCat.model3.json");
 
         // Transform setup
         l2dActor.Target()->transform.SetPosition({ 0.0f, -0.6f, 0.0f }); 
@@ -53,11 +53,12 @@ void app::test::ResultScene::OnActivated()
 
     // Motion Selection based on Rank (S >= 800,000)
     if (live2DManager.Get()) {
-        if (score >= 800000) {
-            live2DManager->PlayMotion("Idle", 0, 3);
-        } else {
-            live2DManager->PlayMotion("TapBody", 0, 3);
-        }
+        // CyberCat only has "Idle" motion (GlitchNoise), so we play it regardless of score for now.
+        // If specific motions are added later, restore the conditional branching.
+        live2DManager->PlayMotion("Idle", 0, 3);
+        
+        // ★Loop Glitch Animation
+        live2DManager->StartGlitchMotion("GlitchNoise", 0);
     }
 }
 
