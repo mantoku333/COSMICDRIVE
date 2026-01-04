@@ -10,26 +10,26 @@ using namespace app::test;
 void PlayerComponent::Begin() {
     updateCommand.Bind(std::bind(&PlayerComponent::Update, this, std::placeholders::_1));
 
-    // 繧ｷ繝ｼ繝ｳ繧貞叙蠕・
+    // シーンを取得
     auto* ingameScene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene());
     if (!ingameScene) return;
 
-    // 繧ｸ繝｣繝・ず繝舌・縺悟ｭ伜惠縺吶ｌ縺ｰ菴咲ｽｮ繧貞粋繧上○繧・
+    // ジャッジバーが存在すれば位置を合わせる
     if (ingameScene->judgeBar.Target()) {
         Vector3 barPos = ingameScene->judgeBar.Target()->transform.GetPosition();
 
-        // 蟆代＠荳翫↓驟咲ｽｮ・郁ｦ九◆逶ｮ隱ｿ謨ｴOK・・
+        // 少し上に配置（見た目調整OK）
         actorRef.Target()->transform.SetPosition({
-            0.0f,          // X縺ｯ荳ｭ螟ｮ
-			barPos.y + 3.0f,  // 蟆代＠荳翫↓
-			barPos.z + 1.0f  // 蟆代＠謇句燕縺ｫ
+            0.0f,          // Xは中央
+			barPos.y + 3.0f,  // 少し上に
+			barPos.z + 1.0f  // 少し手前に
             });
     }
 }
 
 
 // ======================================
-// 繝槭え繧ｹ菴咲ｽｮ 竊・Z=targetZ 蟷ｳ髱｢縺ｮ繝ｯ繝ｼ繝ｫ繝牙ｺｧ讓吝､画鋤・井ｻｻ諢擾ｼ・
+// マウス位置 → Z=targetZ 平面のワールド座標変換（任意）
 // ======================================
 Vector3 ScreenToWorldOnPlane(float mouseX, float mouseY, float targetZ = 0.0f)
 {
@@ -39,18 +39,18 @@ Vector3 ScreenToWorldOnPlane(float mouseX, float mouseY, float targetZ = 0.0f)
     float screenW = static_cast<float>(rect.right - rect.left);
     float screenH = static_cast<float>(rect.bottom - rect.top);
 
-    // 繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ荳ｭ蠢・ｒ蜴溽せ縺ｫ豁｣隕丞喧 (-1 ・・1)
+    // スクリーン中心を原点に正規化 (-1 ～ 1)
     float nx = (2.0f * mouseX / screenW - 1.0f);
     float ny = (1.0f - 2.0f * mouseY / screenH);
 
-    // 繧ｫ繝｡繝ｩ繧剃ｽｿ繧上★縲檎判髱｢遨ｺ髢薙ｒ逶ｴ謗･Z蟷ｳ髱｢縺ｫ謚募ｽｱ縲・
-    const float camDist = 5.0f; // 莉ｮ縺ｮ繧ｫ繝｡繝ｩ霍晞屬
+    // カメラを使わず、画面空間を直接Z平面に投影
+    const float camDist = 5.0f; // 仮のカメラ距離
 
     Vector3 camPos(0.0f, 0.0f, -camDist);
     Vector3 rayDir(nx, ny, 1.0f);
     rayDir = rayDir.Normarize();
 
-    // Z=targetZ 蟷ｳ髱｢縺ｨ莠､蟾ｮ縺吶ｋ菴咲ｽｮ繧呈ｱゅａ繧・
+    // Z=targetZ 平面と交差する位置を求める
     float t = (targetZ - camPos.z) / rayDir.z;
     Vector3 hitPos = camPos + rayDir * t;
 
@@ -59,7 +59,7 @@ Vector3 ScreenToWorldOnPlane(float mouseX, float mouseY, float targetZ = 0.0f)
 
 
 // ======================================
-// 繝｡繧､繝ｳ繧｢繝・・繝・・繝亥・逅・
+// メインアップデート処理
 // ======================================
 void PlayerComponent::Update(const sf::command::ICommand&) {
 
@@ -82,40 +82,112 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     float dx = static_cast<float>(p.x - prevMouse.x);
     prevMouse = p;
 
-    // ==== 繝・ャ繝峨だ繝ｼ繝ｳ・亥ｰ上＆縺・虚縺阪ｒ辟｡隕厄ｼ・====
-    const float deadZone = 3.0f; // 竊・縺薙・蛟､繧剃ｸ翫￡繧九→蜿榊ｿ憺・縺上↑繧具ｼ・・・0縺上ｉ縺・′濶ｯ縺・ｼ・
-    if (fabs(dx) < deadZone) dx = 0.0f;
-
-    // ==== 諢溷ｺｦ ====
-    const float sens = 0.005f;
-    leverX += dx * sens;
-    leverX = std::clamp(leverX, -1.0f, 1.0f);
+    // -----------------------------
+    // 移動＆サイドレーン判定の統合処理
+    // -----------------------------
+    
+    const float moveThreshold = 20.0f; // 判定・移動共通の閾値(デッドゾーン)
+    bool isMovingLeft = (dx < -moveThreshold);
+    bool isMovingRight = (dx > moveThreshold);
+    
+    // 判定基準を満たした場合のみプレイヤーを移動させる
+    if (isMovingLeft || isMovingRight) {
+        const float sens = 0.05f; // 感度アップ
+        leverX += dx * sens;
+        leverX = std::clamp(leverX, -1.0f, 1.0f);
+    }
+    
+    // 減衰（中央に戻る処理）
     leverX += (0.0f - leverX) * 0.1f;
 
-    // === 縺薙％縺ｧTransform縺ｫ蜿肴丐 ===
-    float moveRange = 3.0f;  // 繝ｬ繝ｼ繝ｳ蟷・↓蜷医ｏ縺帙※隱ｿ謨ｴ
+    // Transform反映
+    float moveRange = 3.0f;
     float playerX = leverX * moveRange;
-
     auto pos = actor->transform.GetPosition();
-    pos.x = playerX;                     // 竊・X縺�縺大虚縺九☆
-    actor->transform.SetPosition(pos);   // 竊・蜀阪そ繝・ヨ・・
+    pos.x = playerX; 
+    actor->transform.SetPosition(pos);
 
-    //sf::debug::Debug::Log("LeverX: " + std::to_string(leverX) +
-    //    "  Xpos: " + std::to_string(pos.x));
+
+    // サイドレーン制御
+    if (ingameScene->lanePanels.size() >= 6) {
+        
+        auto* managerActor = ingameScene->managerActor.Target();
+        app::test::NoteManager* noteManager = nullptr;
+        app::test::SoundComponent* sound = nullptr;
+        if (managerActor) {
+            noteManager = managerActor->GetComponent<app::test::NoteManager>();
+            sound = managerActor->GetComponent<app::test::SoundComponent>();
+        }
+
+        // --- 左サイドレーン (Index 4) ---
+        auto leftSide = ingameScene->lanePanels[4].Target();
+        if (leftSide) {
+            auto mesh = leftSide->GetComponent<sf::Mesh>();
+            if (mesh) {
+                if (isMovingLeft && !wasInLeftEdge) { // Entry
+                    mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f }); 
+                    if (noteManager) {
+                         float now = noteManager->GetSongTime();
+                         JudgeResult result = noteManager->JudgeLane(4, now);
+                         if (sound) {
+                            if (result == JudgeResult::Skip) sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
+                            else sound->Play(app::test::SoundComponent::Sfx::Tap);
+                         }
+                    }
+                }
+                else if (isMovingLeft) { // Hold
+                    mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
+                }
+                else if (!isMovingLeft && wasInLeftEdge) { // Exit
+                    mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+                }
+            }
+        }
+
+        // --- 右サイドレーン (Index 5) ---
+        auto rightSide = ingameScene->lanePanels[5].Target();
+        if (rightSide) {
+            auto mesh = rightSide->GetComponent<sf::Mesh>();
+            if (mesh) {
+                if (isMovingRight && !wasInRightEdge) { // Entry
+                    mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
+                    if (noteManager) {
+                         float now = noteManager->GetSongTime();
+                         JudgeResult result = noteManager->JudgeLane(5, now);
+                         if (sound) {
+                            if (result == JudgeResult::Skip) sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
+                            else sound->Play(app::test::SoundComponent::Sfx::Tap);
+                         }
+                    }
+                }
+                else if (isMovingRight) { // Hold
+                    mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
+                }
+                else if (!isMovingRight && wasInRightEdge) { // Exit
+                    mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+                }
+            }
+        }
+
+        // 状態更新
+        wasInLeftEdge = isMovingLeft;
+        wasInRightEdge = isMovingRight;
+    }
+
 
     // -----------------------------
-    // 蜷・Ξ繝ｼ繝ｳ縺ｮ繧ｭ繝ｼ蜃ｦ逅・
+    // 各レーンのキー処理
     // -----------------------------
     struct LaneKey { int idx; Key key; };
     LaneKey laneKeys[] = {
-        {0, Key::KEY_A},   // 繝ｬ繝ｼ繝ｳ 0
-        {1, Key::KEY_S},   // 繝ｬ繝ｼ繝ｳ 1
-        {2, Key::KEY_D},   // 繝ｬ繝ｼ繝ｳ 2
-        {3, Key::KEY_F},   // 繝ｬ繝ｼ繝ｳ 3
+        {0, Key::KEY_A},   // レーン 0
+        {1, Key::KEY_S},   // レーン 1
+        {2, Key::KEY_D},   // レーン 2
+        {3, Key::KEY_F},   // レーン 3
     };
 
     for (const auto& lk : laneKeys) {
-        // 謚ｼ荳倶ｸｭ縺ｧ譏弱ｋ縺・
+        // 押し下げ中で明るく
         if (SInput::Instance().GetKey(lk.key)) {
             auto laneActor = ingameScene->lanePanels[lk.idx].Target();
             if (laneActor) {
@@ -123,7 +195,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 if (mesh) mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
             }
         }
-        // 髮｢縺励◆繧牙・縺ｫ謌ｻ縺・
+        // 離したら元に戻す
         else if (SInput::Instance().GetKeyUp(lk.key)) {
             auto laneActor = ingameScene->lanePanels[lk.idx].Target();
             if (laneActor) {
@@ -132,7 +204,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             }
         }
 
-        // 繝弱・繝・愛螳・
+        // ノート判定
         if (SInput::Instance().GetKeyDown(lk.key)) {
             auto* managerActor = ingameScene->managerActor.Target();
             if (!managerActor) continue;
@@ -158,7 +230,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     }
 
     // -----------------------------
-    // 竭｢ 蟾ｦ繧ｯ繝ｪ繝・け縺ｧ繝・ヰ繝・げ蠎ｧ讓吝・蜉・
+    // ※ 左クリックでデバッグ座標出力
     // -----------------------------
     if (SInput::Instance().GetMouseDown(0))
     {

@@ -1,7 +1,7 @@
 // PlayerComponent.h
 #pragma once
 #include "Component.h"
-#include <Windows.h>  
+#include <Windows.h>
 
 namespace app {
     namespace test {
@@ -16,7 +16,11 @@ namespace app {
 
             POINT prevMouse = { 0, 0 };
             bool mouseInitialized = false;
-            float leverX = 0.0f; // -1(��) �` +1(�E)
+            float leverX = 0.0f; // -1(左) ～ +1(右)
+
+            // サイドレーンの前フレーム状態
+            bool wasInLeftEdge = false;
+            bool wasInRightEdge = false;
         };
 
     } // namespace test
