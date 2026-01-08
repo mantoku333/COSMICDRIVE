@@ -112,6 +112,11 @@ namespace app::test {
             bpmText->SetText(bpmStr);
         }
 
+        // ★追加: ジャンル名
+        if (genreText && !allGenres.empty()) {
+            genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
+        }
+
         PlayPreview();
 
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
@@ -129,73 +134,73 @@ namespace app::test {
     // ===== 楽曲初期化 =====
     void SelectCanvas::InitializeSongs() {
         songs.clear();
+        allGenres.clear();
         namespace fs = std::filesystem;
 
         std::string rootPath = "Songs";
 
         if (fs::exists(rootPath) && fs::is_directory(rootPath)) {
-            for (const auto& fileEntry : fs::recursive_directory_iterator(rootPath)) {
-                {
-                    // if (!dirEntry.is_directory()) continue; // Removed outer check
-                    // Inner loop replaced by recursive iterator, scope preserved
+            // 1. rootPath直下のフォルダを「ジャンル」として扱う
+            for (const auto& genreEntry : fs::directory_iterator(rootPath)) {
+                if (!genreEntry.is_directory()) continue;
 
+                Genre newGenre;
+                // フォルダ名をジャンル名とする
+                newGenre.name = genreEntry.path().filename().string();
+
+                // 2. そのジャンルフォルダ内を再帰的に走査して曲を探す
+                for (const auto& fileEntry : fs::recursive_directory_iterator(genreEntry.path())) {
                     if (!fileEntry.is_regular_file()) continue;
 
                     std::wstring ext = fileEntry.path().extension().wstring();
-
                     if (ext == L".sus" || ext == L".ched") {
-                        app::test::ChedParser parser;
+                         app::test::ChedParser parser;
+                         if (parser.Load(fileEntry.path().wstring(), true)) {
+                             SongInfo info;
+                             info.title = parser.title.empty() ? "No Title" : parser.title;
+                             info.artist = parser.artist.empty() ? "No Artist" : parser.artist;
+                             info.chartPath = WstringToUtf8(fileEntry.path().wstring());
+                             
+                             fs::path parentDir = fileEntry.path().parent_path();
+                             
+                             // ジャケット
+                             if (!parser.jacketFile.empty()) {
+                                 std::wstring jacketW = Utf8ToWstring(parser.jacketFile);
+                                 fs::path fullJacketPath = parentDir / jacketW;
+                                 info.jacketPath = WstringToUtf8(fullJacketPath.wstring());
+                             } else {
+                                 info.jacketPath = "";
+                             }
 
-                        if (parser.Load(fileEntry.path().wstring(), true)) {
+                             // 音声
+                             if (!parser.waveFile.empty()) {
+                                 std::wstring waveW = Utf8ToWstring(parser.waveFile);
+                                 fs::path fullWavePath = parentDir / waveW;
+                                 info.musicPath = WstringToUtf8(fullWavePath.wstring());
+                             }
 
-                            SongInfo info;
-                            info.title = parser.title.empty() ? "No Title" : parser.title;
-                            info.artist = parser.artist.empty() ? "No Artist" : parser.artist;
-                            info.chartPath = WstringToUtf8(fileEntry.path().wstring());
+                             // プレビュー開始位置 (.pv check)
+                             fs::path pvPath = fileEntry.path();
+                             pvPath.replace_extension(".pv");
+                             if (fs::exists(pvPath)) {
+                                 std::ifstream ifs(pvPath);
+                                 if (ifs) {
+                                     float startTime = 0.0f;
+                                     ifs >> startTime;
+                                     info.previewStartTime = startTime;
+                                 }
+                             }
 
-                            fs::path parentDir = fileEntry.path().parent_path();
-
-                            // ジャケットパス結合
-                            if (!parser.jacketFile.empty()) {
-                                std::wstring jacketW = Utf8ToWstring(parser.jacketFile);
-                                fs::path fullJacketPath = parentDir / jacketW;
-                                info.jacketPath = WstringToUtf8(fullJacketPath.wstring());
-                            }
-                            else {
-                                info.jacketPath = "";
-                            }
-
-                            // 音声パス結合
-                            if (!parser.waveFile.empty()) {
-                                std::wstring waveW = Utf8ToWstring(parser.waveFile);
-                                fs::path fullWavePath = parentDir / waveW;
-                                info.musicPath = WstringToUtf8(fullWavePath.wstring());
-                            }
-
-                            // .pvファイル読み込み (プレビュー開始位置)
-                            // 譜面ファイルと同じディレクトリにある、拡張子.pvのファイルを探す
-                            // 例: GOODTEK.pv
-                            // ファイル名の特定方法: フォルダ名優先か、譜面ファイル名ベースか (今回は譜面ファイル名ベースで探索)
-                            fs::path pvPath = fileEntry.path();
-                            pvPath.replace_extension(".pv");
-
-                            if (fs::exists(pvPath)) {
-                                std::ifstream ifs(pvPath);
-                                if (ifs) {
-                                    float startTime = 0.0f;
-                                    ifs >> startTime;
-                                    info.previewStartTime = startTime;
-                                    sf::debug::Debug::Log("PV Time Loaded: " + std::to_string(startTime));
-                                }
-                            }
-
-                            info.bpm = std::to_string(parser.bpm);
-                            songs.push_back(info);
-
-                            // ★ログ文字化け対策: Shift-JISに変換して表示
-                            sf::debug::Debug::Log("Load OK: " + Utf8ToShiftJis(info.title));
-                        }
+                             info.bpm = std::to_string(parser.bpm);
+                             newGenre.songs.push_back(info);
+                         }
                     }
+                }
+
+                // 曲が1つでもあればジャンルとして登録
+                if (!newGenre.songs.empty()) {
+                    allGenres.push_back(newGenre);
+                    sf::debug::Debug::Log("Genre Loaded: " + newGenre.name + " (" + std::to_string(newGenre.songs.size()) + " songs)");
                 }
             }
         }
@@ -203,9 +208,17 @@ namespace app::test {
             sf::debug::Debug::Log("Songs directory not found: " + rootPath);
         }
 
-        if (songs.empty()) {
-            songs.push_back({ "No Music Found", "System", "", "", "", "0" });
+        // 3. 最初のジャンルを選択
+        if (allGenres.empty()) {
+            // ダミージャンル
+            Genre dummy;
+            dummy.name = "No Genre";
+            dummy.songs.push_back({ "No Music Found", "System", "", "", "", "0" });
+            allGenres.push_back(dummy);
         }
+
+        currentGenreIndex = 0;
+        songs = allGenres[currentGenreIndex].songs;
 
         // ----------------------------------------------------
         // ジャケットテクスチャのロード (★修正箇所)
@@ -241,7 +254,7 @@ namespace app::test {
         auto device = dx11->GetMainDevice().GetDevice();
 
         selectFrame = AddUI<sf::ui::Image>();
-        selectFrame->transform.SetPosition(Vector3(CENTER_X, CENTER_Y, 1));
+        selectFrame->transform.SetPosition(Vector3(LAYOUT_JACKET_CENTER_X, LAYOUT_JACKET_CENTER_Y, 1));
         selectFrame->transform.SetScale(Vector3(10.0f, 50.0f, 1.0f));
         selectFrame->material.texture = &textureSelectFrame;
         selectFrame->material.SetColor({ 1, 1, 1, 0.8f });
@@ -250,6 +263,15 @@ namespace app::test {
         CC->transform.SetPosition(Vector3(500, -350, 0));
         CC->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
         CC->material.texture = &textureCC;*/
+
+        // ジャケットUIコンポーネントの事前生成
+        jacketComponents.clear();
+        for(int i = 0; i < MAX_VISIBLE; ++i) {
+             auto jacket = AddUI<sf::ui::Image>();
+             jacket->transform.SetScale(Vector3(SCALE_EDGE, SCALE_EDGE, 1.0f));
+             jacket->SetVisible(false); // 初期は非表示
+             jacketComponents.push_back(jacket);
+        }
 
         RebuildJacketPool();
         UpdateJacketPositions();
@@ -273,9 +295,9 @@ namespace app::test {
         for (int i = 0; i < 4; ++i) {
             titleOutline[i] = AddUI<sf::ui::TextImage>();
 
-            // 座標：メインの位置(0, 300) から少しズラす
+            // 座標：メインの位置(0, 480) から少しズラす
             // Z座標：メインより奥に見せたいので 1.0f に設定
-            titleOutline[i]->transform.SetPosition(Vector3(0 + offsets[i].x, 300 + offsets[i].y, 1.0f));
+            titleOutline[i]->transform.SetPosition(Vector3(0 + offsets[i].x, LAYOUT_TITLE_Y + offsets[i].y, 1.0f));
 
             // スケール：メインと全く同じにする（ここ重要！）
             titleOutline[i]->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
@@ -295,8 +317,8 @@ namespace app::test {
         // =========================================================
         titleText = AddUI<sf::ui::TextImage>();
 
-        // 座標：中心 (0, 300), Z座標は手前 (0.0f)
-        titleText->transform.SetPosition(Vector3(0, 300, 0.0f));
+        // 座標：中心 (0, 480), Z座標は手前 (0.0f)
+        titleText->transform.SetPosition(Vector3(0, LAYOUT_TITLE_Y, 0.0f));
 
         // スケール
         titleText->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
@@ -311,7 +333,7 @@ namespace app::test {
         );
 
         songTitleText = AddUI<sf::ui::TextImage>();
-        songTitleText->transform.SetPosition(Vector3(0, -270, 0));
+        songTitleText->transform.SetPosition(Vector3(0, LAYOUT_SONG_TITLE_Y, LAYOUT_SONG_INFO_Z));
         songTitleText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         songTitleText->Create(
             device,
@@ -326,7 +348,7 @@ namespace app::test {
     // ---------------------------------------------------------
         artistText = AddUI<sf::ui::TextImage>();
         // Y座標をタイトル(-270)より下げる (-350あたり)
-        artistText->transform.SetPosition(Vector3(0, -350, 0));
+        artistText->transform.SetPosition(Vector3(0, LAYOUT_ARTIST_Y, LAYOUT_SONG_INFO_Z));
         // スケールはタイトルより少し小さく
         artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
@@ -343,7 +365,7 @@ namespace app::test {
         // ---------------------------------------------------------
         bpmText = AddUI<sf::ui::TextImage>();
         // Y座標をさらに下げる (-420あたり)
-        bpmText->transform.SetPosition(Vector3(0, -420, 0));
+        bpmText->transform.SetPosition(Vector3(0, LAYOUT_BPM_Y, LAYOUT_SONG_INFO_Z));
         bpmText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         bpmText->Create(
             device,
@@ -354,25 +376,44 @@ namespace app::test {
             1024, 200
         );
 
+        // ---------------------------------------------------------
+        // ★追加: ジャンル名表示 (SONG SELECTの下)
+        // ---------------------------------------------------------
+        genreText = AddUI<sf::ui::TextImage>();
+        // SONG SELECT(480) より下 (350あたり)
+        genreText->transform.SetPosition(Vector3(0, LAYOUT_GENRE_Y, 0)); 
+        genreText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
+        genreText->Create(
+            device,
+            L"", 
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            100.0f, // 少し大きめ
+            D2D1::ColorF(D2D1::ColorF::Yellow), // 目立つ色
+            1024, 200
+        );
+
     }
 
     // ===== ジャケット再構築 =====
     void SelectCanvas::RebuildJacketPool() {
-        for (auto* img : jacketPool) {
+        // 全て一旦非表示
+        for (auto* img : jacketComponents) {
             if (img) img->SetVisible(false);
         }
         jacketPool.clear();
 
         if (songs.empty()) return;
 
+        // 必要数を計算
         const int poolSize = std::min<int>(MAX_VISIBLE, std::max<int>(3, (int)songs.size()));
-        jacketPool.reserve(poolSize);
-
+        
+        // 事前生成済みコンポーネントから割り当て
         for (int i = 0; i < poolSize; ++i) {
-            auto jacket = AddUI<sf::ui::Image>();
-            jacket->transform.SetScale(Vector3(SCALE_EDGE, SCALE_EDGE, 1.0f));
-            jacket->SetVisible(true);
-            jacketPool.push_back(jacket);
+            if (i < (int)jacketComponents.size()) {
+                 auto* jacket = jacketComponents[i];
+                 jacket->SetVisible(true);
+                 jacketPool.push_back(jacket);
+            }
         }
     }
 
@@ -406,6 +447,16 @@ namespace app::test {
         }
         if (input.GetKeyDown(Key::ESCAPE) || input.GetKeyDown(Key::KEY_X)) {
             CancelSelection();
+            inputCooldown = INPUT_DELAY;
+        }
+
+        // ジャンル切り替え
+        if (input.GetKeyDown(Key::KEY_UP) || input.GetKeyDown(Key::KEY_W)) {
+            SelectPreviousGenre();
+            inputCooldown = INPUT_DELAY;
+        }
+        if (input.GetKeyDown(Key::KEY_DOWN) || input.GetKeyDown(Key::KEY_S)) {
+            SelectNextGenre();
             inputCooldown = INPUT_DELAY;
         }
     }
@@ -481,8 +532,8 @@ namespace app::test {
             float slotCenterIndex = (float)(leftInt + i);
             float dist = std::fabs(slotCenterIndex - currentIndex);
             float rel = (float)(i - half) - (currentIndex - std::floor(currentIndex));
-            float x = CENTER_X + rel * BASE_SPACING;
-            float y = CENTER_Y;
+            float x = LAYOUT_JACKET_CENTER_X + rel * BASE_SPACING;
+            float y = LAYOUT_JACKET_CENTER_Y;
 
             float s = ScaleByDistance(dist, SCALE_CENTER, SCALE_EDGE);
             float z = DEPTH_NEAR + (DEPTH_FAR - DEPTH_NEAR) * std::min(dist / (float)half, 1.0f);
@@ -633,6 +684,76 @@ namespace app::test {
         previewPlayer.SetResource(previewResource);
         previewPlayer.SetVolume(1.0f); // 必要に応じて調整
         previewPlayer.Play(info.previewStartTime);
+    }
+
+    // ===== ジャンル変更 =====
+    void SelectCanvas::ChangeGenre(int index) {
+        if (allGenres.empty()) return;
+
+        // インデックス正規化
+        int N = (int)allGenres.size();
+        currentGenreIndex = index % N;
+        if (currentGenreIndex < 0) currentGenreIndex += N;
+
+        // 曲リスト更新
+        songs = allGenres[currentGenreIndex].songs;
+        
+        // 選択リセット
+        targetIndex = 0;
+        selectedIndex = 0;
+        currentIndex = 0.0f;
+        slideStartIdx = 0.0f;
+        slideTimer = 0.0f;
+
+        // タイトル等更新 (SelectNext相当のことをやる)
+        // songsが切り替わったので、songs[0] を表示するように更新
+        if (!songs.empty()) {
+            if (songTitleText) songTitleText->SetText(Utf8ToWstring(songs[0].title));
+            if (artistText)    artistText->SetText(Utf8ToWstring(songs[0].artist));
+            if (bpmText)       bpmText->SetText(L"BPM: " + Utf8ToWstring(songs[0].bpm));
+        }
+
+        // ジャンル名更新
+        if (genreText) {
+            genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
+        }
+
+        // ジャケットプール再構築 & リソースロード
+        // InitializeTexturesでデフォはロード済みだが、曲ごとのジャケットはInitializeSongsでロードしていた
+        // しかしInitializeSongsを書き換えたので、ここでは「現在のsongs用のジャケットテクスチャ」を用意する必要がある
+        // 設計上、全曲分のテクスチャを持つとメモリが厳しいかもしれないが、
+        // 今回のコードではInitializeSongsで `jacketTextures` を `songs.size()` 分確保していた
+        // ジャンル切り替え時は `jacketTextures` を再生成する必要がある。
+        
+        // ★修正: jacketTextures の再ロード
+        jacketTextures.clear();
+        jacketTextures.resize(songs.size());
+        
+        for (size_t i = 0; i < songs.size(); ++i) {
+            bool loaded = false;
+            if (!songs[i].jacketPath.empty()) {
+                std::string sjisPath = Utf8ToShiftJis(songs[i].jacketPath);
+                if (jacketTextures[i].LoadTextureFromFile(sjisPath)) {
+                    loaded = true;
+                }
+            }
+            if (!loaded) {
+                jacketTextures[i] = textureDefaultJacket;
+            }
+        }
+
+        RebuildJacketPool();
+        UpdateJacketPositions();
+        
+        PlayPreview();
+    }
+
+    void SelectCanvas::SelectNextGenre() {
+        ChangeGenre(currentGenreIndex + 1);
+    }
+
+    void SelectCanvas::SelectPreviousGenre() {
+        ChangeGenre(currentGenreIndex - 1);
     }
 
 } // namespace app::test

@@ -57,7 +57,8 @@ namespace app {
             sf::ui::Image* CC = nullptr;
 
             // ジャケット用プール
-            std::vector<sf::ui::Image*> jacketPool;
+            std::vector<sf::ui::Image*> jacketPool;      // 現在使用中のジャケット(へのポインタ)
+            std::vector<sf::ui::Image*> jacketComponents; // 実体(Component)管理用
 
             sf::ui::TextImage* titleText = nullptr;
             sf::ui::TextImage* titleOutline[4] = { nullptr };
@@ -76,8 +77,23 @@ namespace app {
             float DEPTH_FAR = -2.0f;    // 奥Z
 
             // 画面中央
-            static constexpr float CENTER_X = 0.0f;
-            static constexpr float CENTER_Y = -100.0f;
+            // static constexpr float CENTER_X = 0.0f;
+            // static constexpr float CENTER_Y = 50.0f; // ★ -100 -> 50 に上げて、曲情報との被りを防ぐ
+
+            // レイアウト微調整用 (ヘッダーでいじれるように)
+            // ジャケット中心
+            float LAYOUT_JACKET_CENTER_X = 0.0f;
+            float LAYOUT_JACKET_CENTER_Y = -80.0f;
+
+            // 各UIのY座標
+            float LAYOUT_TITLE_Y = 400.0f;       // SONG SELECT
+            float LAYOUT_GENRE_Y = 230.0f;       // Genre Name
+            float LAYOUT_SONG_TITLE_Y = -270.0f; // Song Title
+            float LAYOUT_ARTIST_Y = -350.0f;     // Artist Name
+            float LAYOUT_BPM_Y = -420.0f;        // BPM
+
+            // Zオーダー (手前を大きくする)
+            float LAYOUT_SONG_INFO_Z = 2.0f;     // ジャケット(0)より手前に
 
             // =========================
             // 選択 / アニメ
@@ -108,6 +124,19 @@ namespace app {
             // =========================
             // 内部メソッド
             // =========================
+            struct Genre {
+                std::string name;
+                std::vector<SongInfo> songs;
+            };
+
+            std::vector<Genre> allGenres;
+            int currentGenreIndex = 0;
+            sf::ui::TextImage* genreText = nullptr;
+
+            void ChangeGenre(int index);
+            void SelectNextGenre();
+            void SelectPreviousGenre();
+
             void InitializeTextures();
             void InitializeSongs();
             void PlayPreview();
