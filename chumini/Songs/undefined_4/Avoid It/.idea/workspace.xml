@@ -5,10 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d11068ae-b562-4836-bcf4-fb02ef39ef29" name="変更" comment="">
-      <change beforePath="$PROJECT_DIR$/../../chumini/ChedParser.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../chumini/ChedParser.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../chumini/ChedParser.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../chumini/ChedParser.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../chumini/TestScene.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../chumini/TestScene.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../chumini/imgui.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../../chumini/imgui.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../chumini/SelectCanvas.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../chumini/SelectCanvas.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -16,7 +13,7 @@
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../.." />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -26,22 +23,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Ched&quot;,
-    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "to.speed.mode.migration.done": "true",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="デフォルトタスク">
       <changelist id="d11068ae-b562-4836-bcf4-fb02ef39ef29" name="変更" comment="" />
@@ -50,6 +47,7 @@
       <option name="presentableId" value="Default" />
       <updated>1765513630417</updated>
       <workItem from="1765513632856" duration="11239000" />
+      <workItem from="1767917735433" duration="598000" />
     </task>
     <servers />
   </component>

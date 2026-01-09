@@ -433,14 +433,48 @@ namespace app::test {
         if (inputCooldown > 0) return;
         SInput& input = SInput::Instance();
 
+        // モード切り替え (上下)
+        if (input.GetKeyDown(Key::KEY_UP) || input.GetKeyDown(Key::KEY_W)) {
+            // 曲 -> ジャンル
+            if (selectionMode == InputMode::SongSelect) {
+                selectionMode = InputMode::GenreSelect;
+                sf::debug::Debug::Log("Mode: Genre Select");
+                // 視覚的な変化 (initializer listを使用)
+                if(genreText) genreText->material.SetColor({1.0f, 1.0f, 0.0f, 1.0f}); // 黄色強調
+                if(selectFrame) selectFrame->material.SetColor({0.5f, 0.5f, 0.5f, 0.5f}); // 枠を暗く
+            }
+            inputCooldown = INPUT_DELAY;
+        }
+        if (input.GetKeyDown(Key::KEY_DOWN) || input.GetKeyDown(Key::KEY_S)) {
+            // ジャンル -> 曲
+            if (selectionMode == InputMode::GenreSelect) {
+                selectionMode = InputMode::SongSelect;
+                sf::debug::Debug::Log("Mode: Song Select");
+                if(genreText) genreText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f}); // 白に戻す
+                if(selectFrame) selectFrame->material.SetColor({1.0f, 1.0f, 1.0f, 0.8f}); // 枠を明るく
+            }
+            inputCooldown = INPUT_DELAY;
+        }
+
+        // 左右操作 (モード依存)
         if (input.GetKeyDown(Key::KEY_RIGHT) || input.GetKeyDown(Key::KEY_D)) {
-            SelectNext();
+            if (selectionMode == InputMode::SongSelect) {
+                SelectNext();
+            } else {
+                SelectNextGenre();
+            }
             inputCooldown = INPUT_DELAY;
         }
         if (input.GetKeyDown(Key::KEY_LEFT) || input.GetKeyDown(Key::KEY_A)) {
-            SelectPrevious();
+            if (selectionMode == InputMode::SongSelect) {
+                SelectPrevious();
+            } else {
+                SelectPreviousGenre();
+            }
             inputCooldown = INPUT_DELAY;
         }
+
+        // 決定・キャンセル
         if (input.GetKeyDown(Key::SPACE) || input.GetKeyDown(Key::KEY_Z)) {
             ConfirmSelection();
             inputCooldown = INPUT_DELAY;
@@ -449,24 +483,60 @@ namespace app::test {
             CancelSelection();
             inputCooldown = INPUT_DELAY;
         }
-
-        // ジャンル切り替え
-        if (input.GetKeyDown(Key::KEY_UP) || input.GetKeyDown(Key::KEY_W)) {
-            SelectPreviousGenre();
-            inputCooldown = INPUT_DELAY;
-        }
-        if (input.GetKeyDown(Key::KEY_DOWN) || input.GetKeyDown(Key::KEY_S)) {
-            SelectNextGenre();
-            inputCooldown = INPUT_DELAY;
-        }
     }
 
     // ===== アニメーション =====
     void SelectCanvas::UpdateAnimation() {
+        // ... (existing slide logic) ...
+
         const float pulsePhase = std::fmod(animationTime * 0.8f, 1.0f);
         const float pulse = (float)Easing(pulsePhase, EASE::EaseYoyo);
         const float pulseScale = 1.0f + 0.04f * pulse;
 
+        // Visual State Update based on Mode
+        if (selectionMode == InputMode::GenreSelect) {
+            // Genre: Blink Yellow
+            float blink = 0.5f + 0.5f * (std::sin(animationTime * 8.0f) + 1.0f) * 0.5f;
+            if (genreText) {
+                // R=1, G=1, B=0, A=blink
+                genreText->material.SetColor({ 1.0f, 1.0f, 0.0f, blink });
+            }
+
+            // Song Area: Gray out
+            if (selectFrame) selectFrame->material.SetColor({ 0.3f, 0.3f, 0.3f, 0.5f }); // Dim
+            
+            // Jackets: Dim
+            for (auto* jacket : jacketPool) {
+                if(jacket) jacket->material.SetColor({ 0.4f, 0.4f, 0.4f, 1.0f });
+            }
+            if(songTitleText) songTitleText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
+            if(artistText) artistText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
+            if(bpmText) bpmText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
+
+        } else {
+            // Song Select: Active
+            if (genreText) {
+                 // White, steady
+                 genreText->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+            }
+
+            // Song Area: Active (Pulse Frame)
+           if (selectFrame)
+            {
+                float alpha = 0.5f + 0.5f * pulse;
+                selectFrame->material.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
+            }
+
+            // Jackets: White (Normal)
+            for (auto* jacket : jacketPool) {
+                if(jacket) jacket->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+            }
+             if(songTitleText) songTitleText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+             if(artistText) artistText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+             if(bpmText) bpmText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+        }
+        
+        // Frame Breathing (Scale only)
         if (selectFrame && !jacketPool.empty()) {
             const int half = (int)jacketPool.size() / 2;
             const Vector3 jacketScale = jacketPool[half]->transform.GetScale();
@@ -478,13 +548,6 @@ namespace app::test {
             ));
         }
 
-        if (selectFrame)
-        {
-            float alpha = 0.5f + 0.5f * pulse;
-            auto color = selectFrame->material.GetColor();
-            color.w = alpha;
-            selectFrame->material.SetColor(color);
-        }
 
         const int N = (int)songs.size();
         if (N <= 0) return;

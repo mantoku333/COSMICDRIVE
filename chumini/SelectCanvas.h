@@ -7,8 +7,15 @@
 #include "SoundResource.h"
 
 
+#include <future>
+#include <mutex>
+#include <atomic>
+
 namespace app {
     namespace test {
+        struct SongInfo;
+        struct Genre;
+
         class SelectCanvas : public sf::ui::Canvas {
         public:
             void Begin() override;
@@ -119,6 +126,17 @@ namespace app {
             // 音声プレビュー
             sf::sound::SoundPlayer previewPlayer;
             sf::ref::Ref<sf::sound::SoundResource> previewResource;
+
+            // 非同期読み込み用
+            std::future<sf::sound::SoundResource*> loadingFuture;
+            std::atomic<bool> isLoading{ false };
+
+            // ★操作モード
+            enum class InputMode {
+                SongSelect,
+                GenreSelect
+            };
+            InputMode selectionMode = InputMode::SongSelect; // デフォルトは曲選択
 
 
             // =========================
