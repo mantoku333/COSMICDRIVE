@@ -150,6 +150,8 @@ namespace app {
             std::vector<Genre> allGenres;
             int currentGenreIndex = 0;
             sf::ui::TextImage* genreText = nullptr;
+            sf::ui::TextImage* prevGenreText = nullptr; // 前のジャンル
+            sf::ui::TextImage* nextGenreText = nullptr; // 次のジャンル
 
             void ChangeGenre(int index);
             void SelectNextGenre();

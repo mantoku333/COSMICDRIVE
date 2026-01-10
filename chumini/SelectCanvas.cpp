@@ -113,8 +113,18 @@ namespace app::test {
         }
 
         // ★追加: ジャンル名
-        if (genreText && !allGenres.empty()) {
-            genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
+        if (!allGenres.empty()) {
+            if(genreText) genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
+
+            int N = (int)allGenres.size(); // ジャンル数
+            if (prevGenreText) {
+                int prevIdx = (currentGenreIndex - 1 + N) % N;
+                prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
+            }
+            if (nextGenreText) {
+                int nextIdx = (currentGenreIndex + 1) % N;
+                nextGenreText->SetText(Utf8ToWstring(allGenres[nextIdx].name));
+            }
         }
 
         PlayPreview();
@@ -392,6 +402,32 @@ namespace app::test {
             1024, 200
         );
 
+        // ★追加: 前のジャンル
+        prevGenreText = AddUI<sf::ui::TextImage>();
+        prevGenreText->transform.SetPosition(Vector3(-550.0f, LAYOUT_GENRE_Y, 0)); // 左に配置
+        prevGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
+        prevGenreText->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            50.0f, // フォントサイズダウン (70 -> 50)
+            D2D1::ColorF(D2D1::ColorF::Gray),
+            512, 100
+        );
+
+        // ★追加: 次のジャンル
+        nextGenreText = AddUI<sf::ui::TextImage>();
+        nextGenreText->transform.SetPosition(Vector3(550.0f, LAYOUT_GENRE_Y, 0)); // 右に配置
+        nextGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
+        nextGenreText->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            50.0f, // フォントサイズダウン (70 -> 50)
+            D2D1::ColorF(D2D1::ColorF::Gray),
+            512, 100
+        );
+
     }
 
     // ===== ジャケット再構築 =====
@@ -501,6 +537,8 @@ namespace app::test {
                 // R=1, G=1, B=0, A=blink
                 genreText->material.SetColor({ 1.0f, 1.0f, 0.0f, blink });
             }
+            if (prevGenreText) prevGenreText->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
+            if (nextGenreText) nextGenreText->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
 
             // Song Area: Gray out
             if (selectFrame) selectFrame->material.SetColor({ 0.3f, 0.3f, 0.3f, 0.5f }); // Dim
@@ -519,6 +557,8 @@ namespace app::test {
                  // White, steady
                  genreText->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
             }
+            if (prevGenreText) prevGenreText->material.SetColor({ 0.4f, 0.4f, 0.4f, 0.8f }); // Slightly dim in song mode
+            if (nextGenreText) nextGenreText->material.SetColor({ 0.4f, 0.4f, 0.4f, 0.8f });
 
             // Song Area: Active (Pulse Frame)
            if (selectFrame)
@@ -779,6 +819,16 @@ namespace app::test {
         // ジャンル名更新
         if (genreText) {
             genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
+        }
+
+        // 前後のジャンル名更新
+        if (prevGenreText) {
+            int prevIdx = (currentGenreIndex - 1 + N) % N;
+            prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
+        }
+        if (nextGenreText) {
+            int nextIdx = (currentGenreIndex + 1) % N;
+            nextGenreText->SetText(Utf8ToWstring(allGenres[nextIdx].name));
         }
 
         // ジャケットプール再構築 & リソースロード
