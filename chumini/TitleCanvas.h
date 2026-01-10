@@ -32,6 +32,7 @@ namespace app
 			// UI Buttons
 			sf::ui::TextImage* playButton = nullptr;
 			sf::ui::TextImage* exitButton = nullptr;
+			sf::ui::TextImage* configButton = nullptr;
 			
 			// White Backing (For Black Background behind Live2D)
 			// Changed to Image* to support texture

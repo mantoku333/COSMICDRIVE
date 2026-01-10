@@ -187,8 +187,8 @@ void TitleCanvas::Begin()
 	// 2. プレイボタン
 	// ---------------------------------------------------------
 	playButton = AddUI<sf::ui::TextImage>();
-	// Position: Left side, same height as Exit (-300)
-	playButton->transform.SetPosition(Vector3(-350, -300, 0)); 
+	// Position: Center (0)
+	playButton->transform.SetPosition(Vector3(0, -300, 0)); 
 	playButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	playButton->Create(
@@ -205,7 +205,7 @@ void TitleCanvas::Begin()
 	// ---------------------------------------------------------
 	exitButton = AddUI<sf::ui::TextImage>();
 	// Position: Right side, height -300
-	exitButton->transform.SetPosition(Vector3(350, -300, 0)); 
+	exitButton->transform.SetPosition(Vector3(500, -300, 0)); 
 	exitButton->transform.SetScale(Vector3(4, 1.5f, 0));
 
 	exitButton->Create(
@@ -217,27 +217,36 @@ void TitleCanvas::Begin()
 		512, 128
 	);
 
+	// ---------------------------------------------------------
+	// 4. CONFIGボタン
+	// ---------------------------------------------------------
+	configButton = AddUI<sf::ui::TextImage>();
+	// Position: Left (-500)
+	configButton->transform.SetPosition(Vector3(-500, -300, 0));
+	configButton->transform.SetScale(Vector3(4, 1.5f, 0));
+
+	configButton->Create(
+		device,
+		L"CONFIG",
+		L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+		130.0f,
+		D2D1::ColorF(D2D1::ColorF::White),
+		600, 128
+	);
+
 	// ... (Backing code omitted/unchanged) ...
 
 // ... inside HandleInput ...
 
 	// --- キーボード操作 ---
-	const int BUTTON_COUNT = 2;
-
-	// 左右キーまたはADキーで選択切り替え (0: EXIT, 1: PLAY)
-	// Left/A -> PLAY (1)
-	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
-		selectedButton = 1;
-	}
-	// Right/D -> EXIT (0)
-	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
-		selectedButton = 0;
-	}
+	// --- キーボード操作 ---
+	// 0: CONFIG, 1: PLAY, 2: EXIT
 	
-	// 上下キー(WS)も残すが、横並びなら本来不要かも？一応トグルとして機能させる
-	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W) ||
-		SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
-		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
+	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
+		selectedButton = (selectedButton - 1 + 3) % 3;
+	}
+	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
+		selectedButton = (selectedButton + 1) % 3;
 	}
 
 	// ---------------------------------------------------------
@@ -261,10 +270,11 @@ void TitleCanvas::Begin()
 		OutputDebugStringA("TitleCanvas: FAILED to load Assets/Texture/BACK.png\n");
 	}
 
+
 	// ---------------------------------------------------------
 	// 初期設定
 	// ---------------------------------------------------------
-	selectedButton = 1; // 初期選択はPLAYにしておく
+	selectedButton = 1; // 初期選択はPLAY (1)
 	UpdateButtonSelection();
 
 	updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
@@ -320,38 +330,36 @@ void TitleCanvas::HandleInput(const sf::command::ICommand& command)
 	Vector2 mousePos = GetMousePosition();
 	bool isExitHovered = IsButtonHovered(mousePos, exitButton);
 	bool isPlayHovered = IsButtonHovered(mousePos, playButton);
+	bool isConfigHovered = IsButtonHovered(mousePos, configButton);
 
-	// マウスが乗ったら選択状態を切り替える
-	if (isExitHovered) {
+	// マウスが乗ったら選択状態を切り替える (0: CONFIG, 1: PLAY, 2: EXIT)
+	if (isConfigHovered) {
 		selectedButton = 0;
 	}
 	else if (isPlayHovered) {
 		selectedButton = 1;
 	}
+	else if (isExitHovered) {
+		selectedButton = 2;
+	}
 
 	// 左クリックで決定
 	if (SInput::Instance().GetMouseDown(0)) {
-		if (isExitHovered || isPlayHovered) {
+		if (isExitHovered || isPlayHovered || isConfigHovered) {
 			OnButtonPressed();
 		}
 	}
 
 	// --- キーボード操作 ---
-	const int BUTTON_COUNT = 2;
+	const int BUTTON_COUNT = 3;
 
-	// 左右キーまたはADキーで選択切り替え (0: EXIT, 1: PLAY)
-	// Left/A -> PLAY (1)
+	// 左右キーまたはADキーで選択切り替え
+	// Left/A -> 戻る (Index--)
 	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
-		selectedButton = 1;
+		selectedButton = (selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
 	}
-	// Right/D -> EXIT (0)
+	// Right/D -> 進む (Index++)
 	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
-		selectedButton = 0;
-	}
-
-	// 上下キーまたはWSキーで選択切り替え (Toggle)
-	if (SInput::Instance().GetKeyDown(Key::KEY_UP) || SInput::Instance().GetKeyDown(Key::KEY_W) ||
-		SInput::Instance().GetKeyDown(Key::KEY_DOWN) || SInput::Instance().GetKeyDown(Key::KEY_S)) {
 		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
 	}
 
@@ -384,31 +392,58 @@ void TitleCanvas::UpdateButtonSelection()
 	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, alphaAnim);
 	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f);
 
+	// 0: CONFIG, 1: PLAY, 2: EXIT
 	if (selectedButton == 0) {
-		exitButton->transform.SetScale(scaleSelectedAnim);
-		exitButton->material.SetColor(colorSelected);
+		// CONFIG selected
 		playButton->transform.SetScale(scaleNormal);
 		playButton->material.SetColor(colorNormal);
-	}
-	else {
-		playButton->transform.SetScale(scaleSelectedAnim);
-		playButton->material.SetColor(colorSelected);
+
+		configButton->transform.SetScale(scaleSelectedAnim);
+		configButton->material.SetColor(colorSelected);
+
 		exitButton->transform.SetScale(scaleNormal);
 		exitButton->material.SetColor(colorNormal);
+	}
+	else if (selectedButton == 1) {
+		// PLAY selected
+		playButton->transform.SetScale(scaleSelectedAnim);
+		playButton->material.SetColor(colorSelected);
+
+		configButton->transform.SetScale(scaleNormal);
+		configButton->material.SetColor(colorNormal);
+
+		exitButton->transform.SetScale(scaleNormal);
+		exitButton->material.SetColor(colorNormal);
+	}
+	else {
+		// EXIT selected
+		playButton->transform.SetScale(scaleNormal);
+		playButton->material.SetColor(colorNormal);
+
+		configButton->transform.SetScale(scaleNormal);
+		configButton->material.SetColor(colorNormal);
+
+		exitButton->transform.SetScale(scaleSelectedAnim);
+		exitButton->material.SetColor(colorSelected);
 	}
 }
 
 void TitleCanvas::OnButtonPressed()
 {
 	if (selectedButton == 0) {
-		// GetMain() を経由してインスタンスを取得し、Exit() を呼ぶ
+		// CONFIG
+		OutputDebugStringA("TitleCanvas: Config Button Pressed (Not Implemented)\n");
+	}
+	else if (selectedButton == 1) {
+		// PLAY
+		ShowSongSelectScene();
+	}
+	else if (selectedButton == 2) {
+		// EXIT
 		app::Application* mainApp = app::Application::GetMain();
 		if (mainApp) {
 			mainApp->Exit();
 		}
-	}
-	else {
-		ShowSongSelectScene();
 	}
 }
 
