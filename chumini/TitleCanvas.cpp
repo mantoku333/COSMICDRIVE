@@ -4,6 +4,7 @@
 #include "SelectScene.h"
 #include "EditScene.h"
 #include "LoadingScene.h"
+#include "ConfigScene.h"
 #include "Rendering/D3D11/CubismRenderer_D3D11.hpp"
 
 // 必要なインクルード
@@ -432,7 +433,10 @@ void TitleCanvas::OnButtonPressed()
 {
 	if (selectedButton == 0) {
 		// CONFIG
-		OutputDebugStringA("TitleCanvas: Config Button Pressed (Not Implemented)\n");
+		if (!sceneChanger.isNull()) {
+			LoadingScene::SetLoadingType(LoadingType::Common);
+			sceneChanger->ChangeScene(ConfigScene::StandbyScene());
+		}
 	}
 	else if (selectedButton == 1) {
 		// PLAY

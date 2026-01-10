@@ -17,6 +17,7 @@
 //キーボード
 enum class Key {
 	ESCAPE = 0x1B,
+	KEY_BACK = 0x08,
 	SPACE = 0x20,
 	KEY_SHIFT = 0x10, // ← 0xA0から0x10に修正
 	KEY_CTRL = 0x11,

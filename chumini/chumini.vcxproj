@@ -180,6 +180,8 @@
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ConfigCanvas.cpp" />
+    <ClCompile Include="ConfigScene.cpp" />
     <ClCompile Include="ConstBuffer.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="ControlCamera.cpp" />
@@ -335,6 +337,8 @@
     <ClInclude Include="Command.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="ConfigCanvas.h" />
+    <ClInclude Include="ConfigScene.h" />
     <ClInclude Include="ConstBuffer.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="ControlCamera.h" />
