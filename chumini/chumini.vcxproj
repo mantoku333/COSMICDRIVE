@@ -180,6 +180,7 @@
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Component.cpp" />
+    <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigCanvas.cpp" />
     <ClCompile Include="ConfigScene.cpp" />
     <ClCompile Include="ConstBuffer.cpp" />

@@ -21,6 +21,7 @@ enum class Key {
 	SPACE = 0x20,
 	KEY_SHIFT = 0x10, // ← 0xA0から0x10に修正
 	KEY_CTRL = 0x11,
+	KEY_0 = '0',
 	KEY_1 = '1',
 	KEY_2,
 	KEY_3,

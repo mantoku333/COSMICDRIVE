@@ -4,6 +4,7 @@
 #include "IngameScene.h"
 #include "IngameCanvas.h"
 #include "SoundComponent.h"
+#include "Config.h"
 
 using namespace app::test;
 
@@ -180,10 +181,10 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     // -----------------------------
     struct LaneKey { int idx; Key key; };
     LaneKey laneKeys[] = {
-        {0, Key::KEY_A},   // レーン 0
-        {1, Key::KEY_S},   // レーン 1
-        {2, Key::KEY_D},   // レーン 2
-        {3, Key::KEY_F},   // レーン 3
+        {0, app::test::gKeyConfig.lane1},   // レーン 0
+        {1, app::test::gKeyConfig.lane2},   // レーン 1
+        {2, app::test::gKeyConfig.lane3},   // レーン 2
+        {3, app::test::gKeyConfig.lane4},   // レーン 3
     };
 
     for (const auto& lk : laneKeys) {

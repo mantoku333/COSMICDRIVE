@@ -1,9 +1,11 @@
 #pragma once
+#include "SInput.h"
+#include <string>
 
 namespace app::test{
 
     struct AudioVolume {
-        float master = 1.0f;  // ‘S‘Ì‰¹—Ê”{—¦
+        float master = 1.0f;  // å…¨ä½“éŸ³é‡å€ç‡
         float bgm = 0.3f;
         float tap = 1.0f;
         float emptyTap = 1.0f;
@@ -12,11 +14,17 @@ namespace app::test{
     };
 
     struct KeyConfig {
-
+        Key lane1 = Key::KEY_A;
+        Key lane2 = Key::KEY_S;
+        Key lane3 = Key::KEY_D;
+        Key lane4 = Key::KEY_F;
     };
 
-    // ƒCƒ“ƒ‰ƒCƒ“‚Åİ’èƒCƒ“ƒXƒ^ƒ“ƒX‚ğ‚à‚Â@
+    // ã‚¤ãƒ³ãƒ©ã‚¤ãƒ³ã§è¨­å®šã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ã‚’ã‚‚ã¤ã€€
     inline AudioVolume gAudioVolume{};
     inline KeyConfig   gKeyConfig{};
 
+    void LoadConfig();
+    void SaveConfig();
+    std::wstring KeyToString(Key key);
 }

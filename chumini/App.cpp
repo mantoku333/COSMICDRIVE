@@ -1,6 +1,7 @@
 #include "App.h"
 #include "DirectX11.h"
 #include "ResidentScene.h"
+#include "Config.h"
 
 app::Application* app::Application::main = nullptr;
 
@@ -98,6 +99,9 @@ void app::Application::Init()
 
 	//入力の初期化
 	SInput::Init();
+
+	// Load Config
+	app::test::LoadConfig();
 
 	//時間の初期化
 	sf::Time::Init();

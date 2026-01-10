@@ -19,12 +19,26 @@ namespace app
 
 			// UI Elements
 			sf::ui::TextImage* backButton = nullptr;
+			sf::ui::TextImage* laneButtons[4] = { nullptr };
+			sf::ui::TextImage* laneLabels[4] = { nullptr }; 
 
 			// State
 			bool isBackHovered = false;
+			bool isLaneHovered[4] = { false };
+
+			enum class State {
+				Normal,
+				WaitingForKey
+			};
+			State state = State::Normal;
+			int waitingLaneIndex = -1;
 
 			void HandleInput(const sf::command::ICommand& command);
 			void OnButtonPressed();
+			void OnLaneButtonPressed(int laneIndex);
+			void UpdateButtonText(); 
+			void DetectKeyInput();
+
 			Vector2 GetMousePosition();
 			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
 
