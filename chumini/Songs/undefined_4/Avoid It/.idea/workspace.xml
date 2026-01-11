@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="d11068ae-b562-4836-bcf4-fb02ef39ef29" name="変更" comment="">
       <change beforePath="$PROJECT_DIR$/../../../chumini/SelectCanvas.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../../../chumini/SelectCanvas.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../chumini/SelectCanvas.h" beforeDir="false" afterPath="$PROJECT_DIR$/../../../chumini/SelectCanvas.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../chumini/Songs/undefined_4/Avoid It/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../../chumini/Songs/undefined_4/Avoid It/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../chumini/imgui.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../../../chumini/imgui.ini" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +50,7 @@
       <option name="presentableId" value="Default" />
       <updated>1765513630417</updated>
       <workItem from="1765513632856" duration="11239000" />
-      <workItem from="1767917735433" duration="598000" />
+      <workItem from="1767917735433" duration="1194000" />
     </task>
     <servers />
   </component>
