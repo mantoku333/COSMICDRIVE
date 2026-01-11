@@ -471,11 +471,33 @@ namespace app::test {
 
 	void NoteManager::StartGame() {
 		isPlaying = true;
-		songTime = 0.0f;
+		// songTime = 0.0f; // ← 削除: Beginで設定されたleadTime（マイナス値）を維持する
 	}
 
 	void NoteManager::SetCurrentSongTime(float time) {
 		this->songTime = time;
+	}
+
+	void NoteManager::SyncTime(float time) {
+		// 時間差（ドリフト）を計算
+		float diff = time - this->songTime;
+
+		// ズレが大きすぎる場合（例えば 50ms以上）、
+        // または負の方向に大きすぎる（時間が飛び過ぎて戻った）場合は強制的に合わせる。
+        // ※少しくらいの負のズレ（Gameが進みすぎ）は許容してLerpで合わせる（カクつき防止）
+		if (std::abs(diff) > 0.05f) {
+			this->songTime = time;
+		}
+		else {
+            if (time <= 0.001f) {
+                // 音声がまだ始まっていない(0)場合は、同期せずにゲーム時間を進める(DeltaTime任せ)
+                // これによりStart直後の「溜め」でノーツが止まるのを防ぐ
+            }
+            else {
+			    // ズレが小さい場合は、補間して滑らかに近づける
+			    this->songTime += diff * 0.2f;
+            }
+		}
 	}
 
 } // namespace app::test

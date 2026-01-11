@@ -234,17 +234,8 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
         }
         else
         {
-            if (!bgmPlayer.isNull() && managerActor.Target())
-            {
-                // BGMから「絶対的な正解の時間」を取得
-                float musicTime = bgmPlayer->GetCurrentTime();
-
-                // NoteManagerに渡して同期させる
-                auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
-                if (noteMgr) {
-                    noteMgr->SetCurrentSongTime(musicTime);
-                }
-            }
+            // 待機中は時間を0に強制しないように変更
+            // ノーツが上から流れてくる「溜め」の時間を確保するため
         }
 
         static float time = 0.0f;
@@ -270,6 +261,30 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
             mesh->material.SetColor({ r, g, b, a });
         }
 
+    }
+    else {
+        // ゲーム中
+        if (managerActor.Target())
+        {
+            auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
+            if (noteMgr) {
+                // まだ曲が再生されていない場合、時間が0になるのを待つ
+                if (!bgmPlayer.isNull() && !bgmPlayer->IsPlaying()) {
+                    float currentSongTime = noteMgr->GetSongTime();
+                    
+                    // 時間が進んで0（＝判定ライン到達）を超えたら再生開始
+                    if (currentSongTime >= 0.0f) {
+                        bgmPlayer->Play();
+                        // 念のため同期
+                        noteMgr->SyncTime(bgmPlayer->GetCurrentTime()); 
+                    }
+                }
+                else if (!bgmPlayer.isNull() && bgmPlayer->IsPlaying()) {
+                    // 再生中は常に同期
+                    noteMgr->SyncTime(bgmPlayer->GetCurrentTime());
+                }
+            }
+        }
     }
 }
 
@@ -306,9 +321,11 @@ void app::test::IngameScene::StartGame()
         }
     }
 
-    // BGM再生開始
+    // BGM再生開始はここで行わず、Update内で時間が0になるのを待ってから行う
+    /*
     if (!bgmPlayer.isNull()) {
         bgmPlayer->Play();
     }
+    */
 
 }
