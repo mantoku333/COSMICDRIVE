@@ -2,6 +2,7 @@
 #include "NoteComponent.h"
 #include "Scene.h"
 #include "Time.h"
+#include "Config.h" // Added include
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -116,6 +117,8 @@ namespace app::test {
 	// 初期化：譜面読み込み・ノーツ生成
 	// ==================================================
 	void NoteManager::Begin() {
+        HiSpeed = gGameConfig.hiSpeed;
+        noteSpeed = basenoteSpeed * HiSpeed;
 
 		while (ShowCursor(FALSE) >= 0);
 

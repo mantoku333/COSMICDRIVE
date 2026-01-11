@@ -61,6 +61,34 @@ void ConfigCanvas::Begin()
 	}
 	UpdateButtonText();
 
+    // ---------------------------------------------------------
+    // HiSpeed Config
+    // ---------------------------------------------------------
+    // Label
+    speedLabel = AddUI<sf::ui::TextImage>();
+    speedLabel->transform.SetPosition(Vector3(-400.0f, -100.0f, 0));
+    speedLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+    speedLabel->Create(device, L"HiSpeed", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+
+    // Value
+    speedValueLabel = AddUI<sf::ui::TextImage>();
+    speedValueLabel->transform.SetPosition(Vector3(-100.0f, -100.0f, 0));
+    speedValueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+    
+    // Down Button
+    speedDownButton = AddUI<sf::ui::TextImage>();
+    speedDownButton->transform.SetPosition(Vector3(-250.0f, -100.0f, 0));
+    speedDownButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+    speedDownButton->Create(device, L"<<", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+    // Up Button
+    speedUpButton = AddUI<sf::ui::TextImage>();
+    speedUpButton->transform.SetPosition(Vector3(100.0f, -100.0f, 0));
+    speedUpButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+    speedUpButton->Create(device, L">>", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+    UpdateSpeedText();
+
 
 	updateCommand.Bind(std::bind(&ConfigCanvas::Update, this, std::placeholders::_1));
 }
@@ -113,6 +141,20 @@ void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
 				OnLaneButtonPressed(i);
 			}
 		}
+
+        // HiSpeed Buttons
+        if (IsButtonHovered(mousePos, speedUpButton)) {
+            gGameConfig.hiSpeed += 0.5f;
+            if (gGameConfig.hiSpeed > 50.0f) gGameConfig.hiSpeed = 50.0f;
+            UpdateSpeedText();
+            SaveConfig();
+        }
+        if (IsButtonHovered(mousePos, speedDownButton)) {
+            gGameConfig.hiSpeed -= 0.5f;
+            if (gGameConfig.hiSpeed < 1.0f) gGameConfig.hiSpeed = 1.0f;
+            UpdateSpeedText();
+            SaveConfig();
+        }
 	}
 
 	// キーボード 
@@ -208,4 +250,17 @@ bool ConfigCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* b
 
 	return (mousePos.x >= left && mousePos.x <= right &&
 		mousePos.y >= bottom && mousePos.y <= top);
+}
+
+void ConfigCanvas::UpdateSpeedText() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    auto device = dx11->GetMainDevice().GetDevice();
+
+    // 小数点は適当に整形
+    std::wstring s = std::to_wstring(gGameConfig.hiSpeed);
+    // 簡易的に先頭4文字くらい ("18.0"000 -> "18.0")
+    if (s.length() > 4) s = s.substr(0, 4);
+
+    speedValueLabel->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
 }

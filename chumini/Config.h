@@ -20,9 +20,19 @@ namespace app::test{
         Key lane4 = Key::KEY_F;
     };
 
+    struct GameConfig {
+        float hiSpeed = 18.0f; // Default HiSpeed
+    };
+
+    struct SaveData {
+        KeyConfig keyConfig;
+        GameConfig gameConfig;
+    };
+
     // インラインで設定インスタンスをもつ　
     inline AudioVolume gAudioVolume{};
     inline KeyConfig   gKeyConfig{};
+    inline GameConfig  gGameConfig{};
 
     void LoadConfig();
     void SaveConfig();

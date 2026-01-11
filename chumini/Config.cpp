@@ -10,16 +10,23 @@ namespace app::test {
 	void LoadConfig()
 	{
 		sf::file::BinaryFile file(CONFIG_FILE_PATH);
-		KeyConfig data;
+		SaveData data;
+		// サイズが不一致でも、読み込める分だけ読み込む等の挙動なら一部復旧できるが
+        // 基本的に構造体が変わるとReadAllは失敗するか、ゴミが入る。
+        // ここでは単純にReadAllして、成功したら反映する。
 		if (file.ReadAll(&data)) {
-			gKeyConfig = data;
+			gKeyConfig = data.keyConfig;
+            gGameConfig = data.gameConfig;
 		}
 	}
 
 	void SaveConfig()
 	{
 		sf::file::BinaryFile file(CONFIG_FILE_PATH);
-		file.WriteAll(gKeyConfig);
+        SaveData data;
+        data.keyConfig = gKeyConfig;
+        data.gameConfig = gGameConfig;
+		file.WriteAll(data);
 	}
 
 	std::wstring KeyToString(Key key)

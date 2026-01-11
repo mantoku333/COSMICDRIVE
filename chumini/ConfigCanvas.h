@@ -22,6 +22,12 @@ namespace app
 			sf::ui::TextImage* laneButtons[4] = { nullptr };
 			sf::ui::TextImage* laneLabels[4] = { nullptr }; 
 
+            // HiSpeed UI
+            sf::ui::TextImage* speedUpButton = nullptr;
+            sf::ui::TextImage* speedDownButton = nullptr;
+            sf::ui::TextImage* speedLabel = nullptr;
+            sf::ui::TextImage* speedValueLabel = nullptr; // 値表示用 
+
 			// State
 			bool isBackHovered = false;
 			bool isLaneHovered[4] = { false };
@@ -37,6 +43,7 @@ namespace app
 			void OnButtonPressed();
 			void OnLaneButtonPressed(int laneIndex);
 			void UpdateButtonText(); 
+            void UpdateSpeedText(); // Check if this was missing 
 			void DetectKeyInput();
 
 			Vector2 GetMousePosition();
