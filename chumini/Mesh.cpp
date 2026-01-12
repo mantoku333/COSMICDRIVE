@@ -10,17 +10,17 @@ sf::Mesh::~Mesh()
 
 void sf::Mesh::Activate()
 {
-	meshes.push_back(this);
+	auto it = std::find(meshes.begin(), meshes.end(), this);
+	if (it == meshes.end())
+	{
+		meshes.push_back(this);
+	}
 }
 
 void sf::Mesh::DeActivate()
 {
-	auto it = std::find(meshes.begin(), meshes.end(), this);
-
-	if (it != meshes.end())
-	{
-		meshes.erase(it);
-	}
+	auto it = std::remove(meshes.begin(), meshes.end(), this);
+	meshes.erase(it, meshes.end());
 }
 
 void sf::Mesh::DrawAll()
@@ -65,13 +65,13 @@ void sf::Mesh::Draw()
 
 	sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
-	//ƒ[ƒ‹ƒh•ÏŠ·s—ñ‚ğæ“¾
+	//ãƒ¯ãƒ¼ãƒ«ãƒ‰å¤‰æ›è¡Œåˆ—ã‚’å–å¾—
 	DirectX::XMMATRIX mtx = WorldMatrix();
 
-	//“]’u
+	//è»¢ç½®
 	DirectX::XMMATRIX tMtx = DirectX::XMMatrixTranspose(mtx);
 
-	//’è”ƒoƒbƒtƒ@‚É“]‘—
+	//å®šæ•°ãƒãƒƒãƒ•ã‚¡ã«è»¢é€
 	WorldMatrixBuffer buffer;
 	buffer.mtx = tMtx;
 	buffer.rot = DirectX::XMMatrixTranspose(actorRef.Target()->transform.GetRotationMatrix());
@@ -79,12 +79,12 @@ void sf::Mesh::Draw()
 
 	if (motion != nullptr)
 	{
-		//ƒ‚[ƒVƒ‡ƒ“ƒf[ƒ^‚ğGPU‚É“]‘—
+		//ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ãƒ‡ãƒ¼ã‚¿ã‚’GPUã«è»¢é€
 		motion->SetGPU();
 	}
 	else
 	{
-		//’PˆÊs—ñ‚ğGPU‚É“]‘—
+		//å˜ä½è¡Œåˆ—ã‚’GPUã«è»¢é€
 		std::vector<DirectX::XMMATRIX> mtx;
 		mtx.resize(400, DirectX::XMMatrixIdentity());
 		cmotion mot;
@@ -92,12 +92,12 @@ void sf::Mesh::Draw()
 		dx11->motionBuffer.SetGPU(mot, dx11->GetMainDevice());
 	}
 
-	//•`‰æ
+	//æç”»
 	geometryRef.Target()->Draw(material);
 }
 
 void sf::Mesh::ClearAllRegistered()
 {
-	// ƒŠƒXƒg‚Éc‚Á‚Ä‚¢‚éƒ|ƒCƒ“ƒ^‚ğ‘S‚Ä–Y‚ê‚³‚¹‚é
+	// ãƒªã‚¹ãƒˆã«æ®‹ã£ã¦ã„ã‚‹ãƒã‚¤ãƒ³ã‚¿ã‚’å…¨ã¦å¿˜ã‚Œã•ã›ã‚‹
 	meshes.clear();
 }
