@@ -21,7 +21,7 @@ namespace app::test{
     };
 
     struct GameConfig {
-        float hiSpeed = 18.0f; // Default HiSpeed
+        float hiSpeed = 4.0f; // Default HiSpeed (UI scale 0-10)
     };
 
     struct SaveData {

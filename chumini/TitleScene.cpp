@@ -4,6 +4,7 @@
 #include "DirectWrite.h"
 #include "EffectManager.h"
 #include "Live2DComponent.h"
+#include "BGMComponent.h"
 
 // 追加インクルード
 #include "DirectX11.h"   // デバイス取得用

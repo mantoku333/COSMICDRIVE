@@ -1,4 +1,5 @@
 #include "PlayerComponent.h"
+#include <Windows.h>
 #include "SInput.h"
 #include "NoteManager.h"
 #include "IngameScene.h"
@@ -76,12 +77,14 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     ScreenToClient(hwnd, &p);
 
     if (!mouseInitialized) {
-        prevMouse = p;
+        prevMouseX = p.x;
+        prevMouseY = p.y;
         mouseInitialized = true;
     }
 
-    float dx = static_cast<float>(p.x - prevMouse.x);
-    prevMouse = p;
+    float dx = static_cast<float>(p.x - prevMouseX);
+    prevMouseX = p.x;
+    prevMouseY = p.y;
 
     // -----------------------------
     // 移動＆サイドレーン判定の統合処理

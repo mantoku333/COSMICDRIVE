@@ -1,11 +1,13 @@
 #pragma once
 #include "App.h"
-#include "BGMComponent.h"
-#include "Live2DComponent.h" // Include this
+#include "App.h"
 //#include "GeometryCube.h" // Reverted
 
 namespace app {
     namespace test {
+        
+        class BGMComponent;
+        class Live2DComponent;
 
         class TitleScene : public sf::Scene<TitleScene> {
         public:

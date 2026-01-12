@@ -513,6 +513,15 @@
     <ClCompile Include="Live2DComponent.cpp">
       <Filter>App\Live2D\app</Filter>
     </ClCompile>
+    <ClCompile Include="ConfigScene.cpp">
+      <Filter>App\Scene\ConfigScene</Filter>
+    </ClCompile>
+    <ClCompile Include="Config.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
+    <ClCompile Include="ConfigCanvas.cpp">
+      <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1052,6 +1061,12 @@
     <ClInclude Include="Live2DComponent.h">
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
+    <ClInclude Include="ConfigScene.h">
+      <Filter>App\Scene\ConfigScene</Filter>
+    </ClInclude>
+    <ClInclude Include="ConfigCanvas.h">
+      <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -1332,6 +1347,12 @@
     </Filter>
     <Filter Include="App\Live2D\app">
       <UniqueIdentifier>{bb985853-b5cd-45b5-a711-0c9e56e3293e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\ConfigScene">
+      <UniqueIdentifier>{187ef20b-af0c-411d-87d1-07c47a0a668a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Scene\ConfigScene\ConfigCanvas">
+      <UniqueIdentifier>{5a8fa5f6-5876-4511-9906-f20294391031}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

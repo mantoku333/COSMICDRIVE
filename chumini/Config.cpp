@@ -5,7 +5,7 @@
 
 namespace app::test {
 
-	const std::string CONFIG_FILE_PATH = "Save/Save.dat";
+	const std::string CONFIG_FILE_PATH = "Save/Save.bin";
 
 	void LoadConfig()
 	{

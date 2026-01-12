@@ -145,13 +145,13 @@ void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
         // HiSpeed Buttons
         if (IsButtonHovered(mousePos, speedUpButton)) {
             gGameConfig.hiSpeed += 0.5f;
-            if (gGameConfig.hiSpeed > 50.0f) gGameConfig.hiSpeed = 50.0f;
+            if (gGameConfig.hiSpeed > 10.0f) gGameConfig.hiSpeed = 10.0f;
             UpdateSpeedText();
             SaveConfig();
         }
         if (IsButtonHovered(mousePos, speedDownButton)) {
             gGameConfig.hiSpeed -= 0.5f;
-            if (gGameConfig.hiSpeed < 1.0f) gGameConfig.hiSpeed = 1.0f;
+            if (gGameConfig.hiSpeed < 0.0f) gGameConfig.hiSpeed = 0.0f;
             UpdateSpeedText();
             SaveConfig();
         }
