@@ -49,23 +49,21 @@ namespace app
 			sf::Texture textureDefaultJacket;
 			sf::ui::Image* Jacket;
 			sf::Texture textureJacket;
-			sf::Texture texturePanel;
 
 			// エフェクト用
 			sf::Texture textureHitEffect;
 
-			sf::ui::Image* judgePanel = nullptr;
 			sf::SafePtr<EffectManager> effectManager;
 
 			// ---------------------------------------------------------
 			// テキストUI
 			// ---------------------------------------------------------
-			sf::ui::TextImage* timerText = nullptr;
 			sf::ui::TextImage* comboText = nullptr;
 			sf::ui::TextImage* judgeStatsText = nullptr;
 
 			// 判定結果表示用テキスト
 			sf::ui::TextImage* judgeResultText = nullptr;
+			sf::ui::TextImage* countdownText = nullptr;
 
 
 
@@ -86,6 +84,9 @@ namespace app
 			
 			// カウントダウン中かどうか（タイマー更新抑制用）
 			bool isCountdownActive = false;
+
+			int lastTotalJudges = -1;
+			float judgeScaleTimer = 0.0f;
 		};
 	}
 }

@@ -183,11 +183,19 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     // 各レーンのキー処理
     // -----------------------------
     struct LaneKey { int idx; Key key; };
+    
+    // コントローラーモードONなら固定キー (D, F, J, K)
+    // OFFならコンフィグのキーを使用
+    Key k1 = app::test::gGameConfig.isControllerMode ? Key::KEY_D : app::test::gKeyConfig.lane1;
+    Key k2 = app::test::gGameConfig.isControllerMode ? Key::KEY_F : app::test::gKeyConfig.lane2;
+    Key k3 = app::test::gGameConfig.isControllerMode ? Key::KEY_J : app::test::gKeyConfig.lane3;
+    Key k4 = app::test::gGameConfig.isControllerMode ? Key::KEY_K : app::test::gKeyConfig.lane4;
+
     LaneKey laneKeys[] = {
-        {0, app::test::gKeyConfig.lane1},   // レーン 0
-        {1, app::test::gKeyConfig.lane2},   // レーン 1
-        {2, app::test::gKeyConfig.lane3},   // レーン 2
-        {3, app::test::gKeyConfig.lane4},   // レーン 3
+        {0, k1},   // レーン 0
+        {1, k2},   // レーン 1
+        {2, k3},   // レーン 2
+        {3, k4},   // レーン 3
     };
 
     for (const auto& lk : laneKeys) {

@@ -1,6 +1,7 @@
 #include "AppModel.h"
 #include <fstream>
 #include <vector>
+#include "JobSystem.h"
 #include <string>
 #include <filesystem>
 #include "Live2D/Framework/src/Rendering/D3D11/CubismRenderer_D3D11.hpp"
@@ -208,7 +209,37 @@ void AppModel::SetupTextures(ID3D11Device* device) {
     }
 }
 
+// -------------------------------------------------------------------------
 void AppModel::Update() {
+    std::lock_guard<std::mutex> dock(_mainMutex);
+
+    // Check Async Load
+    if (_isMotionDataReady) {
+        std::vector<unsigned char> data;
+        {
+            std::lock_guard<std::mutex> lock(_motionMutex);
+            data = std::move(_pendingMotionData);
+            _isMotionDataReady = false;
+        }
+
+        if (!data.empty()) {
+            CubismMotion* motion = CubismMotion::Create(data.data(), static_cast<csmSizeInt>(data.size()));
+
+            // Force Loop to FALSE to rely on Manual Restart (since SDK loop seems invisible?)
+            motion->IsLoop(false);
+
+            // Priority 3. autoDelete = true.
+            _glitchManager->StartMotionPriority(motion, true, 3);
+
+            // Store state for manual loop in Update
+            _isGlitchLooping = true;
+            _glitchGroup = _pendingGroup;
+            _glitchNo = _pendingNo;
+
+            OutputDebugStringA(("AppModel: Started Glitch Motion Async (Attr: " + std::to_string(motion->IsLoop()) + ")\n").c_str());
+        }
+    }
+
     // 1/60 fixed or use actual delta
     const csmFloat32 deltaTimeSeconds = 1.0f / 60.0f; 
 
@@ -313,6 +344,7 @@ void AppModel::SetDragging(float x, float y) {
 }
 
 void AppModel::StartMotion(const char* group, int no, int priority) {
+    std::lock_guard<std::mutex> lock(_mainMutex);
     if (!_modelSetting || !_motionManager) return;
 
     std::string fileName = _modelSetting->GetMotionFileName(group, no);
@@ -330,39 +362,36 @@ void AppModel::StartMotion(const char* group, int no, int priority) {
 
 void AppModel::StartGlitchMotion(const char* group, int no) {
     OutputDebugStringA(("AppModel: StartGlitchMotion called (Group: " + std::string(group) + ")\n").c_str());
+    
+    std::lock_guard<std::mutex> lock(_mainMutex);
+
     if (!_modelSetting || !_glitchManager) return;
 
-    std::string fileName = _modelSetting->GetMotionFileName(group, no);
-    
-    // Fallback: If group not found, try using group name as filename directly
-    if (fileName.empty()) {
-        std::string directName = std::string(group) + ".motion3.json";
-        // Check if file exists in dir? Just try loading it.
-        fileName = directName;
-        OutputDebugStringA(("AppModel: Group lookup failed. Trying direct filename: " + fileName + "\n").c_str());
-    }
+    _pendingGroup = group;
+    _pendingNo = no;
 
-    if (fileName.empty()) return;
+    sf::jobsystem::JobSystem::Instance()->addJob([this, group, no]() {
+        std::string fileName = _modelSetting->GetMotionFileName(group, no);
 
-    std::string path = _modelHomeDir + "/" + fileName;
-    auto motionBytes = LoadFileAsBytes(path);
+        // Fallback: If group not found, try using group name as filename directly
+        if (fileName.empty()) {
+            std::string directName = std::string(group) + ".motion3.json";
+            // Check if file exists in dir? Just try loading it.
+            fileName = directName;
+            OutputDebugStringA(("AppModel: Group lookup failed. Trying direct filename: " + fileName + "\n").c_str());
+        }
 
-    if (!motionBytes.empty()) {
-        CubismMotion* motion = CubismMotion::Create(motionBytes.data(), static_cast<csmSizeInt>(motionBytes.size()));
-        
-        // Force Loop to FALSE to rely on Manual Restart (since SDK loop seems invisible?)
-        motion->IsLoop(false); 
-        
-        // Priority 3. autoDelete = true.
-        _glitchManager->StartMotionPriority(motion, true, 3); 
-        
-        // ★Store state for manual loop in Update
-        _isGlitchLooping = true;
-        _glitchGroup = group;
-        _glitchNo = no;
+        if (fileName.empty()) return;
 
-        OutputDebugStringA(("TitleCanvas: Started Glitch Motion Loop (Attr: " + std::to_string(motion->IsLoop()) + ")\n").c_str());
-    }
+        std::string path = _modelHomeDir + "/" + fileName;
+        auto motionBytes = LoadFileAsBytes(path);
+
+        {
+            std::lock_guard<std::mutex> lock(_motionMutex);
+            _pendingMotionData = std::move(motionBytes);
+            _isMotionDataReady = true;
+        }
+    }); 
 }
 
 // MATCH HEADER SIGNATURE: const ... & matrix

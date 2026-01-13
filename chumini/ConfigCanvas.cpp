@@ -89,6 +89,21 @@ void ConfigCanvas::Begin()
 
     UpdateSpeedText();
 
+    // ---------------------------------------------------------
+    // Controller Mode
+    // ---------------------------------------------------------
+    controllerModeLabel = AddUI<sf::ui::TextImage>();
+    controllerModeLabel->transform.SetPosition(Vector3(-400.0f, -250.0f, 0));
+    controllerModeLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+    controllerModeLabel->Create(device, L"Controller Mode", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128); // Increased width for label
+
+    controllerModeButton = AddUI<sf::ui::TextImage>();
+    controllerModeButton->transform.SetPosition(Vector3(0.0f, -250.0f, 0));
+    controllerModeButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+    
+    UpdateControllerModeText();
+
 
 	updateCommand.Bind(std::bind(&ConfigCanvas::Update, this, std::placeholders::_1));
 }
@@ -153,6 +168,14 @@ void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
             gGameConfig.hiSpeed -= 0.5f;
             if (gGameConfig.hiSpeed < 0.0f) gGameConfig.hiSpeed = 0.0f;
             UpdateSpeedText();
+            SaveConfig();
+        }
+
+        // Controller Mode Toggle
+        // Controller Mode Toggle
+        if (IsButtonHovered(mousePos, controllerModeButton)) {
+            gGameConfig.isControllerMode = !gGameConfig.isControllerMode;
+            UpdateControllerModeText();
             SaveConfig();
         }
 	}
@@ -263,4 +286,15 @@ void ConfigCanvas::UpdateSpeedText() {
 
     speedValueLabel->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
         80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+}
+
+void ConfigCanvas::UpdateControllerModeText() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    auto device = dx11->GetMainDevice().GetDevice();
+
+    std::wstring text = gGameConfig.isControllerMode ? L"ON" : L"OFF";
+    D2D1::ColorF color = gGameConfig.isControllerMode ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
+
+    controllerModeButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, color, 256, 128);
 }

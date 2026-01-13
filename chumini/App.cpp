@@ -106,6 +106,9 @@ void app::Application::Init()
 	//時間の初期化
 	sf::Time::Init();
 
+	//JobSystemの初期化
+	sf::jobsystem::JobSystem::Create(std::thread::hardware_concurrency() - 1);
+
 	//DirectXの初期化
 	sf::dx::DirectX11::Init();
 	sf::dx::DirectX11::Instance()->Create(gameWindow.hwnd);
@@ -152,6 +155,7 @@ void app::Application::UnInit()
 
 	sf::sound::SoundResource::UnInit();
 	sf::dx::DirectX11::UnInit();
+	sf::jobsystem::JobSystem::Destroy();
 
 	SInput::UnInit();
 }
@@ -180,7 +184,10 @@ void app::Application::Loop()
 				SInput::Instance().Update();
 
 				if (live2DModel) {
-					live2DModel->Update();
+					// Parallel Update
+					sf::jobsystem::JobSystem::Instance()->addJob([this] {
+						live2DModel->Update();
+					});
 				}
 
 				//DirectX11の取得
@@ -213,6 +220,11 @@ void app::Application::Loop()
 
 				//全コマンドの実装
 				sf::command::ICommand::CallAll();
+
+				// Wait for Live2D Update
+				if (live2DModel) {
+					sf::jobsystem::JobSystem::Instance()->waitForAllJobs();
+				}
 
 				//影の描画
 				DrawShadow();

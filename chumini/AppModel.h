@@ -13,6 +13,8 @@
 
 #include <vector>
 #include <string>
+#include <atomic>
+#include <mutex>
 #include "D3D.h"
 
 namespace sf { class Texture; }
@@ -66,4 +68,12 @@ private:
     Live2D::Cubism::Framework::CubismEyeBlink* _eyeBlink;
     Live2D::Cubism::Framework::CubismBreath* _breath;
     Live2D::Cubism::Framework::CubismPhysics* _physics;
+
+    // Async Loading
+    std::vector<unsigned char> _pendingMotionData;
+    std::atomic<bool> _isMotionDataReady = false;
+    std::string _pendingGroup;
+    int _pendingNo = 0;
+    std::mutex _motionMutex;
+    std::mutex _mainMutex;
 };

@@ -1,5 +1,29 @@
 #include "JobSystem.h"
 
+static sf::jobsystem::JobSystem* instance = nullptr;
+
+sf::jobsystem::JobSystem* sf::jobsystem::JobSystem::Instance()
+{
+    return instance;
+}
+
+void sf::jobsystem::JobSystem::Create(size_t numThreads)
+{
+    if (instance == nullptr)
+    {
+        instance = new JobSystem(numThreads);
+    }
+}
+
+void sf::jobsystem::JobSystem::Destroy()
+{
+    if (instance != nullptr)
+    {
+        delete instance;
+        instance = nullptr;
+    }
+}
+
 sf::jobsystem::JobSystem::JobSystem(std::function<void(const std::exception& hoge)> _throwJob, size_t numThreads) :
 	throwJob(_throwJob)
 	, stopFlag(false)
@@ -66,9 +90,10 @@ bool sf::jobsystem::JobSystem::EndAllJobs()
 	return false;
 }
 
+// ----------------------------------------------------------------------
 void sf::jobsystem::JobSystem::Constructor(size_t numThreads)
 {
-	//スレッド数ループ
+	// Threads loop
 	for (size_t i = 0; i < numThreads; ++i) {
 		workers.emplace_back([this] {
 			while (true) {
@@ -84,7 +109,7 @@ void sf::jobsystem::JobSystem::Constructor(size_t numThreads)
 
 					job = std::move(jobQueue.front());
 					jobQueue.pop();
-					++activeJobs; // アクティブなジョブを増やす
+					++activeJobs; 
 				}
 				try
 				{
@@ -96,9 +121,9 @@ void sf::jobsystem::JobSystem::Constructor(size_t numThreads)
 				}
 				{
 					std::unique_lock<std::mutex> lock(queueMutex);
-					--activeJobs; // アクティブなジョブを減らす
+					--activeJobs;
 					if (jobQueue.empty() && activeJobs == 0) {
-						allJobsDone.notify_all(); // 全てのジョブが終了
+						allJobsDone.notify_all();
 					}
 				}
 			}

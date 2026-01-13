@@ -28,6 +28,10 @@ namespace app
             sf::ui::TextImage* speedLabel = nullptr;
             sf::ui::TextImage* speedValueLabel = nullptr; // 値表示用 
 
+            // Controller Mode UI
+            sf::ui::TextImage* controllerModeLabel = nullptr;
+            sf::ui::TextImage* controllerModeButton = nullptr;
+
 			// State
 			bool isBackHovered = false;
 			bool isLaneHovered[4] = { false };
@@ -44,6 +48,7 @@ namespace app
 			void OnLaneButtonPressed(int laneIndex);
 			void UpdateButtonText(); 
             void UpdateSpeedText(); // Check if this was missing 
+            void UpdateControllerModeText(); 
 			void DetectKeyInput();
 
 			Vector2 GetMousePosition();
