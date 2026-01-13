@@ -5,349 +5,21 @@
 #include "LoadingScene.h"
 #include "Config.h"
 #include <DirectXMath.h>
+#include <algorithm>
 
 using namespace app::test;
 using namespace sf;
 
-void ConfigCanvas::Begin()
+// ---------------------------------------------------------
+// ConfigItem Implementation
+// ---------------------------------------------------------
+bool ConfigCanvas::ConfigItem::IsHovered(sf::ui::TextImage* btn, const Vector2& mousePos)
 {
-	sf::ui::Canvas::Begin();
+	if (!btn) return false;
+	Vector3 pos = btn->transform.GetPosition();
+	Vector3 scale = btn->transform.GetScale();
 
-
-
-	auto* dx11 = sf::dx::DirectX11::Instance();
-	auto device = dx11->GetMainDevice().GetDevice();
-
-	if (auto actor = actorRef.Target()) {
-		auto* changer = actor->GetComponent<SceneChangeComponent>();
-		if (changer) {
-			sceneChanger = changer;
-		}
-	}
-
-	// ---------------------------------------------------------
-	// BACK ボタン
-	// ---------------------------------------------------------
-	backButton = AddUI<sf::ui::TextImage>();
-	// 右下に配置 (例)
-	backButton->transform.SetPosition(Vector3(800, -450, 0));
-	backButton->transform.SetScale(Vector3(3, 1.2f, 0));
-
-	backButton->Create(
-		device,
-		L"BACK",
-		L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-		100.0f,
-		D2D1::ColorF(D2D1::ColorF::White),
-		512, 128
-	);
-
-	// ---------------------------------------------------------
-	// Lane Config Buttons
-	// ---------------------------------------------------------
-	for (int i = 0; i < 4; i++) {
-		laneLabels[i] = AddUI<sf::ui::TextImage>();
-		laneLabels[i]->transform.SetPosition(Vector3(-400.0f + i * 250.0f, 200.0f, 0)); 
-		laneLabels[i]->transform.SetScale(Vector3(1.5f, 0.6f, 0));
-		std::wstring labelText = L"LANE " + std::to_wstring(i + 1);
-		laneLabels[i]->Create(device, labelText.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
-
-
-		laneButtons[i] = AddUI<sf::ui::TextImage>();
-		laneButtons[i]->transform.SetPosition(Vector3(-400.0f + i * 250.0f, 100.0f, 0));
-		laneButtons[i]->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-		// Initial Create (Text will be updated)
-		laneButtons[i]->Create(device, L"-", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
-	}
-	UpdateButtonText();
-
-    // ---------------------------------------------------------
-    // HiSpeed Config
-    // ---------------------------------------------------------
-    // Label
-    speedLabel = AddUI<sf::ui::TextImage>();
-    speedLabel->transform.SetPosition(Vector3(-400.0f, -100.0f, 0));
-    speedLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
-    speedLabel->Create(device, L"HiSpeed", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
-
-    // Value
-    speedValueLabel = AddUI<sf::ui::TextImage>();
-    speedValueLabel->transform.SetPosition(Vector3(-100.0f, -100.0f, 0));
-    speedValueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-    
-    // Down Button
-    speedDownButton = AddUI<sf::ui::TextImage>();
-    speedDownButton->transform.SetPosition(Vector3(-250.0f, -100.0f, 0));
-    speedDownButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
-    speedDownButton->Create(device, L"<<", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
-
-    // Up Button
-    speedUpButton = AddUI<sf::ui::TextImage>();
-    speedUpButton->transform.SetPosition(Vector3(100.0f, -100.0f, 0));
-    speedUpButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
-    speedUpButton->Create(device, L">>", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
-
-    UpdateSpeedText();
-
-    // ---------------------------------------------------------
-    // Controller Mode
-    // ---------------------------------------------------------
-    controllerModeLabel = AddUI<sf::ui::TextImage>();
-    controllerModeLabel->transform.SetPosition(Vector3(-400.0f, -250.0f, 0));
-    controllerModeLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
-    controllerModeLabel->Create(device, L"Controller Mode", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128); // Increased width for label
-
-    controllerModeButton = AddUI<sf::ui::TextImage>();
-    controllerModeButton->transform.SetPosition(Vector3(0.0f, -250.0f, 0));
-    controllerModeButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-    
-    UpdateControllerModeText();
-
-    // ---------------------------------------------------------
-    // Tap Sound
-    // ---------------------------------------------------------
-    tapSoundLabel = AddUI<sf::ui::TextImage>();
-    tapSoundLabel->transform.SetPosition(Vector3(-400.0f, -320.0f, 0)); // Position below Controller Mode
-    tapSoundLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
-    tapSoundLabel->Create(device, L"Tap Sound", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
-
-    tapSoundButton = AddUI<sf::ui::TextImage>();
-    tapSoundButton->transform.SetPosition(Vector3(0.0f, -320.0f, 0));
-    tapSoundButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-
-    UpdateTapSoundText();
-
-    // ---------------------------------------------------------
-    // Offset Config
-    // ---------------------------------------------------------
-    // Label
-    offsetLabel = AddUI<sf::ui::TextImage>();
-    offsetLabel->transform.SetPosition(Vector3(-400.0f, -390.0f, 0));
-    offsetLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
-    offsetLabel->Create(device, L"Offset", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
-
-    // Value
-    offsetValueLabel = AddUI<sf::ui::TextImage>();
-    offsetValueLabel->transform.SetPosition(Vector3(-100.0f, -390.0f, 0));
-    offsetValueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-
-    // Down Button
-    offsetDownButton = AddUI<sf::ui::TextImage>();
-    offsetDownButton->transform.SetPosition(Vector3(-250.0f, -390.0f, 0));
-    offsetDownButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
-    offsetDownButton->Create(device, L"<<", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
-
-    // Up Button
-    offsetUpButton = AddUI<sf::ui::TextImage>();
-    offsetUpButton->transform.SetPosition(Vector3(100.0f, -390.0f, 0));
-    offsetUpButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
-    offsetUpButton->Create(device, L">>", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
-
-    UpdateOffsetText();
-
-    // ---------------------------------------------------------
-    // FAST/SLOW Config
-    // ---------------------------------------------------------
-    fastSlowLabel = AddUI<sf::ui::TextImage>();
-    fastSlowLabel->transform.SetPosition(Vector3(-400.0f, -460.0f, 0));
-    fastSlowLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
-    fastSlowLabel->Create(device, L"FAST/SLOW", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
-
-    fastSlowButton = AddUI<sf::ui::TextImage>();
-    fastSlowButton->transform.SetPosition(Vector3(0.0f, -460.0f, 0));
-    fastSlowButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
-
-    UpdateFastSlowText();
-
-	updateCommand.Bind(std::bind(&ConfigCanvas::Update, this, std::placeholders::_1));
-}
-
-void ConfigCanvas::Update(const sf::command::ICommand& command)
-{
-	HandleInput(command);
-
-	// シンプルなホバーエフェクト
-	if (isBackHovered) {
-		backButton->material.SetColor({ 1.0f, 1.0f, 0.0f, 1.0f });
-	}
-	else {
-		backButton->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
-	}
-
-	for (int i = 0; i < 4; i++) {
-		DirectX::XMFLOAT4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-		if (state == State::WaitingForKey && waitingLaneIndex == i) {
-			color = { 1.0f, 0.0f, 0.0f, 1.0f }; // Waiting color (Red)
-		}
-		else if (isLaneHovered[i]) {
-			color = { 1.0f, 1.0f, 0.0f, 1.0f }; // Hover
-		}
-		laneButtons[i]->material.SetColor(color);
-	}
-}
-
-void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
-{
-	if (state == State::WaitingForKey) {
-		DetectKeyInput();
-		return; 
-	}
-
-	Vector2 mousePos = GetMousePosition();
-	isBackHovered = IsButtonHovered(mousePos, backButton);
-
-	for (int i = 0; i < 4; i++) {
-		isLaneHovered[i] = IsButtonHovered(mousePos, laneButtons[i]);
-	}
-
-	// マウスクリック
-	if (SInput::Instance().GetMouseDown(0)) {
-		if (isBackHovered) {
-			OnButtonPressed();
-		}
-		for (int i = 0; i < 4; i++) {
-			if (isLaneHovered[i]) {
-				OnLaneButtonPressed(i);
-			}
-		}
-
-        // HiSpeed Buttons
-        if (IsButtonHovered(mousePos, speedUpButton)) {
-            gGameConfig.hiSpeed += 0.5f;
-            if (gGameConfig.hiSpeed > 10.0f) gGameConfig.hiSpeed = 10.0f;
-            UpdateSpeedText();
-            SaveConfig();
-        }
-        if (IsButtonHovered(mousePos, speedDownButton)) {
-            gGameConfig.hiSpeed -= 0.5f;
-            if (gGameConfig.hiSpeed < 0.0f) gGameConfig.hiSpeed = 0.0f;
-            UpdateSpeedText();
-            SaveConfig();
-        }
-
-        // Controller Mode Toggle
-        // Controller Mode Toggle
-        if (IsButtonHovered(mousePos, controllerModeButton)) {
-            gGameConfig.isControllerMode = !gGameConfig.isControllerMode;
-            UpdateControllerModeText();
-            SaveConfig();
-        }
-
-        // Tap Sound Toggle
-        if (IsButtonHovered(mousePos, tapSoundButton)) {
-            gGameConfig.enableTapSound = !gGameConfig.enableTapSound;
-            UpdateTapSoundText();
-            SaveConfig();
-        }
-
-        // Offset Config
-        if (IsButtonHovered(mousePos, offsetUpButton)) {
-            gGameConfig.offsetSec += 0.01f;
-            UpdateOffsetText();
-            SaveConfig();
-        }
-        if (IsButtonHovered(mousePos, offsetDownButton)) {
-            gGameConfig.offsetSec -= 0.01f;
-            UpdateOffsetText();
-            SaveConfig();
-        }
-
-        // FAST/SLOW Toggle
-        if (IsButtonHovered(mousePos, fastSlowButton)) {
-            gGameConfig.enableFastSlow = !gGameConfig.enableFastSlow;
-            UpdateFastSlowText();
-            SaveConfig();
-        }
-	}
-
-	// キーボード 
-	if (SInput::Instance().GetKeyDown(Key::SPACE) || 
-		SInput::Instance().GetKeyDown(Key::ESCAPE) || 
-		SInput::Instance().GetKeyDown(Key::KEY_BACK)){
-		OnButtonPressed();
-	}
-}
-
-void ConfigCanvas::DetectKeyInput()
-{
-	// Scan all keys roughly
-	for (int i = 0; i < 256; i++) {
-		if (SInput::Instance().GetKeyDown((Key)i)) {
-			Key k = (Key)i;
-			// Ignore some keys if needed, but for now allow most
-			
-			if (waitingLaneIndex == 0) gKeyConfig.lane1 = k;
-			else if (waitingLaneIndex == 1) gKeyConfig.lane2 = k;
-			else if (waitingLaneIndex == 2) gKeyConfig.lane3 = k;
-			else if (waitingLaneIndex == 3) gKeyConfig.lane4 = k;
-
-			// Save and finish
-			SaveConfig();
-			UpdateButtonText();
-			state = State::Normal;
-			waitingLaneIndex = -1;
-			break;
-		}
-	}
-}
-
-void ConfigCanvas::OnLaneButtonPressed(int laneIndex)
-{
-	state = State::WaitingForKey;
-	waitingLaneIndex = laneIndex;
-	// Update visual to show waiting state? (Handled in Update color)
-}
-
-void ConfigCanvas::UpdateButtonText()
-{
-	auto* dx11 = sf::dx::DirectX11::Instance();
-	auto device = dx11->GetMainDevice().GetDevice();
-
-	auto UpdateBtn = [&](int idx, Key k) {
-		std::wstring s = KeyToString(k);
-		laneButtons[idx]->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-			80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
-	};
-
-	UpdateBtn(0, gKeyConfig.lane1);
-	UpdateBtn(1, gKeyConfig.lane2);
-	UpdateBtn(2, gKeyConfig.lane3);
-	UpdateBtn(3, gKeyConfig.lane4);
-}
-
-void ConfigCanvas::OnButtonPressed()
-{
-	if (!sceneChanger.isNull()) {
-		LoadingScene::SetLoadingType(LoadingType::Common);
-		sceneChanger->ChangeScene(TitleScene::StandbyScene());
-	}
-}
-
-Vector2 ConfigCanvas::GetMousePosition()
-{
-	POINT mousePoint;
-	GetCursorPos(&mousePoint);
-	HWND hwnd = GetActiveWindow();
-	ScreenToClient(hwnd, &mousePoint);
-
-	float uiX = static_cast<float>(mousePoint.x) - screenWidth * 0.5f;
-	float uiY = screenHeight * 0.5f - static_cast<float>(mousePoint.y);
-
-	return Vector2(uiX, uiY);
-}
-
-bool ConfigCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button)
-{
-	if (!button) return false;
-
-	Vector3 pos = button->transform.GetPosition();
-	Vector3 scale = button->transform.GetScale();
-
-	float width = scale.x * 80.0f; 
+	float width = scale.x * 80.0f; // Approximate font width base
 	float height = scale.y * 40.0f;
 
 	float left = pos.x - width * 0.5f;
@@ -359,60 +31,432 @@ bool ConfigCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* b
 		mousePos.y >= bottom && mousePos.y <= top);
 }
 
-void ConfigCanvas::UpdateSpeedText() {
-    auto* dx11 = sf::dx::DirectX11::Instance();
-    auto device = dx11->GetMainDevice().GetDevice();
+void ConfigCanvas::ConfigItem::Update(float currentY, const Vector2& mousePos, bool isClicked)
+{
+	if (label) label->transform.SetPosition(Vector3(-400.0f, currentY, 0));
+	if (valueLabel) valueLabel->transform.SetPosition(Vector3(-100.0f, currentY, 0));
+	if (leftButton) leftButton->transform.SetPosition(Vector3(-250.0f, currentY, 0));
+	if (rightButton) rightButton->transform.SetPosition(Vector3(100.0f, currentY, 0));
 
-    // 小数点は適当に整形
-    std::wstring s = std::to_wstring(gGameConfig.hiSpeed);
-    // 簡易的に先頭4文字くらい ("18.0"000 -> "18.0")
-    if (s.length() > 4) s = s.substr(0, 4);
+	// Hover & Click Logic
+	auto UpdateBtn = [&](sf::ui::TextImage* btn, const std::function<void()>& action) {
+		if (!btn) return;
+		if (IsHovered(btn, mousePos)) {
+			btn->material.SetColor({ 1.0f, 1.0f, 0.0f, 1.0f }); // Hover Yellow
+			if (isClicked && action) {
+				action();
+				if (onUpdateView) onUpdateView();
+			}
+		}
+		else {
+			btn->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f }); // Normal White
+		}
+	};
 
-    speedValueLabel->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+	UpdateBtn(leftButton, onLeft);
+	UpdateBtn(rightButton, onRight);
 }
 
-void ConfigCanvas::UpdateControllerModeText() {
-    auto* dx11 = sf::dx::DirectX11::Instance();
-    auto device = dx11->GetMainDevice().GetDevice();
-
-    std::wstring text = gGameConfig.isControllerMode ? L"ON" : L"OFF";
-    D2D1::ColorF color = gGameConfig.isControllerMode ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
-
-    controllerModeButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, color, 256, 128);
-}
-
-void ConfigCanvas::UpdateTapSoundText() {
-    auto* dx11 = sf::dx::DirectX11::Instance();
-    auto device = dx11->GetMainDevice().GetDevice();
-
-    std::wstring text = gGameConfig.enableTapSound ? L"ON" : L"OFF";
-    D2D1::ColorF color = gGameConfig.enableTapSound ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
-
-    tapSoundButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, color, 256, 128);
-}
-
-void ConfigCanvas::UpdateOffsetText() {
-    auto* dx11 = sf::dx::DirectX11::Instance();
-    auto device = dx11->GetMainDevice().GetDevice();
-
-    // 符号付きで表示 (例: "+0.00s", "-0.05s")
-    wchar_t buf[32];
-    swprintf_s(buf, L"%+.2fs", gGameConfig.offsetSec);
+void ConfigCanvas::ConfigItem::SetVisible(bool visible)
+{
+	auto Set = [&](sf::ui::TextImage* t) { 
+        if (t) {
+            if (visible) {
+                 // Creating/Updating sets proper scale, here we might just need to ensure it's not zero-scaled
+                 // But wait, Update() continuously sets scale/pos?
+                 // TextImage doesn't store "original scale".
+                 // We can just move it far away if invisible.
+            } else {
+                 t->transform.SetPosition(Vector3(99999.0f, 99999.0f, 0.0f)); 
+            }
+        } 
+    };
+    // Alternative: Just don't update/draw it? 
+    // But they are in the Canvas list, so they are drawn automatically.
+    // If TextImage has no Active flag, modifying Transform is the way.
     
-    offsetValueLabel->Create(device, buf, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+    // Better Implementation:
+    // If visible, Update() sets the correct position.
+    // If not visible, move to infinity.
+    
+    if (!visible) {
+        auto Hide = [&](sf::ui::TextImage* t) { if(t) t->transform.SetPosition(Vector3(10000.0f, 0, 0)); };
+        Hide(label);
+        Hide(valueLabel);
+        Hide(leftButton);
+        Hide(rightButton);
+    }
 }
 
-void ConfigCanvas::UpdateFastSlowText() {
-    auto* dx11 = sf::dx::DirectX11::Instance();
-    auto device = dx11->GetMainDevice().GetDevice();
+// ---------------------------------------------------------
+// ConfigCanvas Implementation
+// ---------------------------------------------------------
 
-    std::wstring text = gGameConfig.enableFastSlow ? L"ON" : L"OFF";
-    D2D1::ColorF color = gGameConfig.enableFastSlow ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
+void ConfigCanvas::Begin()
+{
+	sf::ui::Canvas::Begin();
 
-    fastSlowButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
-        80.0f, color, 256, 128);
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+
+	if (auto actor = actorRef.Target()) {
+		if (auto* changer = actor->GetComponent<SceneChangeComponent>()) {
+			sceneChanger = changer;
+		}
+	}
+
+	// BACK ボタン (リスト外、固定)
+	backButton = AddUI<sf::ui::TextImage>();
+	backButton->transform.SetPosition(Vector3(800, -450, 0));
+	backButton->transform.SetScale(Vector3(3, 1.2f, 0));
+	backButton->Create(device, L"BACK", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+		100.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
+
+	// Setup List Items
+	items.clear();
+	scrollY = 0.0f;
+	targetScrollY = 0.0f;
+
+	RebuildLayout();
+
+	updateCommand.Bind(std::bind(&ConfigCanvas::Update, this, std::placeholders::_1));
+}
+
+// End() removed
+
+void ConfigCanvas::RebuildLayout()
+{
+	items.clear();
+
+	// ----------------------
+	// General
+	// ----------------------
+	AddHeader(L"-- GENERAL --");
+	AddFloatItem(L"HiSpeed", &gGameConfig.hiSpeed, 0.5f, 0.0f, 10.0f);
+	AddFloatItem(L"Offset", &gGameConfig.offsetSec, 0.01f, -5.0f, 5.0f, L"%+.2fs");
+	AddBoolItem(L"FAST/SLOW", &gGameConfig.enableFastSlow);
+
+	// ----------------------
+	// Control
+	// ----------------------
+	AddHeader(L"-- CONTROL --");
+	AddBoolItem(L"Controller", &gGameConfig.isControllerMode);
+	AddKeyItem(0, L"Lane 1");
+	AddKeyItem(1, L"Lane 2");
+	AddKeyItem(2, L"Lane 3");
+	AddKeyItem(3, L"Lane 4");
+
+	// ----------------------
+	// Audio
+	// ----------------------
+	AddHeader(L"-- AUDIO --");
+	AddBoolItem(L"Tap Sound", &gGameConfig.enableTapSound);
+    // Future: Volume sliders
+
+	// Calculate total height
+	float y = 0.0f;
+	for (auto& item : items) {
+		item->localY = y;
+		y -= item->height; // Vertical stack downwards
+	}
+	totalContentHeight = -y;
+}
+
+void ConfigCanvas::Update(const sf::command::ICommand& command)
+{
+	HandleInput(command);
+	UpdateScroll();
+
+	// Hover Effect for Back Button
+	if (isBackHovered) backButton->material.SetColor({ 1.0f, 1.0f, 0.0f, 1.0f });
+	else backButton->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
+
+	// Update Items
+	bool isClicked = SInput::Instance().GetMouseDown(0);
+	Vector2 mousePos = GetMousePosition();
+
+	// Waiting State handles Key Input elsewhere, but we still draw
+	if (state == State::WaitingForKey) {
+		// Highlight waiting key item?
+		// Handled by color update in items potentially or global override
+	}
+
+	float startY = LIST_START_Y + scrollY;
+    
+    // Masking range (simple visibility check)
+    float viewTop = 600.0f;
+    float viewBottom = -600.0f;
+
+	for (auto& item : items) {
+		float currentY = startY + item->localY;
+        
+        // Simple Culling
+        bool visible = (currentY < viewTop && currentY > viewBottom);
+        item->SetVisible(visible);
+
+        if (visible) {
+		    item->Update(currentY, mousePos, isClicked && state == State::Normal);
+        }
+	}
+}
+
+void ConfigCanvas::UpdateScroll()
+{
+	float wheel = SInput::Instance().GetMouseWheel();
+	if (wheel != 0.0f) {
+		targetScrollY -= wheel * 100.0f; // Scroll speed (Inverted)
+	}
+
+	// Clamp Scroll
+	// content starts at 0 and goes down to -totalHeight
+	// We want to scroll UP to see lower items.
+	// So scrollY should go from 0 to totalHeight (roughly)
+	// Actually, if items are at -y, we need StartY + (-y + scrollY)
+	// Max scroll should be such that last item is visible.
+	
+	float maxScroll = std::max(0.0f, totalContentHeight - 500.0f); // 500 is approx view height adjustment
+	if (targetScrollY < 0.0f) targetScrollY = 0.0f;
+	if (targetScrollY > maxScroll) targetScrollY = maxScroll;
+
+	// Smooth scroll
+	scrollY += (targetScrollY - scrollY) * 0.2f;
+}
+
+void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
+{
+	if (state == State::WaitingForKey) {
+		DetectKeyInput();
+		return;
+	}
+
+	Vector2 mousePos = GetMousePosition();
+	isBackHovered = IsButtonHovered(mousePos, backButton);
+
+	if (SInput::Instance().GetMouseDown(0)) {
+		if (isBackHovered) {
+			OnButtonPressed();
+		}
+	}
+
+	if (SInput::Instance().GetKeyDown(Key::ESCAPE) || SInput::Instance().GetKeyDown(Key::KEY_BACK)) {
+		OnButtonPressed();
+	}
+}
+
+void ConfigCanvas::DetectKeyInput()
+{
+	for (int i = 0; i < 256; i++) {
+		if (SInput::Instance().GetKeyDown((Key)i)) {
+			Key k = (Key)i;
+			if (waitingLaneIndex >= 0 && waitingLaneIndex < 4) {
+				if (waitingLaneIndex == 0) gKeyConfig.lane1 = k;
+				else if (waitingLaneIndex == 1) gKeyConfig.lane2 = k;
+				else if (waitingLaneIndex == 2) gKeyConfig.lane3 = k;
+				else if (waitingLaneIndex == 3) gKeyConfig.lane4 = k;
+				
+				SaveConfig();
+				
+				// Re-update the specific item text
+				// Ideally we find the KeyItem and update it.
+				// Since we rebuilt all on RebuildLayout, we can just trigger item updates.
+				// But we need the values to refresh. The items hold pointers or we refresh value labels.
+				
+				RebuildLayout(); // Simple bruteforce refresh for now
+			}
+			state = State::Normal;
+			waitingLaneIndex = -1;
+			break;
+		}
+	}
+}
+
+void ConfigCanvas::OnButtonPressed()
+{
+	if (!sceneChanger.isNull()) {
+		LoadingScene::SetLoadingType(LoadingType::Common);
+		sceneChanger->ChangeScene(TitleScene::StandbyScene());
+	}
+	SaveConfig();
+}
+
+Vector2 ConfigCanvas::GetMousePosition()
+{
+	POINT mousePoint;
+	GetCursorPos(&mousePoint);
+	HWND hwnd = GetActiveWindow();
+	ScreenToClient(hwnd, &mousePoint);
+	float uiX = static_cast<float>(mousePoint.x) - screenWidth * 0.5f;
+	float uiY = screenHeight * 0.5f - static_cast<float>(mousePoint.y);
+	return Vector2(uiX, uiY);
+}
+
+bool ConfigCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button)
+{
+	if (!button) return false;
+	Vector3 pos = button->transform.GetPosition();
+	Vector3 scale = button->transform.GetScale();
+	float width = scale.x * 80.0f;
+	float height = scale.y * 40.0f;
+	float left = pos.x - width * 0.5f;
+	float right = pos.x + width * 0.5f;
+	float top = pos.y + height * 0.5f;
+	float bottom = pos.y - height * 0.5f;
+	return (mousePos.x >= left && mousePos.x <= right && mousePos.y >= bottom && mousePos.y <= top);
+}
+
+// ---------------------------------------------------------
+// Factories
+// ---------------------------------------------------------
+void ConfigCanvas::AddHeader(const wchar_t* text)
+{
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+
+	auto item = std::make_shared<ConfigItem>();
+	item->height = 80.0f; // Smaller spacing for header
+
+	item->label = AddUI<sf::ui::TextImage>();
+	item->label->transform.SetScale(Vector3(3.0f, 0.8f, 0)); // Large
+	item->label->Create(device, text, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+		80.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128);
+    // Header should be centered or left aligned? Currently implementation centers at -400.
+    // Let's adjust header pos later if needed. For now it uses ConfigItem::Update logic which puts label at x=-400.
+    // Maybe we want headers centered.
+    
+    // Override Update for Header to center it?
+    // Or just make ConfigItem more flexible.
+    // For now, let's keep it simple.
+
+	items.push_back(item);
+}
+
+void ConfigCanvas::AddBoolItem(const wchar_t* labelText, bool* targetBool)
+{
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+	auto item = std::make_shared<ConfigItem>();
+    item->height = ITEM_SPACING;
+
+	item->label = AddUI<sf::ui::TextImage>();
+	item->label->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+	item->label->Create(device, labelText, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
+
+	item->rightButton = AddUI<sf::ui::TextImage>(); // Use right button as the main toggle button (or make it switch style)
+	item->rightButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+	
+	// Toggle logic
+	auto Refresh = [=]() {
+		std::wstring s = *targetBool ? L"ON" : L"OFF";
+		D2D1::ColorF c = *targetBool ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
+		item->rightButton->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, c, 256, 128);
+	};
+	Refresh();
+
+	item->onRight = [=]() {
+		*targetBool = !(*targetBool);
+		Refresh();
+		SaveConfig();
+	};
+    
+    // Bind click to right button for bool usually
+    item->leftButton = nullptr; 
+
+	items.push_back(item);
+}
+
+void ConfigCanvas::AddFloatItem(const wchar_t* labelText, float* targetFloat, float step, float min, float max, const wchar_t* format)
+{
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+	auto item = std::make_shared<ConfigItem>();
+    item->height = ITEM_SPACING;
+
+	item->label = AddUI<sf::ui::TextImage>();
+	item->label->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+	item->label->Create(device, labelText, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+
+	item->valueLabel = AddUI<sf::ui::TextImage>();
+	item->valueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+
+	item->leftButton = AddUI<sf::ui::TextImage>();
+	item->leftButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+	item->leftButton->Create(device, L"<<", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+	item->rightButton = AddUI<sf::ui::TextImage>();
+	item->rightButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+	item->rightButton->Create(device, L">>", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+	auto Refresh = [=]() {
+		wchar_t buf[32];
+		swprintf_s(buf, format, *targetFloat);
+		item->valueLabel->Create(device, buf, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+	};
+	Refresh();
+
+	item->onLeft = [=]() {
+		*targetFloat -= step;
+		if (*targetFloat < min) *targetFloat = min;
+		Refresh();
+		SaveConfig();
+	};
+	item->onRight = [=]() {
+		*targetFloat += step;
+		if (*targetFloat > max) *targetFloat = max;
+		Refresh();
+		SaveConfig();
+	};
+
+	items.push_back(item);
+}
+
+void ConfigCanvas::AddKeyItem(int laneIndex, const wchar_t* labelText)
+{
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+	auto item = std::make_shared<ConfigItem>();
+    item->height = ITEM_SPACING;
+
+	// Label in separate object or reuse label?
+	// Existing had "LANE 1" label and Button with key name.
+	
+	item->label = AddUI<sf::ui::TextImage>();
+	item->label->transform.SetScale(Vector3(1.5f, 0.6f, 0));
+	item->label->Create(device, labelText, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+    // Override label position slightly? Standard position is fine.
+
+	item->rightButton = AddUI<sf::ui::TextImage>();
+	item->rightButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+
+	auto Refresh = [=]() {
+		Key k = Key::KEY_UNKNOWN;
+		if (laneIndex == 0) k = gKeyConfig.lane1;
+		else if (laneIndex == 1) k = gKeyConfig.lane2;
+		else if (laneIndex == 2) k = gKeyConfig.lane3;
+		else if (laneIndex == 3) k = gKeyConfig.lane4;
+		
+		std::wstring s = KeyToString(k);
+		item->rightButton->Create(device, s.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+	};
+	Refresh();
+
+    // Special behavior for Key Config: clicking sets waiting state
+	item->onRight = [=]() {
+		this->state = State::WaitingForKey;
+		this->waitingLaneIndex = laneIndex;
+		// Visual feedback handled in update loop by checking state/index?
+		// Or we can change button color immediately here.
+		item->rightButton->material.SetColor({ 1.0f, 0.0f, 0.0f, 1.0f });
+	};
+    
+    // Add an UpdateView hook to handle the red color when waiting?
+    item->onUpdateView = [=]() {
+        if (state == State::WaitingForKey && waitingLaneIndex == laneIndex) {
+             item->rightButton->material.SetColor({ 1.0f, 0.0f, 0.0f, 1.0f });
+        }
+    };
+
+	items.push_back(item);
 }

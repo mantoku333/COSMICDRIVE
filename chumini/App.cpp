@@ -490,6 +490,9 @@ LRESULT app::Application::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_RBUTTONUP:
 		SInput::Instance().SetMouseUp(1);
 		break;
+	case WM_MOUSEWHEEL:
+		SInput::Instance().SetMouseWheel((float)GET_WHEEL_DELTA_WPARAM(wp) / WHEEL_DELTA);
+		break;
 
 	default:
 		break;

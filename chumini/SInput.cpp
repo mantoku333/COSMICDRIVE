@@ -277,6 +277,9 @@ void Mouse::Update()
 		oldState[i] = state[i];	//1フレーム前の情報を保存
 		state[i] = keyState[i];	//今の状態を適応
 	}
+	// Move buffer to current frame value
+	wheel = wheelBuffer;
+	wheelBuffer = 0.0f;
 }
 
 void Mouse::SetMouseDown(int idx)
@@ -287,6 +290,11 @@ void Mouse::SetMouseDown(int idx)
 void Mouse::SetMouseUp(int idx)
 {
 	keyState[idx] = false;
+}
+
+void Mouse::SetMouseWheel(float val)
+{
+	wheelBuffer += val;
 }
 
 bool Mouse::GetMouseDown(int idx)const
@@ -302,4 +310,9 @@ bool Mouse::GetMouse(int idx) const
 bool Mouse::GetMouseUp(int idx)const
 {
 	return !state[idx] && oldState[idx];
+}
+
+float Mouse::GetMouseWheel() const
+{
+	return wheel;
 }

@@ -62,6 +62,7 @@ enum class Key {
 	KEY_RIGHT,
 	KEY_DOWN,
 	KEY_HANKAKU = 229,
+	KEY_UNKNOWN = -1
 };
 
 //コントローラーボタン
@@ -217,16 +218,20 @@ public:
 
 	void SetMouseDown(int idx);
 	void SetMouseUp(int idx);
+    void SetMouseWheel(float val);
 
 	bool GetMouseDown(int idx)const;
 	bool GetMouse(int idx) const;
 	bool GetMouseUp(int idx)const;
+    float GetMouseWheel() const;
 
 private:
 	bool state[2]{};
 	bool oldState[2]{};
 
 	bool keyState[2]{};
+    float wheel = 0.0f;
+    float wheelBuffer = 0.0f;
 };
 
 class SInput :public XBoxInput, public XBoxOutput, public KeyBoard, public Mouse

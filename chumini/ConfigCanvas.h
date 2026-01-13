@@ -2,6 +2,9 @@
 #include "App.h"
 #include "TextImage.h"
 #include "SceneChangeComponent.h"
+#include <vector>
+#include <memory>
+#include <functional>
 
 namespace app
 {
@@ -12,44 +15,44 @@ namespace app
 		public:
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
+            // End removed as base class does not have it.
 
 		private:
 			sf::command::Command<> updateCommand;
 			sf::SafePtr<SceneChangeComponent> sceneChanger;
 
-			// UI Elements
+			// Global UI
 			sf::ui::TextImage* backButton = nullptr;
-			sf::ui::TextImage* laneButtons[4] = { nullptr };
-			sf::ui::TextImage* laneLabels[4] = { nullptr }; 
+			bool isBackHovered = false;
 
-            // HiSpeed UI
-            sf::ui::TextImage* speedUpButton = nullptr;
-            sf::ui::TextImage* speedDownButton = nullptr;
-            sf::ui::TextImage* speedLabel = nullptr;
-            sf::ui::TextImage* speedValueLabel = nullptr; // 値表示用 
+			// Scroll System
+			float scrollY = 0.0f;
+			float targetScrollY = 0.0f;
+			float totalContentHeight = 0.0f;
+			static constexpr float LIST_START_Y = 250.0f;
+			static constexpr float ITEM_SPACING = 120.0f;
 
-            // Controller Mode UI
-            sf::ui::TextImage* controllerModeLabel = nullptr;
-            sf::ui::TextImage* controllerModeButton = nullptr;
+			// Config Item
+			struct ConfigItem {
+				sf::ui::TextImage* label = nullptr;
+				sf::ui::TextImage* valueLabel = nullptr;
+				sf::ui::TextImage* leftButton = nullptr;
+				sf::ui::TextImage* rightButton = nullptr;
 
-            // Tap Sound UI
-            sf::ui::TextImage* tapSoundLabel = nullptr;
-            sf::ui::TextImage* tapSoundButton = nullptr;
+				float localY = 0.0f;
+				float height = 100.0f;
 
-			// Offset
-			sf::ui::TextImage* offsetLabel = nullptr;
-			sf::ui::TextImage* offsetValueLabel = nullptr;
-			sf::ui::TextImage* offsetDownButton = nullptr;
-			sf::ui::TextImage* offsetUpButton = nullptr;
+				std::function<void()> onLeft;
+				std::function<void()> onRight;
+				std::function<void()> onUpdateView;
 
-			// FAST/SLOW
-			sf::ui::TextImage* fastSlowLabel = nullptr;
-			sf::ui::TextImage* fastSlowButton = nullptr;
+				bool IsHovered(sf::ui::TextImage* btn, const Vector2& mousePos);
+				void Update(float currentY, const Vector2& mousePos, bool isClicked);
+				void SetVisible(bool visible);
+			};
+			std::vector<std::shared_ptr<ConfigItem>> items;
 
 			// State
-			bool isBackHovered = false;
-			bool isLaneHovered[4] = { false };
-
 			enum class State {
 				Normal,
 				WaitingForKey
@@ -58,14 +61,16 @@ namespace app
 			int waitingLaneIndex = -1;
 
 			void HandleInput(const sf::command::ICommand& command);
+			void UpdateScroll();
+			void RebuildLayout();
+
+			// Factories
+			void AddHeader(const wchar_t* text);
+			void AddBoolItem(const wchar_t* label, bool* targetBool);
+			void AddFloatItem(const wchar_t* label, float* targetFloat, float step, float min, float max, const wchar_t* format = L"%.1f");
+			void AddKeyItem(int laneIndex, const wchar_t* label);
+
 			void OnButtonPressed();
-			void OnLaneButtonPressed(int laneIndex);
-			void UpdateButtonText(); 
-            void UpdateSpeedText(); // Check if this was missing 
-            void UpdateControllerModeText(); 
-            void UpdateTapSoundText(); 
-			void UpdateOffsetText(); 
-			void UpdateFastSlowText(); 
 			void DetectKeyInput();
 
 			Vector2 GetMousePosition();
