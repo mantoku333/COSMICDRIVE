@@ -23,6 +23,9 @@ namespace app::test{
     struct GameConfig {
         float hiSpeed = 4.0f; // Default HiSpeed (UI scale 0-10)
         bool isControllerMode = false;
+        bool enableTapSound = true;
+        bool enableFastSlow = true; // FAST/SLOW Display
+        float offsetSec = 0.0f; // Offset in seconds
     };
 
     struct SaveData {

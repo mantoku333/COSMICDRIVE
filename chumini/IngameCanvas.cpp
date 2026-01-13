@@ -68,6 +68,12 @@ namespace app::test {
 			1024, 256
 		);
 
+		// FAST/SLOW
+		fastSlowText = AddUI<sf::ui::TextImage>();
+		fastSlowText->transform.SetPosition(Vector3(0, -200, 0));
+		fastSlowText->transform.SetScale(Vector3(3.0f, 1.0f, 0));
+		fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+
 		// 5. カウントダウン用
 		countdownText = AddUI<sf::ui::TextImage>();
 		countdownText->transform.SetPosition(Vector3(0, 100, 0));
@@ -355,6 +361,22 @@ namespace app::test {
 		if (!effect) return;
 		uis.remove(effect);
 		delete effect;
+	}
+
+	void IngameCanvas::ShowFastSlow(int type) {
+		if (!fastSlowText) return;
+
+		if (type == 1) { // FAST
+			fastSlowText->SetText(L"FAST");
+			fastSlowText->material.SetColor({ 0.0f, 0.5f, 1.0f, 1.0f }); // Blue
+		}
+		else if (type == 2) { // SLOW
+			fastSlowText->SetText(L"SLOW");
+			fastSlowText->material.SetColor({ 1.0f, 0.2f, 0.2f, 1.0f }); // Red
+		}
+		else {
+			fastSlowText->SetText(L"");
+		}
 	}
 
 } // namespace app::test

@@ -5,9 +5,16 @@ using namespace app::test;
 void JudgeStatsService::Reset()
 {
     perfect = great = good = miss = 0;
+    fast = slow = 0;
     combo = maxCombo = 0;
     lastResult = JudgeResult::None;
 }
+
+void JudgeStatsService::AddFast() { ++fast; }
+void JudgeStatsService::AddSlow() { ++slow; }
+
+int JudgeStatsService::GetFastCount() { return fast; }
+int JudgeStatsService::GetSlowCount() { return slow; }
 
 void JudgeStatsService::AddResult(JudgeResult result)
 {

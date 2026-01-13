@@ -32,6 +32,20 @@ namespace app
             sf::ui::TextImage* controllerModeLabel = nullptr;
             sf::ui::TextImage* controllerModeButton = nullptr;
 
+            // Tap Sound UI
+            sf::ui::TextImage* tapSoundLabel = nullptr;
+            sf::ui::TextImage* tapSoundButton = nullptr;
+
+			// Offset
+			sf::ui::TextImage* offsetLabel = nullptr;
+			sf::ui::TextImage* offsetValueLabel = nullptr;
+			sf::ui::TextImage* offsetDownButton = nullptr;
+			sf::ui::TextImage* offsetUpButton = nullptr;
+
+			// FAST/SLOW
+			sf::ui::TextImage* fastSlowLabel = nullptr;
+			sf::ui::TextImage* fastSlowButton = nullptr;
+
 			// State
 			bool isBackHovered = false;
 			bool isLaneHovered[4] = { false };
@@ -49,6 +63,9 @@ namespace app
 			void UpdateButtonText(); 
             void UpdateSpeedText(); // Check if this was missing 
             void UpdateControllerModeText(); 
+            void UpdateTapSoundText(); 
+			void UpdateOffsetText(); 
+			void UpdateFastSlowText(); 
 			void DetectKeyInput();
 
 			Vector2 GetMousePosition();

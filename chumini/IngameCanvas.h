@@ -44,6 +44,8 @@ namespace app
 			// 3.2.1.START の表示更新
 			void UpdateCountdownDisplay(float time, bool isStart);
 
+			void ShowFastSlow(int type); // 1:FAST, 2:SLOW
+
 		private:
 			// ... (既存のテクスチャ) ...
 			sf::Texture textureDefaultJacket;
@@ -63,6 +65,7 @@ namespace app
 
 			// 判定結果表示用テキスト
 			sf::ui::TextImage* judgeResultText = nullptr;
+			sf::ui::TextImage* fastSlowText = nullptr; // FAST/SLOW
 			sf::ui::TextImage* countdownText = nullptr;
 
 

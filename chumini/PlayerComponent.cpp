@@ -130,10 +130,10 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             if (mesh) {
                 if (isMovingLeft && !wasInLeftEdge) { // Entry
                     mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f }); 
-                    if (noteManager) {
+                     if (noteManager) {
                          float now = noteManager->GetSongTime();
                          JudgeResult result = noteManager->JudgeLane(4, now);
-                         if (sound) {
+                         if (sound && app::test::gGameConfig.enableTapSound) {
                             if (result == JudgeResult::Skip) sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
                             else sound->Play(app::test::SoundComponent::Sfx::Tap);
                          }
@@ -158,7 +158,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                     if (noteManager) {
                          float now = noteManager->GetSongTime();
                          JudgeResult result = noteManager->JudgeLane(5, now);
-                         if (sound) {
+                         if (sound && app::test::gGameConfig.enableTapSound) {
                             if (result == JudgeResult::Skip) sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
                             else sound->Play(app::test::SoundComponent::Sfx::Tap);
                          }
@@ -227,7 +227,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             JudgeResult result = noteManager->JudgeLane(lk.idx, now);
 
             auto* sound = managerActor->GetComponent<app::test::SoundComponent>();
-            if (sound) {
+            if (sound && app::test::gGameConfig.enableTapSound) {
                 if (result == JudgeResult::Skip)
                     sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
                 else

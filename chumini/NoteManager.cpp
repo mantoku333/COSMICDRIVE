@@ -61,7 +61,7 @@ namespace app::test {
 	// -----------------------------
 	static constexpr int    K_BEATS_PER_MEASURE = 4;
 	static constexpr double K_DEFAULT_BPM = 120.0;
-	static constexpr double K_OFFSET_SEC = 0.0;
+	static constexpr double K_OFFSET_SEC = 0.15;
 	static constexpr float  INPUT_OFFSET_SEC = 0.0f;
 
 	// 判定ウィンドウ（秒）
@@ -214,7 +214,7 @@ namespace app::test {
 		BuildTempoMap(tempoMap);
 
 		for (auto& nd : noteSequence)
-			nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset);
+			nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset + gGameConfig.offsetSec);
 
 		// ----------------------------------
 		// レーンパラメータ
@@ -349,6 +349,46 @@ namespace app::test {
 		noteSequence[idx].result = res;
 
 		JudgeStatsService::AddResult(res);
+
+        // FAST/SLOW Logic
+        if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
+            float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
+            // 0.005f (5ms) margin for "JAUST" (display nothing) if needed, 
+            // but usually we show Fast/Slow for all non-perfects, or even perfects.
+            // Let's implement: If Perfect w/ very small diff -> Hide ? User said "Fast/Slow display".
+            // Let's show it for everything if it's not exactly 0 (which is rare).
+            // But maybe hide if diff is very small to avoid flickering on 'Just'.
+            
+            bool isFast = diff < 0;
+            bool isSlow = diff > 0; // or >= 0
+
+            // Update Stats
+            if (isFast) JudgeStatsService::AddFast();
+            else JudgeStatsService::AddSlow(); // 0 is treated as Slow (rare)
+
+            // Update UI
+            if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                if (gGameConfig.enableFastSlow) {
+                    if (res == JudgeResult::Perfect && std::abs(diff) < 0.016f) { 
+                        // If logic: Perfect and within 1 frame (16ms) -> Maybe don't show Fast/Slow?
+                        // Or just show it. Let's show it.
+                        // Actually, let's treat Perfect as "Just" (No Fast/Slow) IF the user wants strict mode?
+                        // For now, simple: Check enableFastSlow. If on, show.
+                        canvas->ShowFastSlow(isFast ? 1 : 2);
+                    } else {
+                         canvas->ShowFastSlow(isFast ? 1 : 2);
+                    }
+                } else {
+                    canvas->ShowFastSlow(0);
+                }
+            }
+        }
+        else {
+             // Miss
+             if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                 canvas->ShowFastSlow(0);
+             }
+        }
 
 		act->DeActivate();
 		act->Destroy();

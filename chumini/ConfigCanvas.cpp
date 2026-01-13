@@ -104,6 +104,64 @@ void ConfigCanvas::Begin()
     
     UpdateControllerModeText();
 
+    // ---------------------------------------------------------
+    // Tap Sound
+    // ---------------------------------------------------------
+    tapSoundLabel = AddUI<sf::ui::TextImage>();
+    tapSoundLabel->transform.SetPosition(Vector3(-400.0f, -320.0f, 0)); // Position below Controller Mode
+    tapSoundLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+    tapSoundLabel->Create(device, L"Tap Sound", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
+
+    tapSoundButton = AddUI<sf::ui::TextImage>();
+    tapSoundButton->transform.SetPosition(Vector3(0.0f, -320.0f, 0));
+    tapSoundButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+
+    UpdateTapSoundText();
+
+    // ---------------------------------------------------------
+    // Offset Config
+    // ---------------------------------------------------------
+    // Label
+    offsetLabel = AddUI<sf::ui::TextImage>();
+    offsetLabel->transform.SetPosition(Vector3(-400.0f, -390.0f, 0));
+    offsetLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+    offsetLabel->Create(device, L"Offset", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+
+    // Value
+    offsetValueLabel = AddUI<sf::ui::TextImage>();
+    offsetValueLabel->transform.SetPosition(Vector3(-100.0f, -390.0f, 0));
+    offsetValueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+
+    // Down Button
+    offsetDownButton = AddUI<sf::ui::TextImage>();
+    offsetDownButton->transform.SetPosition(Vector3(-250.0f, -390.0f, 0));
+    offsetDownButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+    offsetDownButton->Create(device, L"<<", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+    // Up Button
+    offsetUpButton = AddUI<sf::ui::TextImage>();
+    offsetUpButton->transform.SetPosition(Vector3(100.0f, -390.0f, 0));
+    offsetUpButton->transform.SetScale(Vector3(0.8f, 0.8f, 0));
+    offsetUpButton->Create(device, L">>", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 128);
+
+    UpdateOffsetText();
+
+    // ---------------------------------------------------------
+    // FAST/SLOW Config
+    // ---------------------------------------------------------
+    fastSlowLabel = AddUI<sf::ui::TextImage>();
+    fastSlowLabel->transform.SetPosition(Vector3(-400.0f, -460.0f, 0));
+    fastSlowLabel->transform.SetScale(Vector3(2.0f, 0.6f, 0));
+    fastSlowLabel->Create(device, L"FAST/SLOW", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
+
+    fastSlowButton = AddUI<sf::ui::TextImage>();
+    fastSlowButton->transform.SetPosition(Vector3(0.0f, -460.0f, 0));
+    fastSlowButton->transform.SetScale(Vector3(1.5f, 0.8f, 0));
+
+    UpdateFastSlowText();
 
 	updateCommand.Bind(std::bind(&ConfigCanvas::Update, this, std::placeholders::_1));
 }
@@ -176,6 +234,32 @@ void ConfigCanvas::HandleInput(const sf::command::ICommand& command)
         if (IsButtonHovered(mousePos, controllerModeButton)) {
             gGameConfig.isControllerMode = !gGameConfig.isControllerMode;
             UpdateControllerModeText();
+            SaveConfig();
+        }
+
+        // Tap Sound Toggle
+        if (IsButtonHovered(mousePos, tapSoundButton)) {
+            gGameConfig.enableTapSound = !gGameConfig.enableTapSound;
+            UpdateTapSoundText();
+            SaveConfig();
+        }
+
+        // Offset Config
+        if (IsButtonHovered(mousePos, offsetUpButton)) {
+            gGameConfig.offsetSec += 0.01f;
+            UpdateOffsetText();
+            SaveConfig();
+        }
+        if (IsButtonHovered(mousePos, offsetDownButton)) {
+            gGameConfig.offsetSec -= 0.01f;
+            UpdateOffsetText();
+            SaveConfig();
+        }
+
+        // FAST/SLOW Toggle
+        if (IsButtonHovered(mousePos, fastSlowButton)) {
+            gGameConfig.enableFastSlow = !gGameConfig.enableFastSlow;
+            UpdateFastSlowText();
             SaveConfig();
         }
 	}
@@ -296,5 +380,39 @@ void ConfigCanvas::UpdateControllerModeText() {
     D2D1::ColorF color = gGameConfig.isControllerMode ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
 
     controllerModeButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, color, 256, 128);
+}
+
+void ConfigCanvas::UpdateTapSoundText() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    auto device = dx11->GetMainDevice().GetDevice();
+
+    std::wstring text = gGameConfig.enableTapSound ? L"ON" : L"OFF";
+    D2D1::ColorF color = gGameConfig.enableTapSound ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
+
+    tapSoundButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, color, 256, 128);
+}
+
+void ConfigCanvas::UpdateOffsetText() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    auto device = dx11->GetMainDevice().GetDevice();
+
+    // 符号付きで表示 (例: "+0.00s", "-0.05s")
+    wchar_t buf[32];
+    swprintf_s(buf, L"%+.2fs", gGameConfig.offsetSec);
+    
+    offsetValueLabel->Create(device, buf, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+        80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+}
+
+void ConfigCanvas::UpdateFastSlowText() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    auto device = dx11->GetMainDevice().GetDevice();
+
+    std::wstring text = gGameConfig.enableFastSlow ? L"ON" : L"OFF";
+    D2D1::ColorF color = gGameConfig.enableFastSlow ? D2D1::ColorF(D2D1::ColorF::Green) : D2D1::ColorF(D2D1::ColorF::Red);
+
+    fastSlowButton->Create(device, text.c_str(), L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
         80.0f, color, 256, 128);
 }
