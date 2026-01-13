@@ -76,6 +76,9 @@ namespace app::test {
 			1024, 256
 		);
 
+
+
+
 		// =========================================================
 		// 蛻晄悄蛹・
 		// =========================================================
@@ -91,7 +94,13 @@ namespace app::test {
 			noteManager = actor->GetComponent<NoteManager>();
 		}
 
+
 		UpdateJacketImage();
+		
+		// カウントダウン状態初期化
+		lastCountdownVal = -1;
+		isCountdownStartShown = false;
+
 		updateCommand.Bind(std::bind(&IngameCanvas::Update, this, std::placeholders::_1));
 	}
 
@@ -99,9 +108,16 @@ namespace app::test {
 	{
 		countUpTimer += sf::Time::DeltaTime();
 
-		UpdateTimerDisplay(countUpTimer);
+		// カウントダウン中以外のみタイマー更新
+		if (!isCountdownActive) {
+			UpdateTimerDisplay(countUpTimer);
+		}
 
-		int combo = JudgeStatsService::GetCombo();
+		int combo = JudgeStatsService::GetCount(JudgeResult::Perfect) + JudgeStatsService::GetCount(JudgeResult::Great) + JudgeStatsService::GetCount(JudgeResult::Good); // 簡易計算 or JudgeStatsService::GetCombo() if available
+
+		// ... (コンボ制御はあとで)
+		// JudgeStatsService::GetCombo() があればそれを使う
+		combo = JudgeStatsService::GetCombo();
 
 		// コンボ変動時の初期化/脈動判定
 		if (lastCombo == -1) {
@@ -203,6 +219,9 @@ namespace app::test {
 		// 笘・ullptr繝√ぉ繝・け (縺薙ｌ縺後↑縺・→繧ｯ繝ｩ繝・す繝･縺励∪縺・
 		if (!judgeResultText) return;
 
+		// 判定表示位置にリセット (カウントダウンで中央に移動させていたため)
+		judgeResultText->transform.SetPosition(Vector3(810, 100, 0));
+
 		switch (result) {
 		case JudgeResult::Perfect:
 			judgeResultText->SetText(L"PERFECT");
@@ -230,6 +249,58 @@ namespace app::test {
 			judgeResultText->SetText(L"");
 			break;
 		}
+	}
+
+	void IngameCanvas::UpdateCountdownDisplay(float time, bool isStart)
+	{
+		if (!judgeResultText) return;
+
+		// カウントダウン中は中央に表示
+		judgeResultText->transform.SetPosition(Vector3(0, 100, 0));
+		
+		// ★重要: カウントダウン中はタイマー更新を止めるフラグを立てる（未実装ならここで強制的にタイマーテキスト更新をスキップする仕組みを入れる）
+		// ここでは簡易的に、メンバ変数 isCountdownActive を追加して管理するか、
+		// もしくは IngameScene 側で制御する。
+		// 今回は IngameCanvas::Update でカウントダウン中判定を行うために isCountdownStartShown を流用するか、
+		// countdownTimerの値を見る。しかし countdownTimer はここだけのローカル引数。
+		
+		// 解決策: UpdateTimerDisplay の呼び出し元 (IngameCanvas::Update) を制御したいが、
+		// ここではとりあえずテキスト更新を行う。
+
+		if (isStart) {
+			if (!isCountdownStartShown) {
+				judgeResultText->SetText(L"START!!");
+				judgeResultText->material.SetColor({ 1, 0, 0, 1 }); // 赤
+				judgeResultText->transform.SetScale(Vector3(12, 3, 0)); // 少し大きく
+				isCountdownStartShown = true;
+			}
+		}
+		else if (time > 0.0f) {
+			isCountdownStartShown = false;
+			// ceilして 3, 2, 1 を表示
+			int count = (int)ceil(time);
+			
+			if (count != lastCountdownVal) {
+				wchar_t buf[16];
+				swprintf_s(buf, L"%d", count);
+				judgeResultText->SetText(buf);
+				judgeResultText->material.SetColor({ 1, 1, 0, 1 }); // 黄
+				judgeResultText->transform.SetScale(Vector3(10, 5, 0)); // 元のサイズ
+				lastCountdownVal = count;
+			}
+		}
+		else {
+			if (lastCountdownVal != 0) {
+				judgeResultText->SetText(L"");
+				lastCountdownVal = 0;
+			}
+			isCountdownStartShown = false;
+		}
+		
+		// フラグ更新
+		// 時間が0以上ならカウントダウン中、START表示中も含むが、START表示後はPlayingになるので呼ばれなくなるはず
+		// 厳密には time > 0 || isStart
+		isCountdownActive = (time > 0.0f) || isStart;
 	}
 
 	void IngameCanvas::UpdateJacketImage() {

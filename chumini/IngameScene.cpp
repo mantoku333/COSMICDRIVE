@@ -39,31 +39,41 @@ namespace {
 
 void app::test::IngameScene::Init()
 {
-    // sf::debug::Debug::Log("IngameScene initialized");
-    ShowCursor(FALSE);
+	// sf::debug::Debug::Log("IngameScene initialized");
+	ShowCursor(FALSE);
 
-    // ── マネージャを生成 ──
-    {
-        managerActor = Instantiate();
-        managerActor.Target()->AddComponent<app::test::NoteManager>();
-        managerActor.Target()->AddComponent<IngameCanvas>();
-        managerActor.Target()->AddComponent<app::test::SoundComponent>();
-        managerActor.Target()->AddComponent<SceneChangeComponent>();
-       
-        bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
+	// ── カメラ生成 ──
+	{
+		auto camera = Instantiate();
+		camera.Target()->AddComponent<sf::Camera>();
+		// 固定カメラ (ユーザーが「おかしい」と言ったのでFollowCameraは一旦外す)
+		// 位置は lanes 全体が見渡せる位置に設定
+		camera.Target()->transform.SetPosition({ 0.0f, 20.0f, -20.0f });
+		camera.Target()->transform.SetRotation({ 45.0f, 0.0f, 0.0f });
+	}
 
-        auto effectMgr = managerActor.Target()->AddComponent<app::test::EffectManager>();
+	// ── マネージャを生成 ──
+	{
+		managerActor = Instantiate();
+		managerActor.Target()->AddComponent<app::test::NoteManager>();
+		managerActor.Target()->AddComponent<IngameCanvas>();
+		managerActor.Target()->AddComponent<app::test::SoundComponent>();
+		managerActor.Target()->AddComponent<SceneChangeComponent>();
+	   
+		bgmPlayer = managerActor.Target()->AddComponent<app::test::BGMComponent>();
 
-        // プレイヤー
-        auto player = Instantiate();
-        auto mesh = player.Target()->AddComponent<sf::Mesh>();
-        mesh->SetGeometry(g_cube); // Cubeメッシュ
-        player.Target()->transform.SetScale({ 0.5f, 0.5f, 0.5f });
-        mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 0.1f });
-        player.Target()->AddComponent<PlayerComponent>(); // ←ここに移動処理含む
+		auto effectMgr = managerActor.Target()->AddComponent<app::test::EffectManager>();
 
-        
-    }
+		// プレイヤー
+		auto player = Instantiate();
+		auto mesh = player.Target()->AddComponent<sf::Mesh>();
+		mesh->SetGeometry(g_cube); // Cubeメッシュ
+		player.Target()->transform.SetScale({ 0.5f, 0.5f, 0.5f });
+		mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 0.1f });
+		
+		auto pComp = player.Target()->AddComponent<PlayerComponent>(); // ←ここに移動処理含む
+		
+	}
 
     // ===== レーン配置 =====
     {
@@ -226,71 +236,111 @@ void app::test::IngameScene::Init()
 void app::test::IngameScene::Update(const sf::command::ICommand& command)
 {
 
-    if (!isPlaying){
+	// ステートマシンによる制御
+	if (state == State::Idle) {
+		// すぐさまカウントダウンへ移行（必要ならここで少し待機も可）
+		state = State::Countdown;
+		countdownTimer = 3.0f; // 3秒カウントダウン
+	}
+	else if (state == State::Countdown) {
+		countdownTimer -= sf::Time::DeltaTime();
 
-        if (SInput::Instance().GetMouseDown(0))
-        {
-            StartGame();
-        }
-        else
-        {
-            // 待機中は時間を0に強制しないように変更
-            // ノーツが上から流れてくる「溜め」の時間を確保するため
-        }
+		// Canvasに通知
+		if (managerActor.Target()) {
+			if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
+				canvas->UpdateCountdownDisplay(countdownTimer, false);
+			}
+		}
 
-        static float time = 0.0f;
-        time += sf::Time::DeltaTime();
+		if (countdownTimer <= 0.0f) {
+			// カウントダウン終了 → START表示 → ゲーム開始
+			state = State::Playing;
+			
+			// CanvasにSTART表示指示
+			if (managerActor.Target()) {
+				if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
+					canvas->UpdateCountdownDisplay(0.0f, true);
+				}
+			}
 
-        for (auto& edge : laneEdges)
-        {
-            if (edge.Target() == nullptr) continue;
-            auto mesh = edge.Target()->GetComponent<sf::Mesh>();
-            if (!mesh) continue;
+			StartGame();
+		}
+	}
+	else if (state == State::Playing) {
+		// "START" 表示を一定時間で消す処理が必要ならCanvas側でタイマーを持つか、
+		// ここで少し待ってから非表示にする指示を送る。
+		// 今回は簡易的に、少し時間が経ったら消すようにCanvasへ再送してもいいが、
+		// UpdateCountdownDisplayのロジック的に 0以下なら非表示になるので、
+		// START表示を残したければ別途タイマーが必要。
+		// ここではシンプルに、Playingに入ったら少しの間(例えば1秒)STARTを出し続ける処理を入れるか、
+		// あるいはCanvas側がStart表示状態を持続させるか。
+		
+		static float startDisplayTimer = 1.0f;
+		if (startDisplayTimer > 0.0f) {
+			startDisplayTimer -= sf::Time::DeltaTime();
+			if (startDisplayTimer <= 0.0f) {
+				// 表示消去
+				if (managerActor.Target()) {
+					if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
+						canvas->UpdateCountdownDisplay(-1.0f, false);
+					}
+				}
+			}
+		}
 
-            // Z位置を基準に色を変化させる
-            float z = edge.Target()->transform.GetPosition().z;
-            float scroll = time * 2.0f;              // 流れる速度
-            float t = (sin(z * 0.3f + scroll) * 0.5f) + 0.5f; // 上下グラデ＋時間経過
 
-            // グラデーション色（上が赤→下がオレンジ寄り）
-            float r = 1.0f;
-            float g = 0.3f + 0.4f * t;
-            float b = 0.3f + 0.2f * (1.0f - t);
-            float a = 1.0f;
+		// ゲーム中
+		if (managerActor.Target())
+		{
+			auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
+			if (noteMgr) {
+				// まだ曲が再生されていない場合、時間が0になるのを待つ
+				if (!bgmPlayer.isNull() && !bgmPlayer->IsPlaying()) {
+					float currentSongTime = noteMgr->GetSongTime();
+					
+					// 時間が進んで0（＝判定ライン到達）を超えたら再生開始
+					if (currentSongTime >= 0.0f) {
+						bgmPlayer->Play();
+						// 念のため同期
+						noteMgr->SyncTime(bgmPlayer->GetCurrentTime()); 
+					}
+				}
+				else if (!bgmPlayer.isNull() && bgmPlayer->IsPlaying()) {
+					// 再生中は常に同期
+					noteMgr->SyncTime(bgmPlayer->GetCurrentTime());
+				}
+			}
+		}
 
-            mesh->material.SetColor({ r, g, b, a });
-        }
+		// 背景エフェクト等の更新（Playing中のみ）
+		static float time = 0.0f;
+		time += sf::Time::DeltaTime();
 
-    }
-    else {
-        // ゲーム中
-        if (managerActor.Target())
-        {
-            auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
-            if (noteMgr) {
-                // まだ曲が再生されていない場合、時間が0になるのを待つ
-                if (!bgmPlayer.isNull() && !bgmPlayer->IsPlaying()) {
-                    float currentSongTime = noteMgr->GetSongTime();
-                    
-                    // 時間が進んで0（＝判定ライン到達）を超えたら再生開始
-                    if (currentSongTime >= 0.0f) {
-                        bgmPlayer->Play();
-                        // 念のため同期
-                        noteMgr->SyncTime(bgmPlayer->GetCurrentTime()); 
-                    }
-                }
-                else if (!bgmPlayer.isNull() && bgmPlayer->IsPlaying()) {
-                    // 再生中は常に同期
-                    noteMgr->SyncTime(bgmPlayer->GetCurrentTime());
-                }
-            }
-        }
-    }
+		for (auto& edge : laneEdges)
+		{
+			if (edge.Target() == nullptr) continue;
+			auto mesh = edge.Target()->GetComponent<sf::Mesh>();
+			if (!mesh) continue;
+
+			float z = edge.Target()->transform.GetPosition().z;
+			float scroll = time * 2.0f;
+			float t = (sin(z * 0.3f + scroll) * 0.5f) + 0.5f;
+
+			float r = 1.0f;
+			float g = 0.3f + 0.4f * t;
+			float b = 0.3f + 0.2f * (1.0f - t);
+			float a = 1.0f;
+
+			mesh->material.SetColor({ r, g, b, a });
+		}
+	}
 }
 
 void app::test::IngameScene::OnActivated()
 {
     isPlaying = false;
+    state = State::Idle;
+    countdownTimer = 0.0f;
 
     if (selectedSong.musicPath.empty() || bgmPlayer.isNull()) {
         sf::debug::Debug::Log("[BGM] OnActivated: path empty or bgmPlayer null");

@@ -57,6 +57,14 @@ namespace app
 
 		private:
 			
+			enum class State {
+				Idle,
+				Countdown,
+				Playing
+			};
+			State state = State::Idle;
+			float countdownTimer = 0.0f;
+
 			bool isPlaying = false; // ゲーム中かどうかのフラグ
 
 			void StartGame();

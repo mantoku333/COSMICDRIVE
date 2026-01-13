@@ -41,6 +41,9 @@ namespace app
 			NoteManager* noteManager = nullptr;
 			void DestroyEffect(sf::ui::Image* effect);
 
+			// 3.2.1.START の表示更新
+			void UpdateCountdownDisplay(float time, bool isStart);
+
 		private:
 			// ... (既存のテクスチャ) ...
 			sf::Texture textureDefaultJacket;
@@ -64,6 +67,8 @@ namespace app
 			// 判定結果表示用テキスト
 			sf::ui::TextImage* judgeResultText = nullptr;
 
+
+
 			sf::command::Command<> updateCommand;
 
 			float countUpTimer = 0.0f;
@@ -74,6 +79,13 @@ namespace app
 
 			// 判定表示用
 			JudgeResult lastJudgeResult = JudgeResult::None;
+
+			// カウントダウン表示制御用
+			int lastCountdownVal = -1;
+			bool isCountdownStartShown = false;
+			
+			// カウントダウン中かどうか（タイマー更新抑制用）
+			bool isCountdownActive = false;
 		};
 	}
 }
