@@ -7,11 +7,29 @@
 
 using namespace sf::ui;
 
+#include <mutex> // Added for thread safety
+
+// ★ Static Member Definition
+Microsoft::WRL::ComPtr<ID2D1Factory> TextImage::d2dFactory;
+Microsoft::WRL::ComPtr<IDWriteFactory> TextImage::dwFactory;
+static std::mutex s_factoryMutex; // Protects initialization of d2dFactory and dwFactory
+
 TextImage::TextImage() {}
 TextImage::~TextImage() {}
 
 bool TextImage::LoadFontFile(const std::wstring& fontPath, std::wstring& outFontFamilyName) {
     if (fontPath.empty()) return false;
+    
+    // Ensure factories are created before using them in LoadFontFile
+    // Though usually Create() is called first, this safety check is good.
+    {
+        std::lock_guard<std::mutex> lock(s_factoryMutex);
+        if (!dwFactory) {
+             if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                reinterpret_cast<IUnknown**>(dwFactory.GetAddressOf()))))
+                return false;
+        }
+    }
 
     Microsoft::WRL::ComPtr<IDWriteFactory5> dwFactory5;
     if (FAILED(dwFactory.As(&dwFactory5))) return false;
@@ -27,7 +45,7 @@ bool TextImage::LoadFontFile(const std::wstring& fontPath, std::wstring& outFont
     Microsoft::WRL::ComPtr<IDWriteFontSet> fontSet;
     if (FAILED(fontSetBuilder->CreateFontSet(&fontSet))) return false;
 
-    // �� ComPtr �̈��S�ȃA�h���X�擾���g�p
+    // ★ ComPtr の安全なアドレス取得を使用
     if (FAILED(dwFactory5->CreateFontCollectionFromFontSet(fontSet.Get(), customFontCollection.ReleaseAndGetAddressOf())))
         return false;
 
@@ -66,8 +84,21 @@ bool TextImage::Create(ID3D11Device* device,
     width = texWidth;
     height = texHeight;
 
-    d2dFactory.Reset();
-    dwFactory.Reset();
+    // Double-checked locking pattern or just simple lock for safety
+    {
+        std::lock_guard<std::mutex> lock(s_factoryMutex);
+        if (!d2dFactory) {
+            // Changed to MULTI_THREADED
+            if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, d2dFactory.GetAddressOf())))
+                return false;
+        }
+        if (!dwFactory) {
+            if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
+                reinterpret_cast<IUnknown**>(dwFactory.GetAddressOf()))))
+                return false;
+        }
+    }
+
     rt.Reset();
     brush.Reset();
     format.Reset();
@@ -75,12 +106,7 @@ bool TextImage::Create(ID3D11Device* device,
     srv.Reset();
     customFontCollection.Reset();
 
-    if (FAILED(D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, d2dFactory.GetAddressOf())))
-        return false;
-
-    if (FAILED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory),
-        reinterpret_cast<IUnknown**>(dwFactory.GetAddressOf()))))
-        return false;
+    // Factory creation removed from here.
 
     std::wstring actualFontName = fontPathOrName;
     if (fontPathOrName.find(L".ttf") != std::wstring::npos || fontPathOrName.find(L".otf") != std::wstring::npos) {
@@ -114,7 +140,7 @@ bool TextImage::Create(ID3D11Device* device,
     if (FAILED(rt->CreateSolidColorBrush(color, brush.GetAddressOf())))
         return false;
 
-    // customFontCollection.Get() �� IDWriteFontCollection* �Ƃ��ēn����̂�OK
+    // customFontCollection.Get() は IDWriteFontCollection* として渡せるのでOK
     if (FAILED(dwFactory->CreateTextFormat(
         actualFontName.c_str(),
         customFontCollection.Get(),

@@ -3,7 +3,7 @@
 #include "Texture.h"
 #include <d2d1.h>
 #include <dwrite.h>
-#include <dwrite_3.h>   // š’Ç‰Á: ‚±‚ê‚ª‚È‚¢‚Æ IDWriteFontCollection1 ‚ªg‚¦‚Ü‚¹‚ñ
+#include <dwrite_3.h>   // â˜…è¿½åŠ : ã“ã‚ŒãŒãªã„ã¨ IDWriteFontCollection1 ãŒä½¿ãˆã¾ã›ã‚“
 #include <wrl/client.h>
 #include <string>
 
@@ -25,7 +25,7 @@ namespace sf {
             bool SetText(const std::wstring& newText);
 
         private:
-            // š‘æ2ˆø”‚É std::wstring& ‚ğ’Ç‰Á
+            // â˜…ç¬¬2å¼•æ•°ã« std::wstring& ã‚’è¿½åŠ 
             bool LoadFontFile(const std::wstring& fontPath, std::wstring& outFontFamilyName);
 
             class InlineTexture : public sf::Texture {
@@ -45,13 +45,15 @@ namespace sf {
             Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
             Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
 
-            Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory;
-            Microsoft::WRL::ComPtr<IDWriteFactory> dwFactory;
+            // â˜… Static factories to prevent resource exhaustion
+            static Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory;
+            static Microsoft::WRL::ComPtr<IDWriteFactory> dwFactory;
+
             Microsoft::WRL::ComPtr<ID2D1RenderTarget> rt;
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
             Microsoft::WRL::ComPtr<IDWriteTextFormat> format;
 
-            // š IDWriteFontCollection1 ‚ÉC³
+            // â˜… IDWriteFontCollection1 ã«ä¿®æ­£
             Microsoft::WRL::ComPtr<IDWriteFontCollection1> customFontCollection;
 
             ID3D11Device* deviceRef = nullptr;
