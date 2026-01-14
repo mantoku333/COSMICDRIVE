@@ -171,7 +171,7 @@ namespace app::test {
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
 			120.0f,
 			D2D1::ColorF(D2D1::ColorF::White),
-			1024, 256
+			2048, 256
 		);
 
 		// =========================================================
