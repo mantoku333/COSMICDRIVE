@@ -64,6 +64,7 @@ namespace app
 			};
 			State state = State::Idle;
 			float countdownTimer = 0.0f;
+			float startDisplayTimer = 0.0f;
 
 			bool isPlaying = false; // ゲーム中かどうかのフラグ
 

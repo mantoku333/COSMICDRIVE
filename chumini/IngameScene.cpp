@@ -263,6 +263,8 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 				}
 			}
 
+			startDisplayTimer = 1.0f; // タイマー初期化
+
 			StartGame();
 		}
 	}
@@ -275,7 +277,6 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 		// ここではシンプルに、Playingに入ったら少しの間(例えば1秒)STARTを出し続ける処理を入れるか、
 		// あるいはCanvas側がStart表示状態を持続させるか。
 		
-		static float startDisplayTimer = 1.0f;
 		if (startDisplayTimer > 0.0f) {
 			startDisplayTimer -= sf::Time::DeltaTime();
 			if (startDisplayTimer <= 0.0f) {

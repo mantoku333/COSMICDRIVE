@@ -105,13 +105,6 @@ void ConfigCanvas::Begin()
 		}
 	}
 
-	// BACK ボタン (リスト外、固定)
-	backButton = AddUI<sf::ui::TextImage>();
-	backButton->transform.SetPosition(Vector3(800, -450, 0));
-	backButton->transform.SetScale(Vector3(3, 1.2f, 0));
-	backButton->Create(device, L"BACK", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-		100.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
-
 	// Setup List Items
 	items.clear();
 	scrollY = 0.0f;
@@ -126,7 +119,22 @@ void ConfigCanvas::Begin()
 
 void ConfigCanvas::RebuildLayout()
 {
+	// Clear existing UI elements to prevent duplication/overlap
+	for (auto* ui : uis) {
+		delete ui;
+	}
+	uis.clear();
 	items.clear();
+
+	auto* dx11 = sf::dx::DirectX11::Instance();
+	auto device = dx11->GetMainDevice().GetDevice();
+
+	// BACK ボタン (再作成)
+	backButton = AddUI<sf::ui::TextImage>();
+	backButton->transform.SetPosition(Vector3(800, -450, 0));
+	backButton->transform.SetScale(Vector3(3, 1.2f, 0));
+	backButton->Create(device, L"BACK", L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+		100.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
 
 	// ----------------------
 	// General
@@ -149,9 +157,9 @@ void ConfigCanvas::RebuildLayout()
 	// ----------------------
 	// Audio
 	// ----------------------
-	AddHeader(L"-- AUDIO --");
+	AddHeader(L"AUDIO");
 	AddBoolItem(L"Tap Sound", &gGameConfig.enableTapSound);
-    // Future: Volume sliders
+	// Future: Volume sliders
 
 	// Calculate total height
 	float y = 0.0f;
@@ -375,7 +383,7 @@ void ConfigCanvas::AddFloatItem(const wchar_t* labelText, float* targetFloat, fl
 	item->label = AddUI<sf::ui::TextImage>();
 	item->label->transform.SetScale(Vector3(2.0f, 0.6f, 0));
 	item->label->Create(device, labelText, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
 
 	item->valueLabel = AddUI<sf::ui::TextImage>();
 	item->valueLabel->transform.SetScale(Vector3(1.5f, 0.8f, 0));
@@ -391,7 +399,7 @@ void ConfigCanvas::AddFloatItem(const wchar_t* labelText, float* targetFloat, fl
 	auto Refresh = [=]() {
 		wchar_t buf[32];
 		swprintf_s(buf, format, *targetFloat);
-		item->valueLabel->Create(device, buf, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+		item->valueLabel->Create(device, buf, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
 	};
 	Refresh();
 
@@ -424,7 +432,7 @@ void ConfigCanvas::AddKeyItem(int laneIndex, const wchar_t* labelText)
 	item->label = AddUI<sf::ui::TextImage>();
 	item->label->transform.SetScale(Vector3(1.5f, 0.6f, 0));
 	item->label->Create(device, labelText, L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf", 
-        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 256, 128);
+        80.0f, D2D1::ColorF(D2D1::ColorF::LightGray), 512, 128);
     // Override label position slightly? Standard position is fine.
 
 	item->rightButton = AddUI<sf::ui::TextImage>();

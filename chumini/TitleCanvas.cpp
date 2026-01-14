@@ -240,7 +240,6 @@ void TitleCanvas::Begin()
 // ... inside HandleInput ...
 
 	// --- キーボード操作 ---
-	// --- キーボード操作 ---
 	// 0: CONFIG, 1: PLAY, 2: EXIT
 	
 	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
