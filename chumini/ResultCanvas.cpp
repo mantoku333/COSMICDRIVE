@@ -31,7 +31,7 @@ namespace app::test {
 
 		// --- RESULTラベル ---
 		resultLabel = AddUI<sf::ui::TextImage>();
-		resultLabel->transform.SetPosition(Vector3(0, 350, 0));
+		resultLabel->transform.SetPosition(Vector3(0, 380, 0));
 		resultLabel->transform.SetScale(Vector3(8, 2, 0));
 		resultLabel->Create(
 			context,
@@ -44,7 +44,7 @@ namespace app::test {
 
 		// --- 操作ガイド
 		guideText = AddUI<sf::ui::TextImage>();
-		guideText->transform.SetPosition(Vector3(0, -400, 0)); 
+		guideText->transform.SetPosition(Vector3(0, -450, 0)); 
 		guideText->transform.SetScale(Vector3(5, 1.5f, 0));
 		guideText->Create(
 			context,
@@ -55,22 +55,71 @@ namespace app::test {
 			800, 128
 		);
 
-		// --- 判定内訳
-		judgeDetailText = AddUI<sf::ui::TextImage>();
-		judgeDetailText->transform.SetPosition(Vector3(-300, -100, 0));
-		judgeDetailText->transform.SetScale(Vector3(6, 8, 0));
-		judgeDetailText->Create(
-			context,
-			L"", // 後でセット
-			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f,
-			D2D1::ColorF(D2D1::ColorF::White),
-			512, 1024
+		// --- 判定内訳 (PERFECT)
+		perfectText = AddUI<sf::ui::TextImage>();
+		perfectText->transform.SetPosition(Vector3(-300, 120, 0));
+		perfectText->transform.SetScale(Vector3(4.5f, 1.5f, 0));   // 横長・縦短
+		perfectText->Create(
+			context, L"", 
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf", 
+			60.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128
 		);
+
+		// --- 判定内訳 (GREAT)
+		greatText = AddUI<sf::ui::TextImage>();
+		greatText->transform.SetPosition(Vector3(-300, 50, 0));
+		greatText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		greatText->Create(
+			context, L"",
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
+			60.0f, D2D1::ColorF(D2D1::ColorF::HotPink), 512, 128
+		);
+
+		// --- 判定内訳 (GOOD)
+		goodText = AddUI<sf::ui::TextImage>();
+		goodText->transform.SetPosition(Vector3(-300, -20, 0));
+		goodText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		goodText->Create(
+			context, L"",
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
+			60.0f, D2D1::ColorF(D2D1::ColorF::LimeGreen), 512, 128
+		);
+
+		// --- 判定内訳 (MISS)
+		missText = AddUI<sf::ui::TextImage>();
+		missText->transform.SetPosition(Vector3(-300, -90, 0));
+		missText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		missText->Create(
+			context, L"",
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
+			60.0f, D2D1::ColorF(D2D1::ColorF::Gray), 512, 128
+		);
+
+		// --- 判定内訳 (FAST)
+		// MISSとの間を少し空ける
+		fastText = AddUI<sf::ui::TextImage>();
+		fastText->transform.SetPosition(Vector3(-300, -190, 0));
+		fastText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		fastText->Create(
+			context, L"",
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
+			60.0f, D2D1::ColorF(D2D1::ColorF::OrangeRed), 512, 128
+		);
+
+		// --- 判定内訳 (SLOW)
+		slowText = AddUI<sf::ui::TextImage>();
+		slowText->transform.SetPosition(Vector3(-300, -260, 0));
+		slowText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		slowText->Create(
+			context, L"",
+			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
+			60.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 128
+		);
+
 
 		// --- マックスコンボ
 		comboText = AddUI<sf::ui::TextImage>();
-		comboText->transform.SetPosition(Vector3(-300, -250, 0));
+		comboText->transform.SetPosition(Vector3(-300, -360, 0)); // -280 -> -360
 		comboText->transform.SetScale(Vector3(8, 2, 0));
 		comboText->Create(
 			context,
@@ -82,8 +131,39 @@ namespace app::test {
 		);
 
 		// --- スコア
+		// ... existing score code ... (Assuming this part is outside the target content range if I target correctly, but I need to include it if it moves relative to others)
+        // Ignoring scoreText update in Replace Content since I only select the Judge Detail part.
+        
+        // Wait, I should make sure I don't delete scoreText init if I select a large block.
+        // Let's stick to the JudgeDetail part.
+        
+        // Actually, the previous tool call set judgeDetailText then comboText.
+        // I will replace from judgeDetailText definition up to comboText definition.
+        
+        // Wait, I need to look at the line numbers again to be safe.
+        // judgeDetailText is Lines 59-69
+        // comboText is Lines 72-82
+        // scoreText is Lines 85-95
+        
+        // I will replace Lines 59-82 (Judge + Combo)
+
+        // =========================================================
+		// 3. ランク表示
+		// =========================================================
+
+		// ...
+		
+		// =========================================================
+		// 5. テキストへの値セット
+		// =========================================================
+
+        // ... (Update this part too)
+
+
+
+		// --- スコア
 		scoreText = AddUI<sf::ui::TextImage>();
-		scoreText->transform.SetPosition(Vector3(-300, 100, 0));
+		scoreText->transform.SetPosition(Vector3(-300, 180, 0)); // 上すぎたので下げる
 		scoreText->transform.SetScale(Vector3(8, 2, 0));
 		scoreText->Create(
 			context,
@@ -131,7 +211,7 @@ namespace app::test {
 			context,
 			L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			150.0f,
+			134.0f,
 			D2D1::ColorF(D2D1::ColorF::White),
 			512, 512
 		);
@@ -143,6 +223,8 @@ namespace app::test {
 		int great = JudgeStatsService::GetCount(JudgeResult::Great);
 		int good = JudgeStatsService::GetCount(JudgeResult::Good);
 		int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
+		int fast = JudgeStatsService::GetFastCount();
+		int slow = JudgeStatsService::GetSlowCount();
 		int maxCombo = JudgeStatsService::GetMaxCombo();
 
 		// 簡易スコア計算 (満点 1,000,000 点)
@@ -203,40 +285,39 @@ namespace app::test {
 		// =========================================================
 
 		// 判定詳細
-		wchar_t detailBuf[256];
-		swprintf_s(detailBuf,
-			L"PERFECT: %d\n"
-			L"GREAT:   %d\n"
-			L"GOOD:    %d\n"
-			L"MISS:    %d",
-			perfect, great, good, miss);
-		judgeDetailText->SetText(detailBuf);
+		wchar_t buf[64];
+		
+		if (perfectText) {
+			swprintf_s(buf, L"PERFECT: %d", perfect);
+			perfectText->SetText(buf);
+		}
+		if (greatText) {
+			swprintf_s(buf, L"GREAT:   %d", great);
+			greatText->SetText(buf);
+		}
+		if (goodText) {
+			swprintf_s(buf, L"GOOD:    %d", good);
+			goodText->SetText(buf);
+		}
+		if (missText) {
+			swprintf_s(buf, L"MISS:    %d", miss);
+			missText->SetText(buf);
+		}
+		if (fastText) {
+			swprintf_s(buf, L"FAST:    %d", fast);
+			fastText->SetText(buf);
+		}
+		if (slowText) {
+			swprintf_s(buf, L"SLOW:    %d", slow);
+			slowText->SetText(buf);
+		}
 
 		// マックスコンボ
 		wchar_t comboBuf[64];
 		swprintf_s(comboBuf, L"MAX COMBO: %d", maxCombo);
 		comboText->SetText(comboBuf);
 
-        // Update JudgeDetail text including Fast/Slow
-        int p = JudgeStatsService::GetCount(JudgeResult::Perfect);
-        int gr = JudgeStatsService::GetCount(JudgeResult::Great);
-        int go = JudgeStatsService::GetCount(JudgeResult::Good);
-        int m = JudgeStatsService::GetCount(JudgeResult::Miss);
-        int fast = JudgeStatsService::GetFastCount();
-        int slow = JudgeStatsService::GetSlowCount();
 
-        if (judgeDetailText) {
-            wchar_t detailBuf[512];
-            swprintf_s(detailBuf,
-                L"PERFECT: %d\n"
-                L"GREAT:   %d\n"
-                L"GOOD:    %d\n"
-                L"MISS:    %d\n\n"
-                L"FAST:    %d\n"
-                L"SLOW:    %d",
-                p, gr, go, m, fast, slow);
-            judgeDetailText->SetText(detailBuf);
-        }
 
 		// スコア
 		wchar_t scoreBuf[64];
