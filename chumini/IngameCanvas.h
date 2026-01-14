@@ -61,7 +61,11 @@ namespace app
 			// テキストUI
 			// ---------------------------------------------------------
 			sf::ui::TextImage* comboText = nullptr;
-			sf::ui::TextImage* judgeStatsText = nullptr;
+			// 判定内訳（個別）
+			sf::ui::TextImage* perfectText = nullptr;
+			sf::ui::TextImage* greatText = nullptr;
+			sf::ui::TextImage* goodText = nullptr;
+			sf::ui::TextImage* missText = nullptr;
 
 			// 判定結果表示用テキスト
 			sf::ui::TextImage* judgeResultText = nullptr;
@@ -90,6 +94,7 @@ namespace app
 
 			int lastTotalJudges = -1;
 			float judgeScaleTimer = 0.0f;
+			float fastSlowScaleTimer = 0.0f;
 		};
 	}
 }

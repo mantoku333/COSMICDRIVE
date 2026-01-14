@@ -49,19 +49,42 @@ namespace app::test {
 		comboText->transform.SetScale(Vector3(4.5f, 1.8f, 0));
 		comboText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 100.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 256);
 
-		// 3. 蛻､螳壽焚蜀・ｨｳ
-		judgeStatsText = AddUI<sf::ui::TextImage>();
-		judgeStatsText->transform.SetPosition(Vector3(-700, 0, 0));
-		judgeStatsText->transform.SetScale(Vector3(5, 5, 0));
-		judgeStatsText->Create(context, L"PERFECT: 0\n...", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 512);
+		// 3. 判定内訳 (個別表示)
+		// 左端 (-960 ~ )。少し右に寄せて -700 付近
+		// Y座標は調整
 
-		// 4. 蛻､螳夂ｵ先棡
+		// PERFECT
+		perfectText = AddUI<sf::ui::TextImage>();
+		perfectText->transform.SetPosition(Vector3(-700, 100, 0)); 
+		perfectText->transform.SetScale(Vector3(3.5f, 1.5f, 0)); 
+		perfectText->Create(context, L"PERFECT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128);
+
+		// GREAT
+		greatText = AddUI<sf::ui::TextImage>();
+		greatText->transform.SetPosition(Vector3(-700, 50, 0));
+		greatText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
+		greatText->Create(context, L"GREAT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::HotPink), 512, 128);
+
+		// GOOD
+		goodText = AddUI<sf::ui::TextImage>();
+		goodText->transform.SetPosition(Vector3(-700, 0, 0));
+		goodText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
+		goodText->Create(context, L"GOOD: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::LimeGreen), 512, 128);
+
+		// MISS
+		missText = AddUI<sf::ui::TextImage>();
+		missText->transform.SetPosition(Vector3(-700, -50, 0));
+		missText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
+		missText->Create(context, L"MISS: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Gray), 512, 128);
+
+
+		// 4. 判定結果表示
 		judgeResultText = AddUI<sf::ui::TextImage>();
 		judgeResultText->transform.SetPosition(Vector3(0, -100, 0));
 		judgeResultText->transform.SetScale(Vector3(4.5f, 1.15f, 0));
 		judgeResultText->Create(
 			context,
-			L"", // 譛蛻昴・遨ｺ
+			L"", // 最初は空
 			L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
 			120.0f,
 			D2D1::ColorF(D2D1::ColorF::White),
@@ -71,8 +94,8 @@ namespace app::test {
 		// FAST/SLOW
 		fastSlowText = AddUI<sf::ui::TextImage>();
 		fastSlowText->transform.SetPosition(Vector3(0, -200, 0));
-		fastSlowText->transform.SetScale(Vector3(3.0f, 1.0f, 0));
-		fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 256, 128);
+		fastSlowText->transform.SetScale(Vector3(1.5f, 0.5f, 0)); // 小さく変更 (3.0, 1.0 -> 1.5, 0.5)
+		fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
 
 		// 5. カウントダウン用
 		countdownText = AddUI<sf::ui::TextImage>();
@@ -91,7 +114,7 @@ namespace app::test {
 
 
 		// =========================================================
-		// 蛻晄悄蛹・
+		// 初期化
 		// =========================================================
 		if (auto actor = actorRef.Target()) {
 			if (auto manager = actor->GetComponent<EffectManager>()) {
@@ -196,6 +219,23 @@ namespace app::test {
 				judgeResultText->transform.SetScale(Vector3(4.5f * judgeScaleRate, 1.15f * judgeScaleRate, 0.0f));
 			}
 		}
+
+		// ---------------------------------------------------------
+		// FAST/SLOW 脈動ロジック
+		// ---------------------------------------------------------
+		float fsScaleRate = 1.0f;
+		if (fastSlowScaleTimer > 0.0f) {
+			fastSlowScaleTimer -= sf::Time::DeltaTime();
+			if (fastSlowScaleTimer < 0.0f) fastSlowScaleTimer = 0.0f;
+
+			float t = fastSlowScaleTimer / 0.10f;
+			fsScaleRate = 1.0f + t * 0.5f; // Combox0.6に近い0.5倍拡大
+		}
+
+		if (fastSlowText) {
+			// Base Scale (1.5, 0.5)
+			fastSlowText->transform.SetScale(Vector3(1.5f * fsScaleRate, 0.5f * fsScaleRate, 0.0f));
+		}
 	}
 
 	void IngameCanvas::SpawnHitEffect(float x, float y, float scale, float duration, const Color& color)
@@ -227,22 +267,29 @@ namespace app::test {
 
 	void IngameCanvas::UpdateJudgeCountDisplay()
 	{
-		if (!judgeStatsText) return;
-
 		int p = JudgeStatsService::GetCount(JudgeResult::Perfect);
 		int gr = JudgeStatsService::GetCount(JudgeResult::Great);
 		int go = JudgeStatsService::GetCount(JudgeResult::Good);
 		int m = JudgeStatsService::GetCount(JudgeResult::Miss);
 
-		wchar_t buf[256];
-		swprintf_s(buf,
-			L"PERFECT: %d\n"
-			L"GREAT:   %d\n"
-			L"GOOD:    %d\n"
-			L"MISS:    %d",
-			p, gr, go, m);
-
-		judgeStatsText->SetText(buf);
+		wchar_t buf[64];
+		
+		if (perfectText) {
+			swprintf_s(buf, L"PERFECT: %d", p);
+			perfectText->SetText(buf);
+		}
+		if (greatText) {
+			swprintf_s(buf, L"GREAT:   %d", gr);
+			greatText->SetText(buf);
+		}
+		if (goodText) {
+			swprintf_s(buf, L"GOOD:    %d", go);
+			goodText->SetText(buf);
+		}
+		if (missText) {
+			swprintf_s(buf, L"MISS:    %d", m);
+			missText->SetText(buf);
+		}
 	}
 
 	// 笘・未謨ｰ蜷阪ｒ SetJudgeImage 縺ｫ謌ｻ縺励∪縺励◆
@@ -363,16 +410,22 @@ namespace app::test {
 		delete effect;
 	}
 
+
+
+    // ...
+
 	void IngameCanvas::ShowFastSlow(int type) {
 		if (!fastSlowText) return;
 
 		if (type == 1) { // FAST
 			fastSlowText->SetText(L"FAST");
 			fastSlowText->material.SetColor({ 0.0f, 0.5f, 1.0f, 1.0f }); // Blue
+			fastSlowScaleTimer = 0.10f; // 脈動開始
 		}
 		else if (type == 2) { // SLOW
 			fastSlowText->SetText(L"SLOW");
 			fastSlowText->material.SetColor({ 1.0f, 0.2f, 0.2f, 1.0f }); // Red
+			fastSlowScaleTimer = 0.10f; // 脈動開始
 		}
 		else {
 			fastSlowText->SetText(L"");
