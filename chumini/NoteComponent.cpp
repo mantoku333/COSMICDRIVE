@@ -47,9 +47,25 @@ namespace app::test {
 
         // HOLD START SPECIAL HANDLING
         if (info.type == NoteType::HoldStart) {
+             // Calculate visual length with rotation correction (same as Update)
+             float correction = 1.0f;
+             if (std::abs(std::cos(slopeRad)) > 0.001f) {
+                 correction = 1.0f / std::cos(slopeRad);
+             }
              float len = info.duration * noteSpeed;
-             actor->transform.SetScale({ laneW * 0.8f, 0.5f, len });
+             float visualLen = len * correction;
+
+             actor->transform.SetScale({ laneW * 0.8f, 0.5f, visualLen });
              
+             // Shift Z so that the Head is at startZ, and the rest extends "back" (Wait position)
+             // Original: Center at startZ.
+             // New: Center at startZ + len/2.
+             float initZ = startZ + len * 0.5f;
+             float initY = baseY - std::tan(slopeRad) * initZ;
+             
+             // Apply revised position
+             actor->transform.SetPosition({ currentX, initY, initZ });
+
              // DEBUG: Red for HoldStart
              if (auto mesh = actor->GetComponent<sf::Mesh>()) {
                  mesh->material.SetColor({ 1.0f, 0.0f, 0.0f, 1.0f });
