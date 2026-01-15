@@ -64,6 +64,10 @@ namespace app::test {
             }
         }
 
+        // Hold Note Logic
+        void CheckHold(int lane, bool isPressed);
+        std::vector<int> activeHolds; // lane -> index of HoldEnd note (or -1)
+
         float GetSongTime() const { return songTime; }
         void SetCurrentSongTime(float time);
         int   GetCurrentCombo() const;

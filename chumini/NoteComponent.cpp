@@ -45,6 +45,25 @@ namespace app::test {
         actor->transform.SetRotation({ rotX, 0, 0 });
         actor->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
 
+        // HOLD START SPECIAL HANDLING
+        if (info.type == NoteType::HoldStart) {
+             float len = info.duration * noteSpeed;
+             actor->transform.SetScale({ laneW * 0.8f, 0.5f, len });
+             
+             // DEBUG: Red for HoldStart
+             if (auto mesh = actor->GetComponent<sf::Mesh>()) {
+                 mesh->material.SetColor({ 1.0f, 0.0f, 0.0f, 1.0f });
+             }
+             
+             sf::debug::Debug::Log("HoldStart Init: LaneW=" + std::to_string(laneW) + " InitLen=" + std::to_string(len));
+        }
+        else if (info.type == NoteType::HoldEnd) {
+             // DEBUG: Blue for HoldEnd
+             if (auto mesh = actor->GetComponent<sf::Mesh>()) {
+                 mesh->material.SetColor({ 0.0f, 0.0f, 1.0f, 1.0f });
+             }
+        }
+
         spawnTime = info.hittime - leadTime;
         elapsed = 0.f;
 
@@ -78,7 +97,86 @@ namespace app::test {
         float z = endZ + (timeUntilHit * noteSpeed);
 
         // 4. 傾斜に合わせてY座標を補正
+        // HOLD START OFFSET
+        if (info.type == NoteType::HoldStart) {
+            float len = info.duration * noteSpeed;
+            // Shift center to be Head + Len/2
+            z += len * 0.5f;
+        }
+
         float y = baseY - std::tan(slopeRad) * z;
+
+        // HOLD START Logic
+        // `z` calculated above is the "Head" position (where the note starts).
+        if (info.type == NoteType::HoldStart) {
+            float originalLen = info.duration * noteSpeed;
+            float headZ = z; 
+            float tailZ = headZ + originalLen;
+
+            // 1. Clipping at Spawn Line (startZ) - Tail Clipping
+            // This is already handled by "tailZ > startZ" logic below?
+            // Yes, checking if tail is too far back.
+
+            // 2. Clipping at Judge Line (endZ) - Head Clipping
+            if (headZ < endZ) {
+                 float consumedLen = endZ - headZ;
+                 // If the entire note is past the judge line, it should probably disappear or be handled by logic.
+                 // But for visuals, we clamp the head to endZ.
+                 
+                 float visibleLen = originalLen - consumedLen;
+                 if (visibleLen <= 0.001f) {
+                     actor->transform.SetScale({ 0, 0, 0 });
+                 } else {
+                     headZ = endZ; // Clamp head
+                     tailZ = headZ + visibleLen; // Tail is derived from clamped head + remaining len
+
+                     // Now check if Tail is ALSO clipped by startZ (e.g. giant note spanning entire screen)
+                     if (tailZ > startZ) {
+                         visibleLen = startZ - headZ; // Clip tail at startZ
+                     }
+
+                     // Apply
+                     float newLen = visibleLen;
+                     float newCenterZ = headZ + newLen * 0.5f;
+                     
+                     z = newCenterZ;
+                     y = baseY - std::tan(slopeRad) * z;
+                     
+                     auto scale = actor->transform.GetScale();
+                     actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen });
+                 }
+            }
+            // Normal Scrolling (Head is between endZ and startZ)
+            else {
+                 // Check Tail Clipping
+                 // Check Tail Clipping
+                 if (tailZ > startZ) {
+                    // Clip tail
+                    float visibleLen = startZ - headZ;
+                    
+                    if (visibleLen <= 0.001f) {
+                        actor->transform.SetScale({ 0, 0, 0 });
+                    } else {
+                        float newLen = visibleLen;
+                        float newCenterZ = headZ + newLen * 0.5f;
+
+                        z = newCenterZ;
+                        y = baseY - std::tan(slopeRad) * z;
+                        
+                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen });
+                    }
+                } else {
+                    // Fully visible
+                    z += originalLen * 0.5f;
+                    y = baseY - std::tan(slopeRad) * z;
+
+                    auto scale = actor->transform.GetScale();
+                    if (std::abs(scale.z - originalLen) > 0.001f || scale.x == 0.0f) {
+                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, originalLen });
+                    }
+                }
+            }
+        }
 
         // 5. 座標更新
         auto pos = actor->transform.GetPosition();

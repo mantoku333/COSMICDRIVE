@@ -141,9 +141,11 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 }
                 else if (isMovingLeft) { // Hold
                     mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
+                    if (noteManager) noteManager->CheckHold(4, true);
                 }
                 else if (!isMovingLeft && wasInLeftEdge) { // Exit
                     mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+                    if (noteManager) noteManager->CheckHold(4, false);
                 }
             }
         }
@@ -166,9 +168,11 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 }
                 else if (isMovingRight) { // Hold
                     mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
+                    if (noteManager) noteManager->CheckHold(5, true);
                 }
                 else if (!isMovingRight && wasInRightEdge) { // Exit
                     mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+                    if (noteManager) noteManager->CheckHold(5, false);
                 }
             }
         }
@@ -206,6 +210,14 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 auto mesh = laneActor->GetComponent<sf::Mesh>();
                 if (mesh) mesh->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f });
             }
+            
+            // HOLD CHECK
+            auto* managerActor = ingameScene->managerActor.Target();
+            if (managerActor) {
+                 if (auto* noteManager = managerActor->GetComponent<app::test::NoteManager>()) {
+                     noteManager->CheckHold(lk.idx, true);
+                 }
+            }
         }
         // 離したら元に戻す
         else if (SInput::Instance().GetKeyUp(lk.key)) {
@@ -213,6 +225,14 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             if (laneActor) {
                 auto mesh = laneActor->GetComponent<sf::Mesh>();
                 if (mesh) mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
+            }
+
+            // HOLD CHECK (Release)
+            auto* managerActor = ingameScene->managerActor.Target();
+            if (managerActor) {
+                 if (auto* noteManager = managerActor->GetComponent<app::test::NoteManager>()) {
+                     noteManager->CheckHold(lk.idx, false);
+                 }
             }
         }
 

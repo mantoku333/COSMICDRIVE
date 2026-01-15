@@ -12,6 +12,7 @@
 #include "SongInfo.h"
 #include <numeric>
 #include <cmath>
+#include <map>
 #include "JudgeStatsService.h"
 #include "ChedParser.h"
 #include "ResultScene.h"
@@ -183,6 +184,8 @@ namespace app::test {
 			}
 			sawAnyTempoMeta = !tempoMap.empty();
 
+			std::map<int, size_t> pendingHolds; // Key: (lane << 8) | holdId
+
 			for (const auto& cn : parser.notes) {
 				NoteData nd;
 				nd.lane = std::clamp(cn.lane, 0, 5);
@@ -198,6 +201,32 @@ namespace app::test {
 				nd.absBeat = cn.absBeat;
 				nd.judged = false;
 				nd.result = JudgeResult::None;
+                
+                // Defaults
+                nd.pairIndex = -1;
+                nd.duration = 0.0f;
+
+                // Make sure to use cn.isHold from ChedParser
+                if (cn.isHold) {
+                    int key = (cn.lane << 8) | cn.holdId;
+                    if (pendingHolds.count(key)) {
+                        // This is the End of a Hold
+                        size_t startIdx = pendingHolds[key];
+                        
+                        // Link them
+                        noteSequence[startIdx].type = NoteType::HoldStart;
+                        noteSequence[startIdx].pairIndex = (int)noteSequence.size(); // Current Index
+                        
+                        nd.type = NoteType::HoldEnd;
+                        nd.pairIndex = (int)startIdx;
+                        
+                        pendingHolds.erase(key);
+                    } else {
+                        // This is the Start of a Hold
+                        nd.type = NoteType::HoldStart; // Assumed start
+                        pendingHolds[key] = noteSequence.size();
+                    }
+                }
 
 				noteSequence.push_back(nd);
 			}
@@ -215,6 +244,23 @@ namespace app::test {
 
 		for (auto& nd : noteSequence)
 			nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset + gGameConfig.offsetSec);
+
+        // Calculate Duration for Holds
+        for (auto& nd : noteSequence) {
+            if (nd.type == NoteType::HoldStart && nd.pairIndex != -1) {
+                if (nd.pairIndex < (int)noteSequence.size()) {
+                    nd.duration = noteSequence[nd.pairIndex].hittime - nd.hittime;
+                    
+                    // DEBUG LOGGING
+                    sf::debug::Debug::Log("HoldStart: Lane=" + std::to_string(nd.lane) 
+                        + " Time=" + std::to_string(nd.hittime) 
+                        + " PairIdx=" + std::to_string(nd.pairIndex)
+                        + " Duration=" + std::to_string(nd.duration));
+                }
+            } else if (nd.type == NoteType::HoldStart) {
+                 sf::debug::Debug::LogError("HoldStart UNPAIRED or INVALID: Lane=" + std::to_string(nd.lane) + " Time=" + std::to_string(nd.hittime));
+            }
+        }
 
 		// ----------------------------------
 		// レーンパラメータ
@@ -277,7 +323,9 @@ namespace app::test {
 		}
 
 		laneOrder.assign(lanes, {});
+		laneOrder.assign(lanes, {});
 		laneHeads.assign(lanes, 0);
+        activeHolds.assign(lanes, -1);
 		for (int i = 0; i < (int)noteSequence.size(); ++i) {
 			int l = std::clamp(noteSequence[i].lane, 0, lanes - 1);
 			laneOrder[l].push_back(i);
@@ -350,6 +398,14 @@ namespace app::test {
 
 		JudgeStatsService::AddResult(res);
 
+        // Register Active Hold
+        if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
+            if (noteSequence[idx].type == NoteType::HoldStart && noteSequence[idx].pairIndex != -1) {
+                activeHolds[lane] = noteSequence[idx].pairIndex;
+                sf::debug::Debug::Log("JudgeLane: Hold Registered! Lane=" + std::to_string(lane) + " PairIdx=" + std::to_string(noteSequence[idx].pairIndex));
+            }
+        }
+
         // FAST/SLOW Logic
         if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
             float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
@@ -390,13 +446,6 @@ namespace app::test {
              }
         }
 
-		act->DeActivate();
-		act->Destroy();
-
-		if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
-			sound->Play(GetHitSfxPath(noteSequence[idx].type));
-		}
-
 		// エフェクト生成 座標・色・サイズ
 		if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
 
@@ -429,6 +478,17 @@ namespace app::test {
 				canvas->SpawnHitEffect(hitX, hitY, scale, duration, color);
 			}
 		}
+
+        // Destroy actor unless it's a HoldStart (Keep alive for debug even on Miss)
+        bool shouldDestroy = true;
+        if (noteSequence[idx].type == NoteType::HoldStart) {
+             shouldDestroy = false;
+        }
+
+        if (shouldDestroy) {
+		    act->DeActivate();
+		    act->Destroy();
+        }
 
 		++head;
 		return res;
@@ -471,8 +531,11 @@ namespace app::test {
 					JudgeStatsService::AddResult(JudgeResult::Miss);
 
 					if (auto* act = noteActors[i].Target()) {
-						act->DeActivate();
-						act->Destroy();
+                        // Destroy check -> Keep HoldStart alive for debug
+                        if (noteSequence[i].type != NoteType::HoldStart) {
+						    act->DeActivate();
+						    act->Destroy();
+                        }
 					}
 					++head;
 				}
@@ -535,7 +598,7 @@ namespace app::test {
 		}
 		else {
             if (time <= 0.001f) {
-                // 音声がまだ始まっていない(0)場合は、同期せずにゲーム時間を進める(DeltaTime任せ)
+                // 音声がまだ始まっていない(0)の場合は、同期せずにゲーム時間を進める(DeltaTime任せ)
                 // これによりStart直後の「溜め」でノーツが止まるのを防ぐ
             }
             else {
@@ -544,5 +607,119 @@ namespace app::test {
             }
 		}
 	}
+
+    // ==================================================
+    // Check Hold (Continuous Input)
+    // ==================================================
+    void NoteManager::CheckHold(int lane, bool isPressed) {
+        if (lane < 0 || lane >= (int)activeHolds.size()) return;
+        int idx = activeHolds[lane];
+        if (idx == -1) return; // No active hold
+
+        auto& endNote = noteSequence[idx];
+        if (endNote.judged) {
+             activeHolds[lane] = -1; // Already done
+             return;
+        }
+
+        if (isPressed) {
+            // Check if we reached End
+            // If we've held it until the end hit time (or very close), it's a success
+            if (songTime >= endNote.hittime - J_WIN_PERFECT) { // Slightly lenient to avoid 1-frame miss
+                JudgeResult res = JudgeResult::Perfect;
+                endNote.judged = true;
+                endNote.result = res;
+                JudgeStatsService::AddResult(res);
+                UpdateCombo(res);
+
+                // Effect
+                if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
+                    sound->Play(GetHitSfxPath(endNote.type));
+                }
+                
+                // Visual Effect
+                if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                     // Reuse hit effect logic from JudgeLane... 
+                     // Ideally refactor SpawnHitEffect logic to a function or reused here
+                     // For now, simplified spawn (assuming parameters)
+                      float uiLaneWidth = 300.0f;
+                      float sideOffset = 250.0f;
+                      float hitX = 0.0f;
+                      if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
+                      else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
+                      else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
+                      
+                      canvas-> SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, {1,1,1,1});
+                }
+
+                // Destroy HoldStart Actor
+                int startIdx = endNote.pairIndex;
+                if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
+                    if (auto* act = noteActors[startIdx].Target()) {
+                        act->DeActivate();
+                        act->Destroy();
+                    }
+                }
+
+                activeHolds[lane] = -1;
+            }
+        } else {
+            // Released
+             // If released slightly early (within Perfect/Great window), allow it?
+             // Or if strictly not reached -> Miss.
+             float diff = endNote.hittime - songTime;
+             
+             if (diff <= J_WIN_GOOD) { // Allow release if within 'Good' window
+                 // Judge based on diff
+                 JudgeResult res = JudgeResult::Miss;
+                 if (diff <= J_WIN_PERFECT) res = JudgeResult::Perfect;
+                 else if (diff <= J_WIN_GREAT) res = JudgeResult::Great;
+                 else res = JudgeResult::Good;
+                 
+                  endNote.judged = true;
+                  endNote.result = res;
+                  JudgeStatsService::AddResult(res);
+                  UpdateCombo(res);
+                  
+                  // Effect if not miss
+                  if (res != JudgeResult::Miss) {
+                      if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
+                        sound->Play(GetHitSfxPath(endNote.type));
+                      }
+                  }
+
+                  // Destroy HoldStart Actor
+                  int startIdx = endNote.pairIndex;
+                  if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
+                      if (auto* act = noteActors[startIdx].Target()) {
+                          act->DeActivate();
+                          act->Destroy();
+                      }
+                  }
+
+                  activeHolds[lane] = -1;
+             }
+             else {
+                  // Dropped too early -> Miss
+                  endNote.judged = true;
+                  endNote.result = JudgeResult::Miss;
+                  JudgeStatsService::AddResult(JudgeResult::Miss);
+                  UpdateCombo(JudgeResult::Miss);
+                  
+                  // Destroy HoldStart Actor -> DISABLED FOR DEBUG (User Request)
+                  /*
+                  int startIdx = endNote.pairIndex;
+                  if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
+                      if (auto* act = noteActors[startIdx].Target()) {
+                          act->DeActivate();
+                          act->Destroy();
+                      }
+                  }
+                  */
+
+                  activeHolds[lane] = -1;
+             }
+        }
+    }
 
 } // namespace app::test

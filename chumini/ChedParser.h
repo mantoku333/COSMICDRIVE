@@ -17,6 +17,10 @@ namespace app::test {
         double absBeat = 0.0;
 
         double time = 0.0;
+
+        // Hold Note Support
+        bool isHold = false;
+        int holdId = -1; 
     };
 
     struct ChedTempoEvent {
