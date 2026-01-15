@@ -94,23 +94,28 @@ namespace app::test {
         // 3. 位置を決定
         //    「判定ライン(endZ)」から「速度 × 残り時間」ぶん奥(Z+)に配置
         //    ※残り時間が減るほど endZ に近づいていく
+        // 3. 位置を決定
+        //    「判定ライン(endZ)」から「速度 × 残り時間」ぶん奥(Z+)に配置
+        //    ※残り時間が減るほど endZ に近づいていく
         float z = endZ + (timeUntilHit * noteSpeed);
 
         // 4. 傾斜に合わせてY座標を補正
         // HOLD START OFFSET
-        if (info.type == NoteType::HoldStart) {
-            float len = info.duration * noteSpeed;
-            // Shift center to be Head + Len/2
-            z += len * 0.5f;
-        }
+        // Removed premature z shift here to fix positioning bug.
+        // z now represents the Head position until we calculate the center later.
 
         float y = baseY - std::tan(slopeRad) * z;
 
         // HOLD START Logic
-        // `z` calculated above is the "Head" position (where the note starts).
         if (info.type == NoteType::HoldStart) {
+            // Rotation Correction: Length needs to be scaled by 1/cos(slope) to cover the correct World Z distance
+            float correction = 1.0f;
+            if (std::abs(std::cos(slopeRad)) > 0.001f) {
+                correction = 1.0f / std::cos(slopeRad);
+            }
+
             float originalLen = info.duration * noteSpeed;
-            float headZ = z; 
+            float headZ = z; // z is currently the Head position
             float tailZ = headZ + originalLen;
 
             // 1. Clipping at Spawn Line (startZ) - Tail Clipping
@@ -121,7 +126,6 @@ namespace app::test {
             if (headZ < endZ) {
                  float consumedLen = endZ - headZ;
                  // If the entire note is past the judge line, it should probably disappear or be handled by logic.
-                 // But for visuals, we clamp the head to endZ.
                  
                  float visibleLen = originalLen - consumedLen;
                  if (visibleLen <= 0.001f) {
@@ -139,16 +143,15 @@ namespace app::test {
                      float newLen = visibleLen;
                      float newCenterZ = headZ + newLen * 0.5f;
                      
-                     z = newCenterZ;
+                     z = newCenterZ; // Update z to Center
                      y = baseY - std::tan(slopeRad) * z;
                      
-                     auto scale = actor->transform.GetScale();
-                     actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen });
+                     // Restore full scale with adjusted Z AND Rotation Correction
+                     actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen * correction });
                  }
             }
             // Normal Scrolling (Head is between endZ and startZ)
             else {
-                 // Check Tail Clipping
                  // Check Tail Clipping
                  if (tailZ > startZ) {
                     // Clip tail
@@ -160,19 +163,23 @@ namespace app::test {
                         float newLen = visibleLen;
                         float newCenterZ = headZ + newLen * 0.5f;
 
-                        z = newCenterZ;
+                        z = newCenterZ; // Update z to Center
                         y = baseY - std::tan(slopeRad) * z;
                         
-                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen });
+                        // Apply Rotation Correction
+                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, newLen * correction });
                     }
                 } else {
                     // Fully visible
-                    z += originalLen * 0.5f;
+                    // Shift z from Head to Center for final transform
+                    z += originalLen * 0.5f; 
                     y = baseY - std::tan(slopeRad) * z;
 
                     auto scale = actor->transform.GetScale();
-                    if (std::abs(scale.z - originalLen) > 0.001f || scale.x == 0.0f) {
-                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, originalLen });
+                    float targetLen = originalLen * correction;
+                    
+                    if (std::abs(scale.z - targetLen) > 0.001f || scale.x == 0.0f) {
+                        actor->transform.SetScale({ laneW * 0.8f, 0.5f, targetLen });
                     }
                 }
             }
