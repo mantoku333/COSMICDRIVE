@@ -81,7 +81,7 @@ void CubismShader_D3D11::GenerateShaders(ID3D11Device* device)
     do
     {
         // シェーダーソースコードが記述されているファイルを読み込み
-        const csmChar* frameworkShaderPath = "CubismEffect.fx";
+        const csmChar* frameworkShaderPath = "FrameworkShaders/CubismEffect.fx";
 
         csmLoadFileFunction fileLoader = Csm::CubismFramework::GetLoadFileFunction();
         csmReleaseBytesFunction bytesReleaser = Csm::CubismFramework::GetReleaseBytesFunction();
