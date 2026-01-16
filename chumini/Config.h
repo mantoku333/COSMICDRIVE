@@ -6,7 +6,7 @@ namespace app::test{
 
     struct AudioVolume {
         float master = 1.0f;  // 全体音量倍率
-        float bgm = 0.3f;
+        float bgm = 1.0f;
         float tap = 1.0f;
         float emptyTap = 1.0f;
         /*float holdStart = 1.0f;

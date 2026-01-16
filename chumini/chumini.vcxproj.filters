@@ -375,6 +375,9 @@
     <ClCompile Include="JudgeStatsService.cpp">
       <Filter>App</Filter>
     </ClCompile>
+    <ClCompile Include="ScoreManager.cpp">
+      <Filter>App</Filter>
+    </ClCompile>
     <ClCompile Include="ChedParser.cpp">
       <Filter>App</Filter>
     </ClCompile>
@@ -762,6 +765,9 @@
       <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="NoteData.h">
+      <Filter>App</Filter>
+    </ClInclude>
+    <ClInclude Include="ScoreManager.h">
       <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="ControlCamera.h">

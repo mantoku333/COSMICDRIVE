@@ -5,6 +5,7 @@
 #include "IngameScene.h"
 #include "TitleScene.h"
 #include "Easing.h"
+#include "Config.h"
 
 // テキスト描画に必要
 #include "Text.h"
@@ -17,6 +18,7 @@
 #include <filesystem>
 #include <fstream>
 #include "ChedParser.h" 
+#include "ScoreManager.h" 
 
 namespace app::test {
 
@@ -110,6 +112,21 @@ namespace app::test {
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
+        }
+
+        // Score & Rank Update
+        if (!songs.empty() && highScoreText && rankMark) {
+            auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
+            if (record.highScore > 0) {
+                wchar_t scoreBuf[64];
+                swprintf_s(scoreBuf, L"High Score: %d", record.highScore);
+                highScoreText->SetText(scoreBuf);
+                std::wstring rW(record.rank.begin(), record.rank.end());
+                rankMark->SetText(rW);
+            } else {
+                highScoreText->SetText(L"High Score: --------");
+                rankMark->SetText(L"-");
+            }
         }
 
         // ★追加: ジャンル名
@@ -428,6 +445,35 @@ namespace app::test {
             512, 100
         );
 
+        // ★追加: ハイスコア
+        // ★追加: ハイスコア
+        highScoreText = AddUI<sf::ui::TextImage>();
+        highScoreText->transform.SetPosition(Vector3(650, -400, 1.0f)); 
+        highScoreText->transform.SetScale(Vector3(4.0f, 1.0f, 1.0f));
+        highScoreText->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            40.0f,
+            D2D1::ColorF(D2D1::ColorF::White),
+            512, 128
+        );
+
+        // ★追加: ランクマーク
+        rankMark = AddUI<sf::ui::TextImage>();
+        rankMark->transform.SetPosition(Vector3(800, -350, 1.0f)); 
+        rankMark->transform.SetScale(Vector3(3.0f, 3.0f, 1.0f));
+        rankMark->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            80.0f,
+            D2D1::ColorF(D2D1::ColorF::Yellow),
+            256, 256
+        );
+
+
+
     }
 
     // ===== ジャケット再構築 =====
@@ -686,6 +732,21 @@ namespace app::test {
             bpmText->SetText(bpmStr);
         }
 
+        // Score & Rank Update
+        if (!songs.empty() && highScoreText && rankMark) {
+            auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
+            if (record.highScore > 0) {
+                wchar_t scoreBuf[64];
+                swprintf_s(scoreBuf, L"High Score: %d", record.highScore);
+                highScoreText->SetText(scoreBuf);
+                std::wstring rW(record.rank.begin(), record.rank.end());
+                rankMark->SetText(rW);
+            } else {
+                highScoreText->SetText(L"High Score: --------");
+                rankMark->SetText(L"-");
+            }
+        }
+
 
         // ★文字化け対策: Shift-JIS変換してログ出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
@@ -717,6 +778,21 @@ namespace app::test {
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
+        }
+
+        // Score & Rank Update
+        if (!songs.empty() && highScoreText && rankMark) {
+            auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
+            if (record.highScore > 0) {
+                wchar_t scoreBuf[64];
+                swprintf_s(scoreBuf, L"High Score: %d", record.highScore);
+                highScoreText->SetText(scoreBuf);
+                std::wstring rW(record.rank.begin(), record.rank.end());
+                rankMark->SetText(rW);
+            } else {
+                highScoreText->SetText(L"High Score: --------");
+                rankMark->SetText(L"-");
+            }
         }
 
         // ★文字化け対策
@@ -785,7 +861,7 @@ namespace app::test {
         }
 
         previewPlayer.SetResource(previewResource);
-        previewPlayer.SetVolume(1.0f); // 必要に応じて調整
+        previewPlayer.SetVolume(gAudioVolume.master * gAudioVolume.bgm); // 必要に応じて調整
         previewPlayer.Play(info.previewStartTime);
     }
 
@@ -814,6 +890,21 @@ namespace app::test {
             if (songTitleText) songTitleText->SetText(Utf8ToWstring(songs[0].title));
             if (artistText)    artistText->SetText(Utf8ToWstring(songs[0].artist));
             if (bpmText)       bpmText->SetText(L"BPM: " + Utf8ToWstring(songs[0].bpm));
+
+            // Score & Rank Update
+            if (highScoreText && rankMark) {
+                auto record = app::test::ScoreManager::Instance().GetScore(songs[0].chartPath);
+                if (record.highScore > 0) {
+                    wchar_t scoreBuf[64];
+                    swprintf_s(scoreBuf, L"High Score: %d", record.highScore);
+                    highScoreText->SetText(scoreBuf);
+                    std::wstring rW(record.rank.begin(), record.rank.end());
+                    rankMark->SetText(rW);
+                } else {
+                    highScoreText->SetText(L"High Score: --------");
+                    rankMark->SetText(L"-");
+                }
+            }
         }
 
         // ジャンル名更新

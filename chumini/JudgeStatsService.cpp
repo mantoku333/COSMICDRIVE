@@ -46,6 +46,11 @@ void JudgeStatsService::AddResult(JudgeResult result)
     lastResult = result;
 }
 
+void JudgeStatsService::AddCombo(int amount) {
+    combo += amount;
+    if (combo > maxCombo) maxCombo = combo;
+}
+
 int JudgeStatsService::GetCount(JudgeResult result)
 {
     switch (result)
@@ -71,4 +76,14 @@ int JudgeStatsService::GetMaxCombo()
 JudgeResult JudgeStatsService::GetLastResult()
 {
     return lastResult;
+}
+
+void JudgeStatsService::SetChartPath(const std::string& path)
+{
+    chartPath = path;
+}
+
+std::string JudgeStatsService::GetChartPath()
+{
+    return chartPath;
 }

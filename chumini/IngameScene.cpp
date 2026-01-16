@@ -11,6 +11,7 @@
 #include "NoteComponent.h"
 #include "NoteManager.h"
 #include "SongInfo.h"
+#include "JudgeStatsService.h"
 
 #include "EffectManager.h"
 #include <Effekseer.h>
@@ -351,6 +352,9 @@ void app::test::IngameScene::OnActivated()
     // Convert UTF-8 path to Shift-JIS for Windows API
     std::string sjisPath = Utf8ToShiftJis(selectedSong.musicPath);
     bgmPlayer->SetPath(sjisPath);
+
+    // Set chart path for score saving
+    JudgeStatsService::SetChartPath(selectedSong.chartPath);
 
     //bgmPlayer->Play();
 }

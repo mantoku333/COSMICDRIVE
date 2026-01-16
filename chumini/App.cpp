@@ -2,6 +2,7 @@
 #include "DirectX11.h"
 #include "ResidentScene.h"
 #include "Config.h"
+#include "ScoreManager.h"
 
 app::Application* app::Application::main = nullptr;
 
@@ -102,6 +103,9 @@ void app::Application::Init()
 
 	// Load Config
 	app::test::LoadConfig();
+
+	// Load Scores
+	app::test::ScoreManager::Instance().Load();
 
 	//時間の初期化
 	sf::Time::Init();

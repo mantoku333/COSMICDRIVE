@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "NoteData.h"
+#include <string>
 
 namespace app::test
 {
@@ -8,6 +9,7 @@ namespace app::test
     public:
         static void Reset();
         static void AddResult(JudgeResult result);
+        static void AddCombo(int amount); 
         static void AddFast();
         static void AddSlow();
 
@@ -17,6 +19,9 @@ namespace app::test
         static int GetCombo();
         static int GetMaxCombo();
         static JudgeResult GetLastResult();
+
+        static void SetChartPath(const std::string& path);
+        static std::string GetChartPath();
 
     private:
         static inline int perfect = 0;
@@ -29,6 +34,7 @@ namespace app::test
         static inline int combo = 0;
         static inline int maxCombo = 0;
         static inline JudgeResult lastResult = JudgeResult::None;
+        static inline std::string chartPath = "";
     };
 }
 

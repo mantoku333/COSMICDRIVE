@@ -5,6 +5,7 @@
 #include <string>
 #include <cstdio>
 #include <vector>
+#include "ScoreManager.h"
 
 namespace app::test {
 
@@ -279,6 +280,17 @@ namespace app::test {
 			mainColor = D2D1::ColorF(0.8f, 1.0f, 0.8f); // 薄い緑
 			edgeColor = D2D1::ColorF(0.0f, 0.7f, 0.0f); // 濃い緑
 		}
+
+        // --- Save Score ---
+        std::string chartPath = JudgeStatsService::GetChartPath();
+        if (!chartPath.empty()) {
+            std::string rankUtf8(rankStr.begin(), rankStr.end()); // ASCII only
+            app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8);
+            app::test::ScoreManager::Instance().Save();
+            sf::debug::Debug::Log("Score Saved: " + std::to_string(score) + " Rank: " + rankUtf8);
+        } else {
+             sf::debug::Debug::Log("Score Check: ChartPath is empty, not saved.");
+        }
 
 		// =========================================================
 		// 5. テキストへの値セット
