@@ -191,6 +191,8 @@ void app::test::IngameScene::Init()
 
        
 
+
+
         // ── ジャッジバー（手前ライン）──
         {
             const float slopeRad = rotX * 3.14159265f / 180.0f;
@@ -210,6 +212,31 @@ void app::test::IngameScene::Init()
             mBar->material.SetColor({ 1, 0, 1, 1 });
         }
 
+		// ── Live2D ──
+		{
+			auto live2dActor = Instantiate();
+			l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
+			if (l2dComp.Get()) {
+				// TitleSceneと同じモデルをロード
+				    // Relative path to the model directory
+				const std::string MODEL_DIR = "Assets/Live2D/CyberCat";
+				    // Model .model3.json filename
+				const std::string MODEL_FILE = "CyberCat.model3.json";
+
+				l2dComp->LoadModel(MODEL_DIR, MODEL_FILE);
+
+				// 位置調整 (中間をとって 0.65)
+				live2dActor.Target()->transform.SetPosition({ -0.70f, 0.60f, 0.0f }); 
+				// スケール調整
+				live2dActor.Target()->transform.SetScale({ 0.7f, 1.0f, 1.0f });
+
+				// Start Idle animation
+				l2dComp->PlayMotion("Idle", 0, 3);
+				
+                // タイトル同様グリッチもかけてみる（お好みで）
+                l2dComp->StartGlitchMotion("GlitchNoise", 0);
+			}
+		}
         
     }
 
@@ -236,6 +263,9 @@ void app::test::IngameScene::Init()
 
 void app::test::IngameScene::Update(const sf::command::ICommand& command)
 {
+	if (l2dComp.Get()) {
+		l2dComp->Update();
+	}
 
 	// ステートマシンによる制御
 	if (state == State::Idle) {
@@ -383,4 +413,11 @@ void app::test::IngameScene::StartGame()
     }
     */
 
+}
+
+void app::test::IngameScene::DrawOverlay()
+{
+	if (l2dComp.Get()) {
+		l2dComp->Draw();
+	}
 }

@@ -9,6 +9,7 @@
 #include "NoteManager.h" 
 #include "SelectCanvas.h"
 #include "SongInfo.h"
+#include "Live2DComponent.h"
 
 namespace app { namespace test { class BGMComponent; } }
 
@@ -26,6 +27,8 @@ namespace app
 			void Update(const sf::command::ICommand& command);
 
 			void OnActivated() override;
+
+			void DrawOverlay() override;
 
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
@@ -88,6 +91,7 @@ namespace app
 
 			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
 			
+			sf::SafePtr<app::test::Live2DComponent> l2dComp;
 		};
 	}
 }
