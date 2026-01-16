@@ -375,34 +375,71 @@ namespace app::test {
 	// レーン判定
 	// ==================================================
 	JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
-		if (lane < 0 || lane >= (int)laneOrder.size()) return JudgeResult::Skip;
+		if (lane < 0 || lane >= (int)laneOrder.size()) {
+             sf::debug::Debug::Log("JudgeLane: Skip (Invalid Lane) lane=" + std::to_string(lane)); 
+             return JudgeResult::Skip;
+        }
 
 		auto& order = laneOrder[lane];
 		size_t& head = laneHeads[lane];
 		while (head < order.size() && noteSequence[order[head]].judged) ++head;
-		if (head >= order.size()) return JudgeResult::Skip;
+		if (head >= order.size()) {
+             sf::debug::Debug::Log("JudgeLane: Skip (No Notes Left) lane=" + std::to_string(lane));
+             return JudgeResult::Skip;
+        }
 
 		int idx = order[head];
-		if (idx >= (int)nextIndex) return JudgeResult::Skip;
+		if (idx >= (int)nextIndex) {
+            sf::debug::Debug::Log("JudgeLane: Skip (Index Future) lane=" + std::to_string(lane) + " idx=" + std::to_string(idx) + " next=" + std::to_string(nextIndex)); 
+            return JudgeResult::Skip;
+        }
 
 		auto* act = noteActors[idx].Target();
 		if (!act) return JudgeResult::Skip;
 
 		float noteZ = act->transform.GetPosition().z;
+        
+        // HOLD NOTES: Act Position is Center. We need Head (Start) Position for Judgment.
+        // Head is closer to Judge Line (-Z direction). Center is +Z direction from Head.
+        // HeadZ = CenterZ - (LengthProjected / 2)
+        if (noteSequence[idx].type == NoteType::HoldStart) {
+             float slopeRad = rotX * 3.14159265f / 180.0f;
+             // Scale.z is the Visual Length (with 1/cos correction).
+             // Projected Length on Z axis = Scale.z * cos(slope).
+             // So halfLenZ = (Scale.z * cos) * 0.5f.
+             float halfLenZ = act->transform.GetScale().z * std::cos(slopeRad) * 0.5f;
+             noteZ -= halfLenZ;
+        }
+
 		float diffZ = std::abs(noteZ - judgeZ);
-		if (diffZ > judgeRange * J_POS_TOL_MULT) return JudgeResult::Skip;
+		if (diffZ > judgeRange * J_POS_TOL_MULT) {
+             // 距離が遠すぎる
+             sf::debug::Debug::Log("JudgeLane: Skip (Too Far) lane=" + std::to_string(lane) + " diffZ=" + std::to_string(diffZ));
+             return JudgeResult::Skip;
+        }
 
 		JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
 		noteSequence[idx].judged = true;
 		noteSequence[idx].result = res;
 
 		JudgeStatsService::AddResult(res);
+        if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
+             sf::debug::Debug::Log("JudgeLane: Judgment Result = " + judgeResultToString(res) 
+                 + " Lane=" + std::to_string(lane) 
+                 + " Time=" + std::to_string(inputTime) 
+                 + " NoteTime=" + std::to_string(noteSequence[idx].hittime)
+                 + " Type=" + std::to_string((int)noteSequence[idx].type)
+                 + " PairIdx=" + std::to_string(noteSequence[idx].pairIndex));
+        }
 
         // Register Active Hold
         if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
             if (noteSequence[idx].type == NoteType::HoldStart && noteSequence[idx].pairIndex != -1) {
                 activeHolds[lane] = noteSequence[idx].pairIndex;
                 sf::debug::Debug::Log("JudgeLane: Hold Registered! Lane=" + std::to_string(lane) + " PairIdx=" + std::to_string(noteSequence[idx].pairIndex));
+            }
+            else if (noteSequence[idx].type == NoteType::HoldStart) {
+                 sf::debug::Debug::Log("JudgeLane: HoldStart BUT PairIndex is -1! ID=" + std::to_string(idx));
             }
         }
 
@@ -608,118 +645,125 @@ namespace app::test {
 		}
 	}
 
-    // ==================================================
-    // Check Hold (Continuous Input)
-    // ==================================================
-    void NoteManager::CheckHold(int lane, bool isPressed) {
-        if (lane < 0 || lane >= (int)activeHolds.size()) return;
-        int idx = activeHolds[lane];
-        if (idx == -1) return; // No active hold
-
-        auto& endNote = noteSequence[idx];
-        if (endNote.judged) {
-             activeHolds[lane] = -1; // Already done
-             return;
+    	// ==================================================
+	// Check Hold (Continuous Input)
+	// ==================================================
+	void NoteManager::CheckHold(int lane, bool isPressed) {
+		if (lane < 0 || lane >= (int)activeHolds.size()) return;
+		int idx = activeHolds[lane];
+		if (idx == -1) {
+            // ホールド中でないのにCheckHoldが呼ばれるのは普通（押しっぱなし判定など）なのでログは出さない
+            return; 
         }
 
-        if (isPressed) {
-            // Check if we reached End
-            // If we've held it until the end hit time (or very close), it's a success
-            if (songTime >= endNote.hittime - J_WIN_PERFECT) { // Slightly lenient to avoid 1-frame miss
-                JudgeResult res = JudgeResult::Perfect;
-                endNote.judged = true;
-                endNote.result = res;
-                JudgeStatsService::AddResult(res);
-                UpdateCombo(res);
+		auto& endNote = noteSequence[idx];
+		if (endNote.judged) {
+			activeHolds[lane] = -1; // Already done
+			return;
+		}
 
-                // Effect
-                if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
-                    sound->Play(GetHitSfxPath(endNote.type));
-                }
+        // デバッグ出力：ホールド判定中
+        // 毎フレーム呼ぶとスパムになるので、特定のタイミングか、情報を間引いて出す
+        // ここでは一旦そのまま出すが、あまりに多いなら抑制する
+        // sf::debug::Debug::Log("CheckHold: Lane=" + std::to_string(lane) + " Pressed=" + std::to_string(isPressed) + " Time=" + std::to_string(songTime) + " EndTime=" + std::to_string(endNote.hittime));
+
+		if (isPressed) {
+			// Check if we reached End
+			// If we've held it until the end hit time (or very close), it's a success
+            float timeDiff = songTime - (endNote.hittime - J_WIN_PERFECT); // For debug
+			if (songTime >= endNote.hittime - J_WIN_PERFECT) { // Slightly lenient to avoid 1-frame miss
+				sf::debug::Debug::Log("CheckHold: Hold Complete! Lane=" + std::to_string(lane));
                 
-                // Visual Effect
-                if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                     // Reuse hit effect logic from JudgeLane... 
-                     // Ideally refactor SpawnHitEffect logic to a function or reused here
-                     // For now, simplified spawn (assuming parameters)
-                      float uiLaneWidth = 300.0f;
-                      float sideOffset = 250.0f;
-                      float hitX = 0.0f;
-                      if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
-                      else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
-                      else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
-                      
-                      canvas-> SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, {1,1,1,1});
-                }
+				JudgeResult res = JudgeResult::Perfect;
+				endNote.judged = true;
+				endNote.result = res;
+				JudgeStatsService::AddResult(res);
+				UpdateCombo(res);
 
-                // Destroy HoldStart Actor
-                int startIdx = endNote.pairIndex;
-                if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
-                    if (auto* act = noteActors[startIdx].Target()) {
-                        act->DeActivate();
-                        act->Destroy();
-                    }
-                }
+				// Effect
+				if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
+					sound->Play(GetHitSfxPath(endNote.type));
+				}
 
-                activeHolds[lane] = -1;
+				// Visual Effect
+				if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+					float uiLaneWidth = 300.0f;
+					float sideOffset = 250.0f;
+					float hitX = 0.0f;
+					if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
+					else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
+					else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
+
+					canvas->SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
+				}
+
+				// Destroy HoldStart Actor
+				int startIdx = endNote.pairIndex;
+				if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
+					if (auto* act = noteActors[startIdx].Target()) {
+						act->DeActivate();
+						act->Destroy();
+					}
+				}
+
+				activeHolds[lane] = -1;
+			}
+            else {
+                 // Holding... logic
             }
-        } else {
-            // Released
-             // If released slightly early (within Perfect/Great window), allow it?
-             // Or if strictly not reached -> Miss.
-             float diff = endNote.hittime - songTime;
-             
-             if (diff <= J_WIN_GOOD) { // Allow release if within 'Good' window
-                 // Judge based on diff
-                 JudgeResult res = JudgeResult::Miss;
-                 if (diff <= J_WIN_PERFECT) res = JudgeResult::Perfect;
-                 else if (diff <= J_WIN_GREAT) res = JudgeResult::Great;
-                 else res = JudgeResult::Good;
-                 
-                  endNote.judged = true;
-                  endNote.result = res;
-                  JudgeStatsService::AddResult(res);
-                  UpdateCombo(res);
-                  
-                  // Effect if not miss
-                  if (res != JudgeResult::Miss) {
-                      if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
-                        sound->Play(GetHitSfxPath(endNote.type));
-                      }
-                  }
+		}
+		else {
+			// Released
+			 // If released slightly early (within Perfect/Great window), allow it?
+			 // Or if strictly not reached -> Miss.
+			float diff = endNote.hittime - songTime;
 
-                  // Destroy HoldStart Actor
-                  int startIdx = endNote.pairIndex;
-                  if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
-                      if (auto* act = noteActors[startIdx].Target()) {
-                          act->DeActivate();
-                          act->Destroy();
-                      }
-                  }
+            sf::debug::Debug::Log("CheckHold: Released! Diff=" + std::to_string(diff));
 
-                  activeHolds[lane] = -1;
-             }
-             else {
-                  // Dropped too early -> Miss
-                  endNote.judged = true;
-                  endNote.result = JudgeResult::Miss;
-                  JudgeStatsService::AddResult(JudgeResult::Miss);
-                  UpdateCombo(JudgeResult::Miss);
-                  
-                  // Destroy HoldStart Actor -> DISABLED FOR DEBUG (User Request)
-                  /*
-                  int startIdx = endNote.pairIndex;
-                  if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
-                      if (auto* act = noteActors[startIdx].Target()) {
-                          act->DeActivate();
-                          act->Destroy();
-                      }
-                  }
-                  */
+			if (diff <= J_WIN_GOOD) { // Allow release if within 'Good' window
+				// Judge based on diff
+				JudgeResult res = JudgeResult::Miss;
+				if (diff <= J_WIN_PERFECT) res = JudgeResult::Perfect;
+				else if (diff <= J_WIN_GREAT) res = JudgeResult::Great;
+				else res = JudgeResult::Good;
 
-                  activeHolds[lane] = -1;
-             }
-        }
-    }
+                sf::debug::Debug::Log("CheckHold: Release Success! Result=" + judgeResultToString(res));
+
+				endNote.judged = true;
+				endNote.result = res;
+				JudgeStatsService::AddResult(res);
+				UpdateCombo(res);
+
+				// Effect if not miss
+				if (res != JudgeResult::Miss) {
+					if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
+						sound->Play(GetHitSfxPath(endNote.type));
+					}
+				}
+
+				// Destroy HoldStart Actor
+				int startIdx = endNote.pairIndex;
+				if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
+					if (auto* act = noteActors[startIdx].Target()) {
+						act->DeActivate();
+						act->Destroy();
+					}
+				}
+
+				activeHolds[lane] = -1;
+			}
+			else {
+				// Dropped too early -> Miss
+                sf::debug::Debug::Log("CheckHold: Dropped Early! Lane=" + std::to_string(lane));
+
+				endNote.judged = true;
+				endNote.result = JudgeResult::Miss;
+				JudgeStatsService::AddResult(JudgeResult::Miss);
+				UpdateCombo(JudgeResult::Miss);
+
+				activeHolds[lane] = -1;
+			}
+		}
+	}
 
 } // namespace app::test

@@ -95,31 +95,28 @@ namespace app::test {
         auto actor = actorRef.Target();
         if (!actor) return;
 
-        // --------------------------------------------------------
-        // ★修正箇所: 経過時間ではなく「絶対時間」で位置を決める
-        // --------------------------------------------------------
+        // DEBUG: Check if Update is running
+        static float logTimer = 0.0f;
+        logTimer += sf::Time::DeltaTime();
+        if (logTimer > 1.0f) {
+           // logTimer = 0.0f; 
+        }
 
         // 1. マネージャから「現在の正確なBGM時間」をもらう
         float currentSongTime = noteManager->GetSongTime();
 
         // 2. 着弾までの残り時間を計算
-        //    (着弾予定時刻 - 現在時刻)
-        //    プラスなら手前、0なら着弾、マイナスなら通り過ぎた後
         float timeUntilHit = info.hittime - currentSongTime;
 
         // 3. 位置を決定
-        //    「判定ライン(endZ)」から「速度 × 残り時間」ぶん奥(Z+)に配置
-        //    ※残り時間が減るほど endZ に近づいていく
-        // 3. 位置を決定
-        //    「判定ライン(endZ)」から「速度 × 残り時間」ぶん奥(Z+)に配置
-        //    ※残り時間が減るほど endZ に近づいていく
         float z = endZ + (timeUntilHit * noteSpeed);
 
-        // 4. 傾斜に合わせてY座標を補正
-        // HOLD START OFFSET
-        // Removed premature z shift here to fix positioning bug.
-        // z now represents the Head position until we calculate the center later.
+        // DEBUG: Debug log for Note Movement (Lane 3 HoldStart only for clarity)
+        if (info.lane == 3 && info.type == NoteType::HoldStart) {
+             // sf::debug::Debug::Log("NoteUpdate: Lane3 HoldStart T=" + std::to_string(currentSongTime) + " Z=" + std::to_string(z) + " Active=" + std::to_string(isActive)); 
+        }
 
+        // 4. 傾斜に合わせてY座標を補正
         float y = baseY - std::tan(slopeRad) * z;
 
         // HOLD START Logic
@@ -213,6 +210,7 @@ namespace app::test {
             skipFirstActivate = false;
             return;
         }
+        sf::debug::Debug::Log("NoteComponent: Activate called! Lane=" + std::to_string(info.lane) + " Type=" + std::to_string((int)info.type));
         isActive = true;
         elapsed = spawnTime;
         updateCommand.Bind(std::bind(&NoteComponent::Update, this, std::placeholders::_1));

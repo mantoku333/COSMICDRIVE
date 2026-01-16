@@ -215,8 +215,13 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             auto* managerActor = ingameScene->managerActor.Target();
             if (managerActor) {
                  if (auto* noteManager = managerActor->GetComponent<app::test::NoteManager>()) {
+                     // sf::debug::Debug::Log("Player: Calling CheckHold(True) Lane=" + std::to_string(lk.idx));
                      noteManager->CheckHold(lk.idx, true);
+                 } else {
+                     sf::debug::Debug::Log("Player: NoteManager NOT FOUND on ManagerActor");
                  }
+            } else {
+                 sf::debug::Debug::Log("Player: ManagerActor Invalid");
             }
         }
         // 離したら元に戻す
@@ -231,6 +236,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             auto* managerActor = ingameScene->managerActor.Target();
             if (managerActor) {
                  if (auto* noteManager = managerActor->GetComponent<app::test::NoteManager>()) {
+                     sf::debug::Debug::Log("Player: Calling CheckHold(False) Lane=" + std::to_string(lk.idx));
                      noteManager->CheckHold(lk.idx, false);
                  }
             }
