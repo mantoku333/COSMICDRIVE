@@ -3,6 +3,7 @@
 #include <vector>
 #include "JobSystem.h"
 #include <string>
+#include <map>
 #include <filesystem>
 #include "Live2D/Framework/src/Rendering/D3D11/CubismRenderer_D3D11.hpp"
 #include "Texture.h"
@@ -214,6 +215,7 @@ void AppModel::Update() {
     std::lock_guard<std::mutex> dock(_mainMutex);
 
     // Check Async Load
+    // Check Async Load
     if (_isMotionDataReady) {
         std::vector<unsigned char> data;
         {
@@ -223,9 +225,13 @@ void AppModel::Update() {
         }
 
         if (!data.empty()) {
+            // Cache it!
+            std::string key = _pendingGroup + "_" + std::to_string(_pendingNo);
+            _motionDataCache[key] = data;
+
             CubismMotion* motion = CubismMotion::Create(data.data(), static_cast<csmSizeInt>(data.size()));
 
-            // Force Loop to FALSE to rely on Manual Restart (since SDK loop seems invisible?)
+            // Force Loop to FALSE to rely on Manual Restart
             motion->IsLoop(false);
 
             // Priority 3. autoDelete = true.
@@ -236,7 +242,7 @@ void AppModel::Update() {
             _glitchGroup = _pendingGroup;
             _glitchNo = _pendingNo;
 
-            OutputDebugStringA(("AppModel: Started Glitch Motion Async (Attr: " + std::to_string(motion->IsLoop()) + ")\n").c_str());
+            OutputDebugStringA(("AppModel: Started Glitch Motion (Loaded & Cached)\n"));
         }
     }
 
@@ -254,9 +260,9 @@ void AppModel::Update() {
         // ★Manual Loop Check
         bool finished = _glitchManager->IsFinished();
         if (_isGlitchLooping && finished) {
-             OutputDebugStringA("AppModel: Glitch Finished! Restarting...\n");
              // Restart
-             StartGlitchMotion(_glitchGroup.c_str(), _glitchNo);
+             // OutputDebugStringA("AppModel: Glitch Finished! Restarting...\n");
+             StartGlitchMotionNoLock(_glitchGroup.c_str(), _glitchNo);
         }
     }
 
@@ -360,23 +366,45 @@ void AppModel::StartMotion(const char* group, int no, int priority) {
     }
 }
 
+// -------------------------------------------------------------------------
 void AppModel::StartGlitchMotion(const char* group, int no) {
-    OutputDebugStringA(("AppModel: StartGlitchMotion called (Group: " + std::string(group) + ")\n").c_str());
-    
     std::lock_guard<std::mutex> lock(_mainMutex);
+    StartGlitchMotionNoLock(group, no);
+}
 
+void AppModel::StartGlitchMotionNoLock(const char* group, int no) {
     if (!_modelSetting || !_glitchManager) return;
 
+    // Check Cache first
+    std::string key = std::string(group) + "_" + std::to_string(no);
+    if (_motionDataCache.count(key)) {
+        // Use Cached Data (Synchronous creation, very fast)
+        // Copy data because Create might not accept const pointer or might modify buffer
+        std::vector<unsigned char> data = _motionDataCache[key];
+        
+        if (!data.empty()) {
+            CubismMotion* motion = CubismMotion::Create(data.data(), static_cast<csmSizeInt>(data.size()));
+            motion->IsLoop(false);
+            _glitchManager->StartMotionPriority(motion, true, 3);
+
+            _isGlitchLooping = true;
+            _glitchGroup = group;
+            _glitchNo = no;
+            // OutputDebugStringA(("AppModel: Glitch Started from Cache\n"));
+        }
+        return;
+    }
+
+    // Not cached, load async
     _pendingGroup = group;
     _pendingNo = no;
 
-    sf::jobsystem::JobSystem::Instance()->addJob([this, group, no]() {
+    sf::jobsystem::JobSystem::Instance()->addJob([this, group, no, key]() {
         std::string fileName = _modelSetting->GetMotionFileName(group, no);
 
         // Fallback: If group not found, try using group name as filename directly
         if (fileName.empty()) {
             std::string directName = std::string(group) + ".motion3.json";
-            // Check if file exists in dir? Just try loading it.
             fileName = directName;
             OutputDebugStringA(("AppModel: Group lookup failed. Trying direct filename: " + fileName + "\n").c_str());
         }
@@ -386,7 +414,7 @@ void AppModel::StartGlitchMotion(const char* group, int no) {
         std::string path = _modelHomeDir + "/" + fileName;
         auto motionBytes = LoadFileAsBytes(path);
 
-        {
+        if (!motionBytes.empty()) {
             std::lock_guard<std::mutex> lock(_motionMutex);
             _pendingMotionData = std::move(motionBytes);
             _isMotionDataReady = true;

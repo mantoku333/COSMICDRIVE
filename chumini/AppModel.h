@@ -13,6 +13,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 #include <atomic>
 #include <mutex>
 #include "D3D.h"
@@ -47,6 +48,8 @@ private:
     float _targetX = 0.0f;
     float _targetY = 0.0f;
 
+    void StartGlitchMotionNoLock(const char* group, int no);
+
     // Glitch Loop State
     bool _isGlitchLooping = false;
     std::string _glitchGroup;
@@ -76,4 +79,7 @@ private:
     int _pendingNo = 0;
     std::mutex _motionMutex;
     std::mutex _mainMutex;
+
+    // Cache
+    std::map<std::string, std::vector<unsigned char>> _motionDataCache;
 };
