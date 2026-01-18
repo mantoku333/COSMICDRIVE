@@ -47,7 +47,9 @@ namespace app::test {
 		comboText = AddUI<sf::ui::TextImage>();
 		comboText->transform.SetPosition(Vector3(650, 0, 0));
 		comboText->transform.SetScale(Vector3(4.5f, 1.8f, 0));
-		comboText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 100.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 256);
+		if (!comboText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 100.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 256)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create comboText");
+		}
 
 		// 3. 判定内訳 (個別表示)
 		// 左端 (-960 ~ )。少し右に寄せて -700 付近
@@ -57,7 +59,9 @@ namespace app::test {
 		perfectText = AddUI<sf::ui::TextImage>();
 		perfectText->transform.SetPosition(Vector3(-700, 100, 0)); 
 		perfectText->transform.SetScale(Vector3(3.5f, 1.5f, 0)); 
-		perfectText->Create(context, L"PERFECT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128);
+		if (!perfectText->Create(context, L"PERFECT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create perfectText");
+		}
 
 		// GREAT
 		greatText = AddUI<sf::ui::TextImage>();
@@ -82,20 +86,24 @@ namespace app::test {
 		judgeResultText = AddUI<sf::ui::TextImage>();
 		judgeResultText->transform.SetPosition(Vector3(0, -100, 0));
 		judgeResultText->transform.SetScale(Vector3(4.5f, 1.15f, 0));
-		judgeResultText->Create(
+		if (!judgeResultText->Create(
 			context,
 			L"", // 最初は空
 			L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
 			120.0f,
 			D2D1::ColorF(D2D1::ColorF::White),
 			1024, 256
-		);
+		)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create judgeResultText");
+		}
 
 		// FAST/SLOW
 		fastSlowText = AddUI<sf::ui::TextImage>();
 		fastSlowText->transform.SetPosition(Vector3(0, -200, 0));
 		fastSlowText->transform.SetScale(Vector3(1.5f, 0.5f, 0)); // 小さく変更 (3.0, 1.0 -> 1.5, 0.5)
-		fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128);
+		if (!fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create fastSlowText");
+		}
 
 		// 5. カウントダウン用
 		countdownText = AddUI<sf::ui::TextImage>();

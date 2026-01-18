@@ -73,10 +73,15 @@ private:
     Live2D::Cubism::Framework::CubismPhysics* _physics;
 
     // Async Loading
-    std::vector<unsigned char> _pendingMotionData;
-    std::atomic<bool> _isMotionDataReady = false;
-    std::string _pendingGroup;
-    int _pendingNo = 0;
+    // Async Loading - Shared State for Safety
+    struct AsyncMotionResult {
+        std::vector<unsigned char> data;
+        std::string group;
+        int no;
+        bool ready = false;
+    };
+    std::shared_ptr<AsyncMotionResult> _pendingAsyncResult;
+
     std::mutex _motionMutex;
     std::mutex _mainMutex;
 

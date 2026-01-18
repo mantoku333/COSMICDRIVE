@@ -90,9 +90,13 @@ namespace app::test {
             float laneW_, float laneH_, float rotX_,
             float baseY_, float barRatio_,
             float sideLeftX_, float sideRightX_);
-
         void StartGame();
         void SyncTime(float time);
+
+        // Instancing (Public for IngameScene)
+        void InitInstancing();
+        void UpdateInstanceBuffer();
+        void DrawInstanced();
 
         // Helper
         double SecondsToBeat(double seconds) const;
@@ -101,6 +105,15 @@ namespace app::test {
         float sideLaneX_Right = 2.5f;
     
     private:
+
+        struct NoteInstanceData {
+            DirectX::XMFLOAT4X4 world; // row_major for HLSL
+            DirectX::XMFLOAT4   color;
+        };
+
+
+
+        // Instancing Members
         sf::SafePtr<sf::IScene> resultScene;
 
         bool isPlaying = false;
@@ -147,6 +160,23 @@ namespace app::test {
         std::vector<size_t>           laneHeads;
 
         sf::SafePtr<SceneChangeComponent> sceneChanger;
+
+        // 分散処理用: 次にミスチェックするレーン番号
+        int missCheckLane = 0;
+
+
+        // Instancing Members
+        ID3D11Buffer* m_instanceBuffer = nullptr;
+        std::vector<NoteInstanceData> m_instanceDataCPU;
+
+        // Raw DX11 Shader & Layout (To avoid Wrapper limits)
+        ID3D11VertexShader* m_vs = nullptr;
+        ID3D11InputLayout* m_layout = nullptr;
+
+        // Manual Cube Mesh (To avoid GeometryCube GS dependency)
+        ID3D11Buffer* m_cubeVB = nullptr;
+        ID3D11Buffer* m_cubeIB = nullptr;
+        int m_cubeIndexCount = 0;
 
     };
 

@@ -1,8 +1,11 @@
-#include "NoteManager.h"
+﻿#include "NoteManager.h"
 #include "NoteComponent.h"
 #include "Scene.h"
 #include "Time.h"
 #include "Config.h" // Added include
+#include "DirectX11.h" // Added for Instancing
+#include <d3dcompiler.h> // Required for D3DCompileFromFile
+#pragma comment(lib, "d3dcompiler.lib") // Ensure linking
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -47,7 +50,7 @@ namespace {
 
 namespace app::test {
 
-	// ノーツタイプごとの効果音パス
+	// 繝弱・繝・ち繧､繝励＃縺ｨ縺ｮ蜉ｹ譫憺浹繝代せ
 	namespace {
 		const char* GetHitSfxPath(NoteType t) {
 			switch (t) {
@@ -58,24 +61,24 @@ namespace app::test {
 	}
 
 	// -----------------------------
-	// 定数定義
+	// 螳壽焚螳夂ｾｩ
 	// -----------------------------
 	static constexpr int    K_BEATS_PER_MEASURE = 4;
 	static constexpr double K_DEFAULT_BPM = 120.0;
 	static constexpr double K_OFFSET_SEC = 0.15;
 	static constexpr float  INPUT_OFFSET_SEC = 0.0f;
 
-	// 判定ウィンドウ（秒）
+	// 蛻､螳壹え繧｣繝ｳ繝峨え・育ｧ抵ｼ・
 	static constexpr float J_WIN_PERFECT = 0.050f;
 	static constexpr float J_WIN_GREAT = J_WIN_PERFECT + 0.030f;
 	static constexpr float J_WIN_GOOD = J_WIN_GREAT + 0.030f;
 
-	// 判定挙動補助
+	// 蛻､螳壽嫌蜍戊｣懷勧
 	static constexpr float J_POS_TOL_MULT = 2.0f;
 
 // ... (Top of file: Remove local TempoEvent struct)
     // -----------------------------
-    // BPM変化対応用の構造体
+    // BPM螟牙喧蟇ｾ蠢懃畑縺ｮ讒矩菴・
     // -----------------------------
     // MOVED TO HEADER
 
@@ -111,10 +114,10 @@ namespace app::test {
     }
 
     // ==================================================
-    // 初期化：譜面読み込み・ノーツ生成
+    // 蛻晄悄蛹厄ｼ夊ｭ憺擇隱ｭ縺ｿ霎ｼ縺ｿ繝ｻ繝弱・繝・函謌・
     // ==================================================
     void NoteManager::Begin() {
-        // UI上の 7.0 が 内部値 30.0 になるように変換
+        // UI荳翫・ 7.0 縺・蜀・Κ蛟､ 30.0 縺ｫ縺ｪ繧九ｈ縺・↓螟画鋤
         float factor = 30.0f / 7.0f;
         HiSpeed = gGameConfig.hiSpeed * factor;
         noteSpeed = basenoteSpeed * HiSpeed;
@@ -152,10 +155,10 @@ namespace app::test {
         noteOffset = 0.0;
 
         // ----------------------------------
-        // 譜面ファイル読み込み
+        // 隴憺擇繝輔ぃ繧､繝ｫ隱ｭ縺ｿ霎ｼ縺ｿ
         // ----------------------------------
         {
-            // 譜面をパース
+            // 隴憺擇繧偵ヱ繝ｼ繧ｹ
             ChedParser parser;
             // Convert UTF-8 path to Wstring for correct file opening on Windows
             std::wstring wChartPath = Utf8ToWstring(chartPath);
@@ -259,7 +262,7 @@ namespace app::test {
         }
 
 		// ----------------------------------
-		// レーンパラメータ
+		// 繝ｬ繝ｼ繝ｳ繝代Λ繝｡繝ｼ繧ｿ
 		// ----------------------------------
 		float slopeRad = rotX * 3.14159265f / 180.0f;
 		float startZ = laneH * 0.5f;
@@ -274,7 +277,7 @@ namespace app::test {
 		songTime = -leadTime;
 
 		// ----------------------------------
-		// ノーツ生成
+		// 繝弱・繝・函謌・
 		// ----------------------------------
         noteActors.clear();
         nextIndex = 0;
@@ -306,12 +309,17 @@ namespace app::test {
 
 			auto noteActor = scene->Instantiate();
             // ... (Actor Setup) ...
-			auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
-			mesh->SetGeometry(g_cube);
-			mesh->material.SetColor({ 1, 1, 1, 1 });
-			noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
-			noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
-			noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
+			// [INSTANCING] Only add Mesh for Hold Notes (they need individual rendering)
+            // Tap notes use instanced rendering and don't need Mesh component
+            if (noteSequence[i].type == NoteType::HoldStart || 
+                noteSequence[i].type == NoteType::HoldEnd) {
+                auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
+                mesh->SetGeometry(g_cube);
+                mesh->material.SetColor({ 1, 1, 1, 1 });
+            }
+			 noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
+			 noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
+			 noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
 
 			auto comp = noteActor.Target()->AddComponent<NoteComponent>();
 			comp->info = noteSequence[i];
@@ -333,6 +341,17 @@ namespace app::test {
         }
 
         updateCommand.Bind(std::bind(&NoteManager::Update, this, std::placeholders::_1));
+
+        try {
+            InitInstancing();
+            sf::debug::Debug::Log("InitInstancing Success");
+        }
+        catch (const std::exception& e) {
+            sf::debug::Debug::LogError("InitInstancing Failed: " + std::string(e.what()));
+        }
+        catch (...) {
+            sf::debug::Debug::LogError("InitInstancing Failed: Unknown Exception");
+        }
     }
 
 	// ==================================================
@@ -361,7 +380,7 @@ namespace app::test {
 	}
 
 	// ==================================================
-	// 判定ロジック
+	// 蛻､螳壹Ο繧ｸ繝・け
 	// ==================================================
 	JudgeResult NoteManager::JudgeNote(NoteType type, float noteTime, float inputTime) {
 		inputTime += INPUT_OFFSET_SEC;
@@ -381,7 +400,7 @@ namespace app::test {
 	}
 
 	// ==================================================
-	// レーン判定
+	// 繝ｬ繝ｼ繝ｳ蛻､螳・
 	// ==================================================
 	JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
         if (lane < 0 || lane >= (int)laneOrder.size()) {
@@ -478,7 +497,7 @@ namespace app::test {
 
 		float diffZ = std::abs(noteZ - judgeZ);
 		if (diffZ > judgeRange * J_POS_TOL_MULT) {
-             // 距離が遠すぎる
+             // 霍晞屬縺碁□縺吶℃繧・
              sf::debug::Debug::Log("JudgeLane: Skip (Too Far) lane=" + std::to_string(lane) + " diffZ=" + std::to_string(diffZ));
              return JudgeResult::Skip;
         }
@@ -559,18 +578,18 @@ namespace app::test {
              }
         }
 
-		// エフェクト生成 座標・色・サイズ
+		// 繧ｨ繝輔ぉ繧ｯ繝育函謌・蠎ｧ讓吶・濶ｲ繝ｻ繧ｵ繧､繧ｺ
 		if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
 
 			if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
 
-				// 座標計算パラメータ
-				float hitY = -130.0f; // UI上の判定ライン高さ
+				// 蠎ｧ讓呵ｨ育ｮ励ヱ繝ｩ繝｡繝ｼ繧ｿ
+				float hitY = -130.0f; // UI荳翫・蛻､螳壹Λ繧､繝ｳ鬮倥＆
 				float uiLaneWidth = 300.0f;
 				float sideOffset = 250.0f;
 				float hitX = 0.0f;
 
-				// X座標決定
+				// X蠎ｧ讓呎ｱｺ螳・
 				if (lane <= 3) {
 					hitX = (lane - 1.5f) * uiLaneWidth;
 				}
@@ -581,13 +600,13 @@ namespace app::test {
 					hitX = (1.5f * uiLaneWidth) + sideOffset;
 				}
 
-				// 判定ごとの演出パラメータ
-				float scale = (uiLaneWidth / 100.0f) * 1.5f; // 基本サイズ
+				// 蛻､螳壹＃縺ｨ縺ｮ貍泌・繝代Λ繝｡繝ｼ繧ｿ
+				float scale = (uiLaneWidth / 100.0f) * 1.5f; // 蝓ｺ譛ｬ繧ｵ繧､繧ｺ
 				float duration = 0.4f;
 				Color color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
 
-				// Canvas(EffectManager)へ生成依頼
+				// Canvas(EffectManager)縺ｸ逕滓・萓晞ｼ
 				canvas->SpawnHitEffect(hitX, hitY, scale, duration, color);
 			}
 		}
@@ -614,7 +633,15 @@ namespace app::test {
 	}
 
 	void NoteManager::CheckMissedNotes() {
-		for (int l = 0; l < (int)laneOrder.size(); ++l) {
+		// 分散処理: 毎フレーム2レーンずつ処理（ラウンドロビン）
+		// 6レーンの場合、3フレームで全レーンを1周
+		const int lanesPerFrame = 2;
+		const int totalLanes = (int)laneOrder.size();
+		
+		for (int i = 0; i < lanesPerFrame && totalLanes > 0; ++i) {
+			int l = missCheckLane;
+			missCheckLane = (missCheckLane + 1) % totalLanes;
+			
 			auto& order = laneOrder[l];
 			size_t& head = laneHeads[l];
 
@@ -629,7 +656,7 @@ namespace app::test {
 						if (!sceneChanger.isNull()) {
 							// sf::debug::Debug::Log("Result Scene Transition");
 
-							// 描画・システムのクリーンアップ
+							// 謠冗判繝ｻ繧ｷ繧ｹ繝・Β縺ｮ繧ｯ繝ｪ繝ｼ繝ｳ繧｢繝・・
 							sf::Mesh::ClearAllRegistered();
 							ShowCursor(TRUE);
 
@@ -717,7 +744,7 @@ namespace app::test {
 
 	void NoteManager::StartGame() {
 		isPlaying = true;
-		// songTime = 0.0f; // ← 削除: Beginで設定されたleadTime（マイナス値）を維持する
+		// songTime = 0.0f; // 竊・蜑企勁: Begin縺ｧ險ｭ螳壹＆繧後◆leadTime・医・繧､繝翫せ蛟､・峨ｒ邯ｭ謖√☆繧・
 	}
 
 	void NoteManager::SetCurrentSongTime(float time) {
@@ -725,22 +752,22 @@ namespace app::test {
 	}
 
 	void NoteManager::SyncTime(float time) {
-		// 時間差（ドリフト）を計算
+		// 譎る俣蟾ｮ・医ラ繝ｪ繝輔ヨ・峨ｒ險育ｮ・
 		float diff = time - this->songTime;
 
-		// ズレが大きすぎる場合（例えば 50ms以上）、
-        // または負の方向に大きすぎる（時間が飛び過ぎて戻った）場合は強制的に合わせる。
-        // ※少しくらいの負のズレ（Gameが進みすぎ）は許容してLerpで合わせる（カクつき防止）
+		// 繧ｺ繝ｬ縺悟､ｧ縺阪☆縺弱ｋ蝣ｴ蜷茨ｼ井ｾ九∴縺ｰ 50ms莉･荳奇ｼ峨・
+        // 縺ｾ縺溘・雋縺ｮ譁ｹ蜷代↓螟ｧ縺阪☆縺弱ｋ・域凾髢薙′鬟帙・驕弱℃縺ｦ謌ｻ縺｣縺滂ｼ牙ｴ蜷医・蠑ｷ蛻ｶ逧・↓蜷医ｏ縺帙ｋ縲・
+        // 窶ｻ蟆代＠縺上ｉ縺・・雋縺ｮ繧ｺ繝ｬ・・ame縺碁ｲ縺ｿ縺吶℃・峨・險ｱ螳ｹ縺励※Lerp縺ｧ蜷医ｏ縺帙ｋ・医き繧ｯ縺､縺埼亟豁｢・・
 		if (std::abs(diff) > 0.05f) {
 			this->songTime = time;
 		}
 		else {
             if (time <= 0.001f) {
-                // 音声がまだ始まっていない(0)の場合は、同期せずにゲーム時間を進める(DeltaTime任せ)
-                // これによりStart直後の「溜め」でノーツが止まるのを防ぐ
+                // 髻ｳ螢ｰ縺後∪縺蟋九∪縺｣縺ｦ縺・↑縺・0)縺ｮ蝣ｴ蜷医・縲∝酔譛溘○縺壹↓繧ｲ繝ｼ繝譎る俣繧帝ｲ繧√ｋ(DeltaTime莉ｻ縺・
+                // 縺薙ｌ縺ｫ繧医ｊStart逶ｴ蠕後・縲梧ｺ懊ａ縲阪〒繝弱・繝・′豁｢縺ｾ繧九・繧帝亟縺・
             }
             else {
-			    // ズレが小さい場合は、補間して滑らかに近づける
+			    // 繧ｺ繝ｬ縺悟ｰ上＆縺・ｴ蜷医・縲∬｣憺俣縺励※貊代ｉ縺九↓霑代▼縺代ｋ
 			    this->songTime += diff * 0.2f;
             }
 		}
@@ -797,6 +824,7 @@ namespace app::test {
 
 					canvas->SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
 				}
+
 
 				// Destroy HoldStart Actor
 				int startIdx = endNote.pairIndex;
@@ -918,6 +946,277 @@ namespace app::test {
     void NoteManager::AddCombo(int amount) {
         currentCombo += amount;
         JudgeStatsService::AddCombo(amount);
+    }
+
+	// ==================================================
+	// Instancing Implementation
+	// ==================================================
+    void NoteManager::InitInstancing()
+    {
+        sf::debug::Debug::Log("InitInstancing [" + std::to_string((uintptr_t)this) + "]");
+        sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
+        auto device = dx11->GetMainDevice().GetDevice();
+
+        // 1. Create Instance Buffer (Dynamic)
+        m_instanceDataCPU.reserve(2048);
+
+		D3D11_BUFFER_DESC desc{};
+		desc.ByteWidth = sizeof(NoteInstanceData) * 2048;
+		desc.Usage = D3D11_USAGE_DYNAMIC;
+		desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+		desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+		desc.MiscFlags = 0;
+		desc.StructureByteStride = 0;
+
+        HRESULT hr = device->CreateBuffer(&desc, nullptr, &m_instanceBuffer);
+        if (FAILED(hr)) {
+            sf::debug::Debug::LogError("Failed to create Instance Buffer");
+        }
+
+        // 2. Create Manual Cube Mesh (Positions, Normals, UVs, Colors)
+        // Unit Cube centered at 0, size 1x1x1 (-0.5 to 0.5)
+        // Simple Vertex Struct for internal use
+        struct SimpleVertex {
+            float pos[3];
+            float nor[3];
+            float uv[2];
+            float col[4];
+        };
+
+        // 24 vertices (4 per face * 6 faces)
+        SimpleVertex vertices[] = {
+            // Front Face (Z = -0.5) Normal (0,0,-1)
+            { {-0.5f, -0.5f, -0.5f}, {0,0,-1}, {0,1}, {1,1,1,1} },
+            { {-0.5f,  0.5f, -0.5f}, {0,0,-1}, {0,0}, {1,1,1,1} },
+            { { 0.5f,  0.5f, -0.5f}, {0,0,-1}, {1,0}, {1,1,1,1} },
+            { { 0.5f, -0.5f, -0.5f}, {0,0,-1}, {1,1}, {1,1,1,1} },
+
+            // Back Face (Z = +0.5) Normal (0,0,1)
+            { { 0.5f, -0.5f,  0.5f}, {0,0,1}, {0,1}, {1,1,1,1} },
+            { { 0.5f,  0.5f,  0.5f}, {0,0,1}, {0,0}, {1,1,1,1} },
+            { {-0.5f,  0.5f,  0.5f}, {0,0,1}, {1,0}, {1,1,1,1} },
+            { {-0.5f, -0.5f,  0.5f}, {0,0,1}, {1,1}, {1,1,1,1} },
+
+            // Top Face (Y = +0.5) Normal (0,1,0)
+            { {-0.5f,  0.5f, -0.5f}, {0,1,0}, {0,1}, {1,1,1,1} },
+            { {-0.5f,  0.5f,  0.5f}, {0,1,0}, {0,0}, {1,1,1,1} },
+            { { 0.5f,  0.5f,  0.5f}, {0,1,0}, {1,0}, {1,1,1,1} },
+            { { 0.5f,  0.5f, -0.5f}, {0,1,0}, {1,1}, {1,1,1,1} },
+
+            // Bottom Face (Y = -0.5) Normal (0,-1,0)
+            { {-0.5f, -0.5f,  0.5f}, {0,-1,0}, {0,1}, {1,1,1,1} },
+            { {-0.5f, -0.5f, -0.5f}, {0,-1,0}, {0,0}, {1,1,1,1} },
+            { { 0.5f, -0.5f, -0.5f}, {0,-1,0}, {1,0}, {1,1,1,1} },
+            { { 0.5f, -0.5f,  0.5f}, {0,-1,0}, {1,1}, {1,1,1,1} },
+
+            // Left Face (X = -0.5) Normal (-1,0,0)
+            { {-0.5f, -0.5f,  0.5f}, {-1,0,0}, {0,1}, {1,1,1,1} },
+            { {-0.5f,  0.5f,  0.5f}, {-1,0,0}, {0,0}, {1,1,1,1} },
+            { {-0.5f,  0.5f, -0.5f}, {-1,0,0}, {1,0}, {1,1,1,1} },
+            { {-0.5f, -0.5f, -0.5f}, {-1,0,0}, {1,1}, {1,1,1,1} },
+
+            // Right Face (X = +0.5) Normal (1,0,0)
+            { { 0.5f, -0.5f, -0.5f}, {1,0,0}, {0,1}, {1,1,1,1} },
+            { { 0.5f,  0.5f, -0.5f}, {1,0,0}, {0,0}, {1,1,1,1} },
+            { { 0.5f,  0.5f,  0.5f}, {1,0,0}, {1,0}, {1,1,1,1} },
+            { { 0.5f, -0.5f,  0.5f}, {1,0,0}, {1,1}, {1,1,1,1} },
+        };
+
+        D3D11_BUFFER_DESC vbd{};
+        vbd.Usage = D3D11_USAGE_DEFAULT;
+        vbd.ByteWidth = sizeof(SimpleVertex) * 24;
+        vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+        vbd.CPUAccessFlags = 0;
+        D3D11_SUBRESOURCE_DATA vInitData{};
+        vInitData.pSysMem = vertices;
+        hr = device->CreateBuffer(&vbd, &vInitData, &m_cubeVB);
+        if (FAILED(hr)) sf::debug::Debug::LogError("Failed to create Cube VB");
+
+        // Indices
+        unsigned int indices[] = {
+            0,1,2, 0,2,3,       // Front
+            4,5,6, 4,6,7,       // Back
+            8,9,10, 8,10,11,    // Top
+            12,13,14, 12,14,15, // Bottom
+            16,17,18, 16,18,19, // Left
+            20,21,22, 20,22,23  // Right
+        };
+        m_cubeIndexCount = 36;
+        
+        D3D11_BUFFER_DESC ibd{};
+        ibd.Usage = D3D11_USAGE_DEFAULT;
+        ibd.ByteWidth = sizeof(unsigned int) * 36;
+        ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+        ibd.CPUAccessFlags = 0;
+        D3D11_SUBRESOURCE_DATA iInitData{};
+        iInitData.pSysMem = indices;
+        hr = device->CreateBuffer(&ibd, &iInitData, &m_cubeIB);
+        if (FAILED(hr)) sf::debug::Debug::LogError("Failed to create Cube IB");
+
+        // 3. Load Shader & Create Layout Manually
+        ID3DBlob* vsBlob = nullptr;
+        ID3DBlob* errorBlob = nullptr;
+        
+        // Compile
+        sf::debug::Debug::Log("Compiling Shader: vsNoteInstancing.hlsl");
+        hr = D3DCompileFromFile(L"vsNoteInstancing.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, &vsBlob, &errorBlob);
+        if (FAILED(hr)) {
+            if (errorBlob) {
+                sf::debug::Debug::LogError((char*)errorBlob->GetBufferPointer());
+                errorBlob->Release();
+            } else {
+                sf::debug::Debug::LogError("Shader Compile Failed: No Error Blob (File not found?)");
+            }
+            if (vsBlob) vsBlob->Release();
+            return;
+        }
+
+        // Create VS
+        hr = device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vs);
+        if (FAILED(hr)) sf::debug::Debug::LogError("Failed to create Instancing VS");
+
+        // Create Input Layout
+        // Must match shader input structure semantics EXACTLY
+        D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
+        {
+            // Per-Vertex
+            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 32, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+            
+            // Per-Instance
+            // D3D11 requires SemanticName + SemanticIndex separately
+            // HLSL "INSTANCE_WORLD0" -> D3D11 "INSTANCE_WORLD" with index 0
+            { "INSTANCE_WORLD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 0,  D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCE_WORLD", 1, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 16, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCE_WORLD", 2, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 32, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCE_WORLD", 3, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 48, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+            { "INSTANCE_COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+        };
+
+        hr = device->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_layout);
+        if (FAILED(hr)) sf::debug::Debug::LogError("Failed to create Instancing InputLayout");
+        
+        if (FAILED(hr)) sf::debug::Debug::LogError("Failed to create Instancing InputLayout");
+        
+        vsBlob->Release();
+        sf::debug::Debug::Log("InitInstancing Done. m_vs=" + std::to_string((uintptr_t)m_vs) + " m_layout=" + std::to_string((uintptr_t)m_layout));
+    }
+
+    void NoteManager::UpdateInstanceBuffer()
+    {
+        // sf::debug::Debug::Log("UpdateInstanceBuffer Start");
+        m_instanceDataCPU.clear();
+
+        // Collect visible notes
+        for (size_t i = 0; i < noteActors.size(); ++i) {
+             // Safety check for index
+             if (i >= noteSequence.size()) continue;
+
+             // SKIP JUDGED NOTES FIRST (Avoids accessing destroyed actors)
+             if (noteSequence[i].judged) continue;
+
+             // SKIP HOLD NOTES - they use individual Mesh rendering for dynamic scale
+             if (noteSequence[i].type == NoteType::HoldStart || 
+                 noteSequence[i].type == NoteType::HoldEnd) continue;
+
+             // Check if Ref is null (e.g. SongEnd dummy)
+             if (noteActors[i].IsNull()) continue;
+
+             // Check if Ref is valid (exists in map) so Target() doesn't throw
+             if (!noteActors[i].IsValid()) continue;
+
+             // Now safely access the actor
+             auto act = noteActors[i].Target();
+             if (!act) continue;
+
+             // IsActive check removed. Relying on logic visibility (judged=false)
+             {
+                 NoteInstanceData data;
+                 DirectX::XMMATRIX m = act->transform.Matrix();
+                 // Store matrix directly - no transpose needed for instancing
+                 DirectX::XMStoreFloat4x4(&data.world, m);
+                 data.color = { 1, 1, 1, 1 };
+                 m_instanceDataCPU.push_back(data);
+             }
+        }
+
+        if (m_instanceDataCPU.empty()) return;
+
+        // Map Buffer
+        sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
+        auto context = dx11->GetMainDevice().GetContext();
+
+        D3D11_MAPPED_SUBRESOURCE mapped;
+        // sf::debug::Debug::Log("Mapping Instance Buffer...");
+        HRESULT hr = context->Map(m_instanceBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
+        if (SUCCEEDED(hr)) {
+            size_t sizeInBytes = sizeof(NoteInstanceData) * m_instanceDataCPU.size();
+            if (m_instanceDataCPU.size() > 2048) {
+                 sizeInBytes = sizeof(NoteInstanceData) * 2048;
+            }
+            memcpy(mapped.pData, m_instanceDataCPU.data(), sizeInBytes);
+            context->Unmap(m_instanceBuffer, 0);
+        } else {
+             sf::debug::Debug::LogError("Failed to Map Instance Buffer");
+        }
+    }
+
+    void NoteManager::DrawInstanced()
+    {
+        // sf::debug::Debug::Log("DrawInstanced Start");
+        try {
+            UpdateInstanceBuffer();
+            if (m_instanceDataCPU.empty()) return;
+            if (!m_vs || !m_layout || !m_cubeVB || !m_cubeIB) {
+                std::string msg = "DrawInstanced Skipped: missing resources. [this=" + std::to_string((uintptr_t)this) + "] ";
+                if (!m_vs) msg += "VS=null "; else msg += "VS=" + std::to_string((uintptr_t)m_vs) + " ";
+                if (!m_layout) msg += "Layout=null "; else msg += "Layout=" + std::to_string((uintptr_t)m_layout) + " ";
+                if (!m_cubeVB) msg += "VB=null ";
+                if (!m_cubeIB) msg += "IB=null ";
+                sf::debug::Debug::Log(msg);
+                return;
+            }
+
+            sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
+            auto context = dx11->GetMainDevice().GetContext();
+
+            // 1. Shaders
+            context->VSSetShader(m_vs, nullptr, 0);
+            context->IASetInputLayout(m_layout);
+
+            // Use existing Pixel Shader
+            dx11->ps3d.SetGPU(dx11->GetMainDevice());
+
+            // Clear Geometry Shader (important! previous draws may have set gsCube etc.)
+            dx11->gsNone.SetGPU(dx11->GetMainDevice());
+
+            // 2. Geometry
+            UINT strides[2] = { sizeof(float) * 12, sizeof(NoteInstanceData) };
+            UINT offsets[2] = { 0, 0 };
+            ID3D11Buffer* buffers[2] = { m_cubeVB, m_instanceBuffer };
+
+            context->IASetVertexBuffers(0, 2, buffers, strides, offsets);
+            context->IASetIndexBuffer(m_cubeIB, DXGI_FORMAT_R32_UINT, 0);
+            context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            
+            // 3. Constant Buffers
+            // Set Material Buffer manually to ensure diffuseColor is white.
+            // Otherwise, it might be 0 or leftover from previous draws.
+            mtl material;
+            material.diffuseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+            material.textureEnable = { 0.0f, 0.0f, 0.0f, 0.0f }; // No texture for now (white cube)
+            dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
+
+            // 4. Draw
+            sf::debug::Debug::Log("Drawing " + std::to_string(m_instanceDataCPU.size()) + " instances");
+            context->DrawIndexedInstanced(m_cubeIndexCount, (UINT)m_instanceDataCPU.size(), 0, 0, 0);
+        } catch (const std::exception& e) {
+             sf::debug::Debug::LogError("DrawInstanced Exception: " + std::string(e.what()));
+        } catch (...) {
+             sf::debug::Debug::LogError("DrawInstanced Unknown Exception");
+        }
     }
 
 } // namespace app::test

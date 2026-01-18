@@ -225,10 +225,10 @@ void app::test::IngameScene::Init()
 
 				l2dComp->LoadModel(MODEL_DIR, MODEL_FILE);
 
-				// 位置調整 (中間をとって 0.65)
-				live2dActor.Target()->transform.SetPosition({ -0.70f, 0.60f, 0.0f }); 
+				// 位置調整 (サイズを0.7倍、少し上へ)
+				live2dActor.Target()->transform.SetPosition({ 0.0f, 0.80f, 0.0f }); 
 				// スケール調整
-				live2dActor.Target()->transform.SetScale({ 0.7f, 1.0f, 1.0f });
+				live2dActor.Target()->transform.SetScale({ 0.49f, 0.7f, 1.0f });
 
 				// Start Idle animation
 				l2dComp->PlayMotion("Idle", 0, 3);
@@ -413,6 +413,20 @@ void app::test::IngameScene::StartGame()
     }
     */
 
+}
+
+void app::test::IngameScene::Draw()
+{
+    // Call Base Draw first (standard actors, camera setup, etc.)
+    sf::Scene<IngameScene>::Draw();
+
+    // Draw Instanced Notes
+    if (managerActor.Target()) {
+        auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
+        if (noteMgr) {
+            noteMgr->DrawInstanced();
+        }
+    }
 }
 
 void app::test::IngameScene::DrawOverlay()

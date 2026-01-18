@@ -28,6 +28,8 @@ namespace app
 
 			void OnActivated() override;
 
+            void Draw() override;
+
 			void DrawOverlay() override;
 
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }

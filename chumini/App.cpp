@@ -167,7 +167,7 @@ void app::Application::UnInit()
 void app::Application::Loop()
 {
 	//sf::Time::SetFPS(0);
-	sf::Time::SetFPS(60);
+	sf::Time::SetFPS(120);
 
 	sf::debug::Debug::Log("Game Loop");
 	MSG msg{};

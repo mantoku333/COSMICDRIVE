@@ -215,21 +215,22 @@ void AppModel::Update() {
     std::lock_guard<std::mutex> dock(_mainMutex);
 
     // Check Async Load
-    // Check Async Load
-    if (_isMotionDataReady) {
-        std::vector<unsigned char> data;
-        {
-            std::lock_guard<std::mutex> lock(_motionMutex);
-            data = std::move(_pendingMotionData);
-            _isMotionDataReady = false;
+    std::shared_ptr<AsyncMotionResult> resultToCheck = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(_motionMutex);
+        if (_pendingAsyncResult && _pendingAsyncResult->ready) {
+            resultToCheck = _pendingAsyncResult;
+            _pendingAsyncResult = nullptr; // Clear the pending slot
         }
+    }
 
-        if (!data.empty()) {
+    if (resultToCheck) {
+        if (!resultToCheck->data.empty()) {
             // Cache it!
-            std::string key = _pendingGroup + "_" + std::to_string(_pendingNo);
-            _motionDataCache[key] = data;
+            std::string key = resultToCheck->group + "_" + std::to_string(resultToCheck->no);
+            _motionDataCache[key] = resultToCheck->data;
 
-            CubismMotion* motion = CubismMotion::Create(data.data(), static_cast<csmSizeInt>(data.size()));
+            CubismMotion* motion = CubismMotion::Create(resultToCheck->data.data(), static_cast<csmSizeInt>(resultToCheck->data.size()));
 
             // Force Loop to FALSE to rely on Manual Restart
             motion->IsLoop(false);
@@ -239,8 +240,8 @@ void AppModel::Update() {
 
             // Store state for manual loop in Update
             _isGlitchLooping = true;
-            _glitchGroup = _pendingGroup;
-            _glitchNo = _pendingNo;
+            _glitchGroup = resultToCheck->group;
+            _glitchNo = resultToCheck->no;
 
             OutputDebugStringA(("AppModel: Started Glitch Motion (Loaded & Cached)\n"));
         }
@@ -396,28 +397,34 @@ void AppModel::StartGlitchMotionNoLock(const char* group, int no) {
     }
 
     // Not cached, load async
-    _pendingGroup = group;
-    _pendingNo = no;
+    
+    // Resolve filename synchronously here to avoid race/data issues later
+    std::string fileName = _modelSetting->GetMotionFileName(group, no);
+    // Fallback
+    if (fileName.empty()) {
+        fileName = std::string(group) + ".motion3.json";
+    }
+    std::string path = _modelHomeDir + "/" + fileName;
 
-    sf::jobsystem::JobSystem::Instance()->addJob([this, group, no, key]() {
-        std::string fileName = _modelSetting->GetMotionFileName(group, no);
+    // Create a shared result object that both the job and the instance share
+    auto result = std::make_shared<AsyncMotionResult>();
+    result->group = group;
+    result->no = no;
 
-        // Fallback: If group not found, try using group name as filename directly
-        if (fileName.empty()) {
-            std::string directName = std::string(group) + ".motion3.json";
-            fileName = directName;
-            OutputDebugStringA(("AppModel: Group lookup failed. Trying direct filename: " + fileName + "\n").c_str());
-        }
+    {
+        std::lock_guard<std::mutex> lock(_motionMutex);
+        _pendingAsyncResult = result;
+    }
 
-        if (fileName.empty()) return;
-
-        std::string path = _modelHomeDir + "/" + fileName;
+    sf::jobsystem::JobSystem::Instance()->addJob([path, result]() {
+        // Capture 'path' (value) and 'result' (shared_ptr)
+        // Do NOT capture 'this'
+        
         auto motionBytes = LoadFileAsBytes(path);
 
         if (!motionBytes.empty()) {
-            std::lock_guard<std::mutex> lock(_motionMutex);
-            _pendingMotionData = std::move(motionBytes);
-            _isMotionDataReady = true;
+            result->data = std::move(motionBytes);
+            result->ready = true; // Mark as ready
         }
     }); 
 }

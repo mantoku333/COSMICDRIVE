@@ -175,6 +175,10 @@ void Live2DComponent::Draw() {
     // =========================================================
     // 【重要】レンダリングステートのリセット (後片付け)
     // =========================================================
+
+    // ★Resource Unbind (Driver Clean-up)
+    ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
+    context->PSSetShaderResources(0, 2, nullSRVs);
     
     // 1. シザー矩形の無効化 (これが残っているとUIなどが消滅する)
     context->RSSetScissorRects(0, nullptr);
