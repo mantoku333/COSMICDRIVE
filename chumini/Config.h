@@ -27,6 +27,7 @@ namespace app::test{
         bool enableFastSlow = true; // FAST/SLOW Display
         float offsetSec = 0.0f; // Offset in seconds
         bool enableLog = true; // ログ出力のオンオフ（リリース時はfalse推奨）
+        bool enableCommandLog = true; // コマンドログ出力のオンオフ
     };
 
     struct SaveData {

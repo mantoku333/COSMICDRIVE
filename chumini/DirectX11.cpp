@@ -93,7 +93,7 @@ void sf::dx::DirectX11::OnScreenRendering()
 	mainDevice.GetContext()->OMSetRenderTargets(ARRAYSIZE(rtv), rtv, nullptr);
 
 	for (int i = 0; i < BUFFERSIZE; i++)
-		rb3d.Get(i).GetBaseColorRTV().SetTexture(mainDevice, i);
+		rb3d.Get(0).GetBaseColorRTV().SetTexture(mainDevice, i);
 
 	rb3d.Get().GetNormalRTV().SetTexture(mainDevice, 4);
 	rb2d.GetBaseColorRTV().SetTexture(mainDevice, 5);

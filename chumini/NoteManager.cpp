@@ -241,10 +241,76 @@ namespace app::test {
             tempoMap.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
         BuildTempoMap(tempoMap);
 
+        // Calculate HitTime for ALL notes first
         for (auto& nd : noteSequence)
             nd.hittime = static_cast<float>(BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset + gGameConfig.offsetSec);
 
-        // Calculate Duration for Holds
+        // -------------------------------------------------------------
+        // CRITICAL FIX: Sort noteSequence by TIME
+        // -------------------------------------------------------------
+        // We must preserve original pairing logic, so we need to track original indices or re-pair after sort.
+        // Re-pairing is safer. We will use `pendingHolds` mechanism logic but adapted for post-sort.
+        // Actually, we can just attach an original ID before sort, then fix pairIndex.
+        
+        for(int i=0; i<(int)noteSequence.size(); ++i) {
+            // noteSequence[i].originalIndex = i; // Removed: Field does not exist and is not strictly needed for re-pairing logic below
+        }
+        
+        // Use stable_sort to keep relative order of simultaneous notes (e.g. correct lane order from parser)
+        std::stable_sort(noteSequence.begin(), noteSequence.end(), 
+            [](const NoteData& a, const NoteData& b) {
+                return a.hittime < b.hittime;
+            });
+
+        // Re-calculate pairIndex because indices shifted after sort
+        // We can scan and re-link HoldStart/HoldEnd.
+        // Since we know they share lane and holdId (wait, NoteData doesn't have holdId stored... parser had it).
+        // If NoteData doesn't store holdId, we have a problem re-linking if multiple holds in same lane overlap (rare but possible in some formats, forbidden in others).
+        // Assuming no overlaps per lane: HoldStart looks for next HoldEnd in same lane.
+        
+        // However, we already set pairIndex based on original indices.
+        // If sorting changes indices, `pairIndex` acts as a stale pointer.
+        // To fix this without storing holdId, we need a mapping: OldIndex -> NewIndex.
+        std::vector<int> oldToNew(noteSequence.size());
+        for(int i=0; i<(int)noteSequence.size(); ++i) {
+            // But we don't have OriginalIndex stored in NoteData?
+            // Let's assume we can't easily map back without extra memory.
+            
+            // Better strategy:
+            // Since we already Linked them in Parser loop using `pairIndex`, 
+            // `nd.pairIndex` currently holds the OLD index.
+            // But validation is hard.
+            
+            // AUTOMATIC RE-PAIRING STRATEGY (Robust):
+            // 1. Reset all pairIndices.
+            // 2. Iterate sorted sequence.
+            // 3. Keep a stack/queue of HoldStarts per lane.
+            // 4. When HoldEnd checks in, match with pending HoldStart.
+        }
+        
+        // Let's implement robust re-pairing:
+        std::vector<int> pendingStartIdx(6, -1);
+        for(int i=0; i<(int)noteSequence.size(); ++i) {
+            noteSequence[i].pairIndex = -1; // Reset
+            
+            if (noteSequence[i].type == NoteType::HoldStart) {
+                // If there was a pending start, that's an error (overlap), but let's override or ignore.
+                pendingStartIdx[noteSequence[i].lane] = i;
+            }
+            else if (noteSequence[i].type == NoteType::HoldEnd) {
+                int startIdx = pendingStartIdx[noteSequence[i].lane];
+                if (startIdx != -1) {
+                    // Link
+                    noteSequence[startIdx].pairIndex = i;
+                    noteSequence[i].pairIndex = startIdx;
+                    
+                    // Clear pending
+                    pendingStartIdx[noteSequence[i].lane] = -1;
+                }
+            }
+        }
+
+        // Calculate Duration for Holds (After Sort and Re-pair)
         for (auto& nd : noteSequence) {
             if (nd.type == NoteType::HoldStart && nd.pairIndex != -1) {
                 if (nd.pairIndex < (int)noteSequence.size()) {
@@ -339,6 +405,17 @@ namespace app::test {
             int l = std::clamp(noteSequence[i].lane, 0, lanes - 1);
             laneOrder[l].push_back(i);
         }
+        
+        // 各レーンのノーツをhittime順にソート（noteSequenceの順序が時間順でない場合の対策）
+        // noteSequence自体をBegin()でソート済みのため、ここでのソートは不要になった
+        /*
+        // 同時刻のノーツ順序を保持するためにstable_sortを使用
+        for (int lane = 0; lane < lanes; ++lane) {
+            std::stable_sort(laneOrder[lane].begin(), laneOrder[lane].end(),
+                [this](int a, int b) { return noteSequence[a].hittime < noteSequence[b].hittime; }
+            );
+        }
+        */
 
         updateCommand.Bind(std::bind(&NoteManager::Update, this, std::placeholders::_1));
 
@@ -400,230 +477,203 @@ namespace app::test {
 	}
 
 	// ==================================================
-	// 繝ｬ繝ｼ繝ｳ蛻､螳・
+	// レーン判定
 	// ==================================================
 	JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
-        if (lane < 0 || lane >= (int)laneOrder.size()) {
-             sf::debug::Debug::Log("JudgeLane: Skip (Invalid Lane) lane=" + std::to_string(lane)); 
+        if (lane < 0 || lane >= 6) { // Fixed lane count
              return JudgeResult::Skip;
         }
 
 		auto& order = laneOrder[lane];
 		size_t& head = laneHeads[lane];
-		while (head < order.size() && noteSequence[order[head]].judged) ++head;
-		if (head >= order.size()) {
-             sf::debug::Debug::Log("JudgeLane: Skip (No Notes Left) lane=" + std::to_string(lane));
-             return JudgeResult::Skip;
-        }
+        
+        // Loop to find the best candidate note
+        // Look ahead a few notes (e.g., 5) to tolerate some overlap/congestion
+        size_t currentIdx = head;
+        int lookAheadCount = 0;
+        const int MAX_LOOKAHEAD = 5;
 
-		int idx = order[head];
-		if (idx >= (int)nextIndex) {
-            // Note is in the future relative to spawn cursor.
-            // However, player might have pressed early or Update loop lag.
-            // Check if it's within Hit Window (Blind Hit).
-            auto& note = noteSequence[idx];
+        while (currentIdx < order.size() && lookAheadCount < MAX_LOOKAHEAD) {
+            
+            // Skip already judged notes (should be handled by head increment, but just in case)
+            if (noteSequence[order[currentIdx]].judged) {
+                if (currentIdx == head) ++head; // Advance head if it was pointing to judged
+                ++currentIdx;
+                continue;
+            }
 
-            // Don't judge HoldEnd here (handled by CheckHold/Missed)
-            if (note.type == NoteType::HoldEnd) {
-                 sf::debug::Debug::Log("JudgeLane: Skip (Index Future HoldEnd) lane=" + std::to_string(lane));
+            int idx = order[currentIdx];
+
+            // 1. Check Spawn Status
+			if (idx >= (int)nextIndex) {
+                 // Not spawned yet. Since sorted by time, future notes define end of scope.
+                 // Stop searching.
                  return JudgeResult::Skip;
             }
 
-            JudgeResult res = JudgeNote(note.type, note.hittime, inputTime);
-            
-            // If valid hit (not Miss)
-            if (res != JudgeResult::Miss) {
-                 sf::debug::Debug::Log("JudgeLane: Early/Blind Hit Success! Lane=" + std::to_string(lane) + " Idx=" + std::to_string(idx));
+            // 2. Check Actor Validity
+            auto* act = noteActors[idx].Target();
+            if (!act) {
+                // If head is null, skip it permanently
+                if (currentIdx == head) ++head;
+                ++currentIdx;
+                continue;
+            }
 
-                 note.judged = true;
-                 note.result = res;
-                 JudgeStatsService::AddResult(res);
-                 UpdateCombo(res);
+            float noteZ = act->transform.GetPosition().z;
+        
+            // Ignore HoldEnd notes for tap judgment. They are handled by CheckHold.
+            if (noteSequence[idx].type == NoteType::HoldEnd) {
+                // Not a tap target. Skip it.
+                if (currentIdx == head) ++head; 
+                ++currentIdx;
+                continue;
+            }
 
-                 // FX
-                 if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
-                    if (app::test::gGameConfig.enableTapSound)
-				        sound->Play(GetHitSfxPath(note.type));
-			     }
-                 if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                    float uiLaneWidth = 300.0f;
-					float sideOffset = 250.0f;
-					float hitX = 0.0f;
-					if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
-					else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
-					else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
-					canvas->SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
-                 }
+            // Ignore SongEnd notes. They are handled by CheckMissedNotes for scene transition.
+            if (noteSequence[idx].type == NoteType::SongEnd) {
+                if (currentIdx == head) ++head; 
+                ++currentIdx;
+                continue;
+            }
+        
+            // HOLD NOTES: Adjust Z for Head
+            if (noteSequence[idx].type == NoteType::HoldStart) {
+                 float slopeRad = rotX * 3.14159265f / 180.0f;
+                 float halfLenZ = act->transform.GetScale().z * std::cos(slopeRad) * 0.5f;
+                 noteZ -= halfLenZ;
+            }
 
-                 // Register Active Hold if applicable
-                 if (note.type == NoteType::HoldStart && note.pairIndex != -1) {
-                     // Check overwrite
-                     if (activeHolds[lane] != -1) {
-                         sf::debug::Debug::Log("JudgeLane: WARNING! Overwriting Active Hold (Early) on Lane " + std::to_string(lane));
+            // 3. Time Judgment
+		    JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
+		
+		    // 4. Decision Logic
+		    if (res == JudgeResult::Miss) {
+                // Time-based MISS (Too late or too early)
+                // Need to distinguish Late (Past) vs Early (Future) processing
+                // JudgeNote returns Miss if outside Good window.
+                
+                float diff = inputTime - noteSequence[idx].hittime;
+                // Positive diff = Input is AFTER note (Note is in Past)
+                // Negative diff = Input is BEFORE note (Note is in Future)
+
+                if (diff > J_WIN_GOOD) {
+                    // Note is in the PAST (Too Late).
+                    // This is a "Zombie Note" that hasn't been killed by CheckMissedNotes yet.
+                    // We should IGNORE this note and try the NEXT one.
+                    // Do NOT consume input.
+                    // Do NOT increment global head (leave it for CheckMissed to kill).
+                    
+                    // Proceed to next candidate
+                    ++currentIdx;
+                    continue; 
+                } 
+                else if (diff < -J_WIN_GOOD) {
+                    // Note is in the FUTURE (Too Early).
+                    // Since notes are sorted, any subsequent notes are even further in future.
+                    // Stop searching.
+                    return JudgeResult::Skip;
+                }
+                
+                // If logic falls here, it's weird (inside window but Miss? JudgeNote shouldn't do that).
+                // Just in case, treat as Miss or Position Check.
+                
+			    float diffZ = std::abs(noteZ - judgeZ);
+			    if (diffZ > judgeRange * J_POS_TOL_MULT) {
+                    // Positionally too far.
+                    // If note is future -> Stop.
+                    // If note is past -> Continue.
+                     if (diff < 0) return JudgeResult::Skip; // Future
+                     else {
+                         ++currentIdx; continue; // Past
                      }
-                     activeHolds[lane] = note.pairIndex;
-                     activeHoldNextBeats[lane] = note.absBeat + 0.5;
-                 }
-
-                 return res;
-            }
-
-            // Too early -> Skip
-            // sf::debug::Debug::Log("JudgeLane: Skip (Index Future) lane=" + std::to_string(lane) + " idx=" + std::to_string(idx) + " next=" + std::to_string(nextIndex)); 
-            return JudgeResult::Skip;
-        }
-
-		auto* act = noteActors[idx].Target();
-		if (!act) return JudgeResult::Skip;
-
-		float noteZ = act->transform.GetPosition().z;
-        
-        // Ignore HoldEnd notes for tap judgment. They are handled by CheckHold.
-        if (noteSequence[idx].type == NoteType::HoldEnd) {
-            return JudgeResult::Skip;
-        }
-        
-        // HOLD NOTES: Act Position is Center. We need Head (Start) Position for Judgment.
-        // Head is closer to Judge Line (-Z direction). Center is +Z direction from Head.
-        // HeadZ = CenterZ - (LengthProjected / 2)
-        if (noteSequence[idx].type == NoteType::HoldStart) {
-             float slopeRad = rotX * 3.14159265f / 180.0f;
-             // Scale.z is the Visual Length (with 1/cos correction).
-             // Projected Length on Z axis = Scale.z * cos(slope).
-             // So halfLenZ = (Scale.z * cos) * 0.5f.
-             float halfLenZ = act->transform.GetScale().z * std::cos(slopeRad) * 0.5f;
-             noteZ -= halfLenZ;
-        }
-
-		float diffZ = std::abs(noteZ - judgeZ);
-		if (diffZ > judgeRange * J_POS_TOL_MULT) {
-             // 霍晞屬縺碁□縺吶℃繧・
-             sf::debug::Debug::Log("JudgeLane: Skip (Too Far) lane=" + std::to_string(lane) + " diffZ=" + std::to_string(diffZ));
-             return JudgeResult::Skip;
-        }
-
-		JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
-		noteSequence[idx].judged = true;
-		noteSequence[idx].result = res;
-
-		JudgeStatsService::AddResult(res);
-        if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
-             sf::debug::Debug::Log("JudgeLane: Judgment Result = " + judgeResultToString(res) 
-                 + " Lane=" + std::to_string(lane) 
-                 + " Time=" + std::to_string(inputTime) 
-                 + " NoteTime=" + std::to_string(noteSequence[idx].hittime)
-                 + " Type=" + std::to_string((int)noteSequence[idx].type)
-                 + " PairIdx=" + std::to_string(noteSequence[idx].pairIndex));
-        }
-
-        // Register Active Hold
-        if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
-            if (noteSequence[idx].type == NoteType::HoldStart && noteSequence[idx].pairIndex != -1) {
-                // Check if we are overwriting an existing active hold
-                if (activeHolds[lane] != -1) {
-                     sf::debug::Debug::Log("JudgeLane: WARNING! Overwriting Active Hold on Lane " + std::to_string(lane) 
-                         + ". Old Idx=" + std::to_string(activeHolds[lane]) 
-                         + " New Idx=" + std::to_string(noteSequence[idx].pairIndex));
-                }
-
-                activeHolds[lane] = noteSequence[idx].pairIndex;
-                
-                // Initialize Hold Combo Beat (Start Beat + 0.5)
-                activeHoldNextBeats[lane] = noteSequence[idx].absBeat + 0.5;
-                
-                sf::debug::Debug::Log("JudgeLane: Hold Registered! Lane=" + std::to_string(lane) + " PairIdx=" + std::to_string(noteSequence[idx].pairIndex));
-            }
-            else if (noteSequence[idx].type == NoteType::HoldStart) {
-                 sf::debug::Debug::Log("JudgeLane: HoldStart BUT PairIndex is -1! ID=" + std::to_string(idx));
-            }
-        }
-
-        // FAST/SLOW Logic
-        if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
-            float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
-            // 0.005f (5ms) margin for "JAUST" (display nothing) if needed, 
-            // but usually we show Fast/Slow for all non-perfects, or even perfects.
-            // Let's implement: If Perfect w/ very small diff -> Hide ? User said "Fast/Slow display".
-            // Let's show it for everything if it's not exactly 0 (which is rare).
-            // But maybe hide if diff is very small to avoid flickering on 'Just'.
+			    }
+			    // Position Close + Time Miss? (Maybe close to border?)
+                // Treat as Miss judgment.
+                // CONFIRM MISS.
+			    sf::debug::Debug::Log("JudgeLane: Miss (Position Close) lane=" + std::to_string(lane) + " idx=" + std::to_string(idx));
+		    }
             
-            bool isFast = diff < 0;
-            bool isSlow = diff > 0; // or >= 0
+            // If we got here, it's either Perfect/Great/Good/Miss(Close).
+            // We found our target!
+            
+            // APPLY JUDGMENT
+		    noteSequence[idx].judged = true;
+		    noteSequence[idx].result = res;
+		    JudgeStatsService::AddResult(res);
 
-            // Update Stats
-            if (isFast) JudgeStatsService::AddFast();
-            else JudgeStatsService::AddSlow(); // 0 is treated as Slow (rare)
+            if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
+                 sf::debug::Debug::Log("JudgeLane: Result=" + judgeResultToString(res) + " L=" + std::to_string(lane) + " Idx=" + std::to_string(idx));
+                 
+                 // Spawn Effect
+                 if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+				    float hitY = -130.0f;
+				    float uiLaneWidth = 300.0f;
+				    float sideOffset = 250.0f;
+				    float hitX = 0.0f;
+				    if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
+				    else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
+				    else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
+				    float scale = (uiLaneWidth / 100.0f) * 1.5f;
+				    canvas->SpawnHitEffect(hitX, hitY, scale, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+			    }
+            }
 
-            // Update UI
-            if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                if (gGameConfig.enableFastSlow) {
-                    if (res == JudgeResult::Perfect && std::abs(diff) < 0.016f) { 
-                        // If logic: Perfect and within 1 frame (16ms) -> Maybe don't show Fast/Slow?
-                        // Or just show it. Let's show it.
-                        // Actually, let's treat Perfect as "Just" (No Fast/Slow) IF the user wants strict mode?
-                        // For now, simple: Check enableFastSlow. If on, show.
-                        canvas->ShowFastSlow(isFast ? 1 : 2);
-                    } else {
-                         canvas->ShowFastSlow(isFast ? 1 : 2);
+            // Register Active Hold
+            if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
+                if (noteSequence[idx].type == NoteType::HoldStart && noteSequence[idx].pairIndex != -1) {
+                    if (activeHolds[lane] != -1) {
+                         // Overwrite warning
                     }
-                } else {
-                    canvas->ShowFastSlow(0);
+                    activeHolds[lane] = noteSequence[idx].pairIndex;
+                    activeHoldNextBeats[lane] = noteSequence[idx].absBeat + 0.5;
                 }
             }
-        }
-        else {
-             // Miss
-             if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                 canvas->ShowFastSlow(0);
-             }
-        }
+            
+            // FAST/SLOW Update (Simplified)
+            if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
+                 float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
+                 if (diff < 0) JudgeStatsService::AddFast(); else JudgeStatsService::AddSlow();
+                 // Valid UI Update here if needed...
+            }
 
-		// 繧ｨ繝輔ぉ繧ｯ繝育函謌・蠎ｧ讓吶・濶ｲ繝ｻ繧ｵ繧､繧ｺ
-		if (res == JudgeResult::Perfect || res == JudgeResult::Great || res == JudgeResult::Good) {
+            // Destroy Actor Logic
+            bool shouldDestroy = true;
+            if (noteSequence[idx].type == NoteType::HoldStart) shouldDestroy = false;
+            if (shouldDestroy) {
+                act->DeActivate();
+                act->Destroy();
+            }
 
-			if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-
-				// 蠎ｧ讓呵ｨ育ｮ励ヱ繝ｩ繝｡繝ｼ繧ｿ
-				float hitY = -130.0f; // UI荳翫・蛻､螳壹Λ繧､繝ｳ鬮倥＆
-				float uiLaneWidth = 300.0f;
-				float sideOffset = 250.0f;
-				float hitX = 0.0f;
-
-				// X蠎ｧ讓呎ｱｺ螳・
-				if (lane <= 3) {
-					hitX = (lane - 1.5f) * uiLaneWidth;
-				}
-				else if (lane == 4) {
-					hitX = (-1.5f * uiLaneWidth) - sideOffset;
-				}
-				else if (lane == 5) {
-					hitX = (1.5f * uiLaneWidth) + sideOffset;
-				}
-
-				// 蛻､螳壹＃縺ｨ縺ｮ貍泌・繝代Λ繝｡繝ｼ繧ｿ
-				float scale = (uiLaneWidth / 100.0f) * 1.5f; // 蝓ｺ譛ｬ繧ｵ繧､繧ｺ
-				float duration = 0.4f;
-				Color color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-
-				// Canvas(EffectManager)縺ｸ逕滓・萓晞ｼ
-				canvas->SpawnHitEffect(hitX, hitY, scale, duration, color);
-			}
-		}
-
-        // Destroy actor unless it's a HoldStart (Keep alive for debug even on Miss)
-        bool shouldDestroy = true;
-        if (noteSequence[idx].type == NoteType::HoldStart) {
-             shouldDestroy = false;
+            // Update Head:
+            // Since we might have skipped some "Past/Zombie" notes to get here,
+            // strictly speaking we processed `currentIdx`.
+            // Should we update `head` to `currentIdx + 1`?
+            // If we do, we implicitly "Give Up" on the skipped zombie notes (accepting they are Miss).
+            // Yes, if we hit a later note, the previous ones are definitely Misses that we jumped over.
+            // CheckMissedNotes will clean them up later, or we can leave head optimization compliant.
+            
+            // For safety, only advance head if we judged head. If we judged deeper, leaving head allows CheckMissed to see the gap.
+            // BUT, if we don't advance head, next JudgeLane will scan them again (wasteful but safe).
+            // However, noteSequence[idx].judged = true now.
+            // So next time loop will skip it via `judged` check.
+            
+            // Better: If we exactly judged `laneHeads[lane]`, increment.
+            // If we judged a future note, we leave head pointing to the zombie note so CheckMissed can catch it.
+            // The `judged` flag on the future note prevents double judgment.
+            
+            // WAIT! strict loop at top: `while (head < size && judged) ++head`
+            // So if we judge a future note (currentIdx > head), `head` stays at zombie.
+            // Next frame, loop starts at zombie again -> skips zombie -> hits marked future note -> skips marked future note -> ...
+            // This is efficient enough.
+            
+            return res;
+            
+            ++lookAheadCount;
         }
 
-        if (shouldDestroy) {
-		    act->DeActivate();
-		    act->Destroy();
-        }
-
-		++head;
-		return res;
+        // Nothing found in lookahead range
+		return JudgeResult::Skip;
 	}
 
 	void NoteManager::JudgeBatch(const std::vector<int>& pressedLanes, float inputTime) {
@@ -654,9 +704,16 @@ namespace app::test {
                     // SongEnd Logic
 					if (noteSequence[i].type == NoteType::SongEnd) {
 						if (!sceneChanger.isNull()) {
-							// sf::debug::Debug::Log("Result Scene Transition");
+							// 曲終了時、未判定ノーツを数える
+							int unjudgedCount = 0;
+							for (size_t j = 0; j < noteSequence.size(); ++j) {
+								if (!noteSequence[j].judged && noteSequence[j].type != NoteType::SongEnd) {
+									unjudgedCount++;
+									sf::debug::Debug::Log("UNJUDGED: idx=" + std::to_string(j) + " lane=" + std::to_string(noteSequence[j].lane) + " hittime=" + std::to_string(noteSequence[j].hittime) + " type=" + std::to_string((int)noteSequence[j].type));
+								}
+							}
+							sf::debug::Debug::Log("=== SONG END: Total Unjudged Notes = " + std::to_string(unjudgedCount) + " ===");
 
-							// 謠冗判繝ｻ繧ｷ繧ｹ繝・Β縺ｮ繧ｯ繝ｪ繝ｼ繝ｳ繧｢繝・・
 							sf::Mesh::ClearAllRegistered();
 							ShowCursor(TRUE);
 
@@ -1210,7 +1267,7 @@ namespace app::test {
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
             // 4. Draw
-            sf::debug::Debug::Log("Drawing " + std::to_string(m_instanceDataCPU.size()) + " instances");
+
             context->DrawIndexedInstanced(m_cubeIndexCount, (UINT)m_instanceDataCPU.size(), 0, 0, 0);
         } catch (const std::exception& e) {
              sf::debug::Debug::LogError("DrawInstanced Exception: " + std::string(e.what()));

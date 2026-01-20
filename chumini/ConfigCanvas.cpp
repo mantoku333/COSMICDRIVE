@@ -144,6 +144,7 @@ void ConfigCanvas::RebuildLayout()
 	AddFloatItem(L"Offset", &gGameConfig.offsetSec, 0.01f, -5.0f, 5.0f, L"%+.2fs");
 	AddBoolItem(L"FAST/SLOW", &gGameConfig.enableFastSlow);
 	AddBoolItem(L"Log Output", &gGameConfig.enableLog);
+	AddBoolItem(L"Command Log", &gGameConfig.enableCommandLog);
 
 	// ----------------------
 	// Control

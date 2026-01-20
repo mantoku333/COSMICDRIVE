@@ -1,5 +1,6 @@
 #include "Command.h"
 #include "Debug.h"
+#include "Config.h" // Added for Config
 
 void CommandThrowJob(const std::exception& hoge);
 
@@ -9,7 +10,7 @@ sf::jobsystem::JobSystem sf::command::ICommand::commandJob(CommandThrowJob);
 
 void CommandThrowJob(const std::exception& hoge)
 {
-	sf::debug::Debug::LogError("CommandÇ≈ó·äOÇ™ÉXÉçÅ[Ç≥ÇÍÇ‹ÇµÇΩ\n" + std::string(hoge.what()));
+	sf::debug::Debug::LogError("Command„Åß‰æãÂ§ñ„Åå„Çπ„É≠„Éº„Åï„Çå„Åæ„Åó„Åü\n" + std::string(hoge.what()));
 }
 
 sf::command::ICommand::ICommand(unsigned int order) :updateOrder(order)
@@ -35,7 +36,9 @@ void sf::command::ICommand::Bind(std::function<void(const ICommand&)> function)
 
 void sf::command::ICommand::UnBind() const
 {
-	sf::debug::Debug::Log("Command is unbinded:" + std::to_string(this->GetRef()));
+	if (app::test::gGameConfig.enableCommandLog) {
+		 sf::debug::Debug::Log("Command is unbinded:" + std::to_string(this->GetRef()));
+	}
 	{
 		std::lock_guard<std::mutex> lock(commandMapMtx);
 		std::map<uintptr_t, ICommand*>& maps = commands[GetUpdateOrder()];
