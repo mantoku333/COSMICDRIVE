@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "AppModel.h"
 #include <string>
+#include <d3d11.h>
 
 namespace app {
     namespace test {
@@ -23,6 +24,15 @@ namespace app {
 
         private:
             AppModel* _model = nullptr;
+
+            // ★キャッシュされたDirectXステート（毎フレーム作成のオーバーヘッドを削減）
+            ID3D11BlendState* m_cachedBlendState = nullptr;
+            ID3D11RasterizerState* m_cachedRasterState = nullptr;
+            ID3D11DepthStencilState* m_cachedDepthState = nullptr;
+            bool m_statesInitialized = false;
+
+            void InitCachedStates(ID3D11Device* device);
+            void ReleaseCachedStates();
         };
 
     }

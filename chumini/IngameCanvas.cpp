@@ -404,7 +404,17 @@ namespace app::test {
 
 		bool loadSuccess = false;
 		if (!selectedSong.jacketPath.empty()) {
-			loadSuccess = textureJacket.LoadTextureFromFile(selectedSong.jacketPath);
+			// UTF-8 -> wstring -> Shift-JIS に変換（日本語パス対応）
+			int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.jacketPath.c_str(), -1, nullptr, 0);
+			std::wstring wPath(wideSize, 0);
+			MultiByteToWideChar(CP_UTF8, 0, selectedSong.jacketPath.c_str(), -1, &wPath[0], wideSize);
+
+			int sjisSize = WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, nullptr, 0, nullptr, nullptr);
+			std::string sjisPath(sjisSize, 0);
+			WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, &sjisPath[0], sjisSize, nullptr, nullptr);
+			if (!sjisPath.empty() && sjisPath.back() == '\0') sjisPath.pop_back();
+
+			loadSuccess = textureJacket.LoadTextureFromFile(sjisPath);
 		}
 
 		if (Jacket) {

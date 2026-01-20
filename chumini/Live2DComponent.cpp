@@ -90,51 +90,20 @@ void Live2DComponent::Draw() {
         // トポロジーをStripからListへ変更
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // ブレンドステート設定
-        D3D11_BLEND_DESC blendDesc = {};
-        blendDesc.AlphaToCoverageEnable = FALSE;
-        blendDesc.IndependentBlendEnable = FALSE;
-        blendDesc.RenderTarget[0].BlendEnable = TRUE;
-        blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-        blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-        blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-        blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-        blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-        blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-        blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-        ID3D11BlendState* blendState = nullptr;
-        if (SUCCEEDED(device->CreateBlendState(&blendDesc, &blendState))) {
+        // ★キャッシュされたステートを使用（毎フレーム生成を廃止）
+        InitCachedStates(device);
+        
+        if (m_cachedBlendState) {
             float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-            context->OMSetBlendState(blendState, blendFactor, 0xffffffff);
-            blendState->Release();
+            context->OMSetBlendState(m_cachedBlendState, blendFactor, 0xffffffff);
         }
 
-        // ラスタライザステート設定
-        D3D11_RASTERIZER_DESC rasterDesc = {};
-        rasterDesc.FillMode = D3D11_FILL_SOLID;
-        rasterDesc.CullMode = D3D11_CULL_NONE; // 両面描画
-        rasterDesc.FrontCounterClockwise = FALSE;
-        rasterDesc.DepthClipEnable = TRUE;
-        rasterDesc.ScissorEnable = FALSE; // シザー無効化
-
-        ID3D11RasterizerState* rasterState = nullptr;
-        if (SUCCEEDED(device->CreateRasterizerState(&rasterDesc, &rasterState))) {
-            context->RSSetState(rasterState);
-            rasterState->Release();
+        if (m_cachedRasterState) {
+            context->RSSetState(m_cachedRasterState);
         }
 
-        // 深度ステンシルステート設定（深度テスト無効、上書き）
-        D3D11_DEPTH_STENCIL_DESC depthDesc = {};
-        depthDesc.DepthEnable = FALSE;
-        depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-        depthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
-        depthDesc.StencilEnable = FALSE;
-
-        ID3D11DepthStencilState* depthState = nullptr;
-        if (SUCCEEDED(device->CreateDepthStencilState(&depthDesc, &depthState))) {
-            context->OMSetDepthStencilState(depthState, 0);
-            depthState->Release();
+        if (m_cachedDepthState) {
+            context->OMSetDepthStencilState(m_cachedDepthState, 0);
         }
 
         // シェーダーの無効化（干渉防止）
@@ -198,8 +167,55 @@ void Live2DComponent::Draw() {
 }
 
 Live2DComponent::~Live2DComponent() {
+    ReleaseCachedStates();
     if (_model) {
         delete _model;
         _model = nullptr;
     }
 }
+
+// ★ステートの初期化（一度だけ実行）
+void Live2DComponent::InitCachedStates(ID3D11Device* device) {
+    if (m_statesInitialized || !device) return;
+
+    // ブレンドステート設定
+    D3D11_BLEND_DESC blendDesc = {};
+    blendDesc.AlphaToCoverageEnable = FALSE;
+    blendDesc.IndependentBlendEnable = FALSE;
+    blendDesc.RenderTarget[0].BlendEnable = TRUE;
+    blendDesc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+    blendDesc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+    blendDesc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+    blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    device->CreateBlendState(&blendDesc, &m_cachedBlendState);
+
+    // ラスタライザステート設定
+    D3D11_RASTERIZER_DESC rasterDesc = {};
+    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.CullMode = D3D11_CULL_NONE;
+    rasterDesc.FrontCounterClockwise = FALSE;
+    rasterDesc.DepthClipEnable = TRUE;
+    rasterDesc.ScissorEnable = FALSE;
+    device->CreateRasterizerState(&rasterDesc, &m_cachedRasterState);
+
+    // 深度ステンシルステート設定
+    D3D11_DEPTH_STENCIL_DESC depthDesc = {};
+    depthDesc.DepthEnable = FALSE;
+    depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    depthDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+    depthDesc.StencilEnable = FALSE;
+    device->CreateDepthStencilState(&depthDesc, &m_cachedDepthState);
+
+    m_statesInitialized = true;
+}
+
+void Live2DComponent::ReleaseCachedStates() {
+    if (m_cachedBlendState) { m_cachedBlendState->Release(); m_cachedBlendState = nullptr; }
+    if (m_cachedRasterState) { m_cachedRasterState->Release(); m_cachedRasterState = nullptr; }
+    if (m_cachedDepthState) { m_cachedDepthState->Release(); m_cachedDepthState = nullptr; }
+    m_statesInitialized = false;
+}
+
