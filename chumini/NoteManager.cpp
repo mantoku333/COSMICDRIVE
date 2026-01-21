@@ -596,7 +596,7 @@ namespace app::test {
 			    // Position Close + Time Miss? (Maybe close to border?)
                 // Treat as Miss judgment.
                 // CONFIRM MISS.
-			    sf::debug::Debug::Log("JudgeLane: Miss (Position Close) lane=" + std::to_string(lane) + " idx=" + std::to_string(idx));
+			    // sf::debug::Debug::Log("JudgeLane: Miss (Position Close) lane=" + std::to_string(lane) + " idx=" + std::to_string(idx));
 		    }
             
             // If we got here, it's either Perfect/Great/Good/Miss(Close).
@@ -608,7 +608,7 @@ namespace app::test {
 		    JudgeStatsService::AddResult(res);
 
             if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
-                 sf::debug::Debug::Log("JudgeLane: Result=" + judgeResultToString(res) + " L=" + std::to_string(lane) + " Idx=" + std::to_string(idx));
+                 // sf::debug::Debug::Log("JudgeLane: Result=" + judgeResultToString(res) + " L=" + std::to_string(lane) + " Idx=" + std::to_string(idx));
                  
                  // Spawn Effect
                  if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
@@ -859,7 +859,7 @@ namespace app::test {
 
 			// Check if we reached End
 			if (songTime >= endNote.hittime - J_WIN_PERFECT) { 
-				sf::debug::Debug::Log("CheckHold: Hold Complete! Lane=" + std::to_string(lane));
+				// sf::debug::Debug::Log("CheckHold: Hold Complete! Lane=" + std::to_string(lane));
 				
 				JudgeResult res = JudgeResult::Perfect;
 				endNote.judged = true;
@@ -927,7 +927,7 @@ namespace app::test {
                             // Allow chain if it's close enough (e.g. Good Window)
                             // This covers "Zero Gap" or "Tiny Gap" holds.
                             if (diff <= J_WIN_GOOD) {
-                                sf::debug::Debug::Log("CheckHold: Chain Hold Detected! Old=" + std::to_string(idx) + " New=" + std::to_string(nextIdx));
+                                // sf::debug::Debug::Log("CheckHold: Chain Hold Detected! Old=" + std::to_string(idx) + " New=" + std::to_string(nextIdx));
 
                                 // Auto Judge as Perfect (Reward for holding)
                                 nextNote.judged = true;

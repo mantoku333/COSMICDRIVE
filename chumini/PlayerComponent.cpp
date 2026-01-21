@@ -236,7 +236,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
             auto* managerActor = ingameScene->managerActor.Target();
             if (managerActor) {
                  if (auto* noteManager = managerActor->GetComponent<app::test::NoteManager>()) {
-                     sf::debug::Debug::Log("Player: Calling CheckHold(False) Lane=" + std::to_string(lk.idx));
+                     // sf::debug::Debug::Log("Player: Calling CheckHold(False) Lane=" + std::to_string(lk.idx));
                      noteManager->CheckHold(lk.idx, false);
                  }
             }

@@ -23,6 +23,7 @@ namespace sf {
                 UINT texWidth = 1024, UINT texHeight = 256);
 
             bool SetText(const std::wstring& newText);
+            void Draw() override;
 
         private:
             // ★第2引数に std::wstring& を追加
@@ -59,6 +60,7 @@ namespace sf {
             ID3D11Device* deviceRef = nullptr;
             UINT width = 0;
             UINT height = 0;
+            std::wstring currentText;
         };
 
     }

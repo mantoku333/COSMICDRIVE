@@ -59,62 +59,62 @@ namespace app::test {
 		// --- 判定内訳 (PERFECT)
 		perfectText = AddUI<sf::ui::TextImage>();
 		perfectText->transform.SetPosition(Vector3(-300, 120, 0));
-		perfectText->transform.SetScale(Vector3(4.5f, 1.5f, 0));   // 横長・縦短
+		perfectText->transform.SetScale(Vector3(9.0f, 1.5f, 0));   // 横長・縦短
 		perfectText->Create(
 			context, L"", 
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf", 
-			60.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 1024, 128
 		);
 
 		// --- 判定内訳 (GREAT)
 		greatText = AddUI<sf::ui::TextImage>();
 		greatText->transform.SetPosition(Vector3(-300, 50, 0));
-		greatText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		greatText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		greatText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f, D2D1::ColorF(D2D1::ColorF::HotPink), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::HotPink), 1024, 128
 		);
 
 		// --- 判定内訳 (GOOD)
 		goodText = AddUI<sf::ui::TextImage>();
 		goodText->transform.SetPosition(Vector3(-300, -20, 0));
-		goodText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		goodText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		goodText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f, D2D1::ColorF(D2D1::ColorF::LimeGreen), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::LimeGreen), 1024, 128
 		);
 
 		// --- 判定内訳 (MISS)
 		missText = AddUI<sf::ui::TextImage>();
 		missText->transform.SetPosition(Vector3(-300, -90, 0));
-		missText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		missText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		missText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f, D2D1::ColorF(D2D1::ColorF::Gray), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::Gray), 1024, 128
 		);
 
 		// --- 判定内訳 (FAST)
 		// MISSとの間を少し空ける
 		fastText = AddUI<sf::ui::TextImage>();
 		fastText->transform.SetPosition(Vector3(-300, -190, 0));
-		fastText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		fastText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		fastText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f, D2D1::ColorF(D2D1::ColorF::OrangeRed), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::OrangeRed), 1024, 128
 		);
 
 		// --- 判定内訳 (SLOW)
 		slowText = AddUI<sf::ui::TextImage>();
 		slowText->transform.SetPosition(Vector3(-300, -260, 0));
-		slowText->transform.SetScale(Vector3(4.5f, 1.5f, 0));
+		slowText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		slowText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-			60.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 128
+			60.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 1024, 128
 		);
 
 
@@ -199,7 +199,7 @@ namespace app::test {
 				L"", // 後でランク文字を入れる
 				L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
 				150.0f,
-				D2D1::ColorF(D2D1::ColorF::Black), // 初期色は黒
+				D2D1::ColorF(D2D1::ColorF::White), // 初期色は白 (マテリアル色で着色するため)
 				512, 512
 			);
 		}

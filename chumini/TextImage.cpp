@@ -2,6 +2,7 @@
 #include <d2d1helper.h>
 #include <vector>
 #include "Debug.h" // Added for debugging
+#include "DirectX11.h"
 
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
@@ -176,6 +177,7 @@ bool TextImage::Create(ID3D11Device* device,
     format->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
     format->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
 
+    currentText = text; // Initialize cache
     rt->BeginDraw();
     rt->Clear(D2D1::ColorF(0, 0));
     rt->DrawText(text.c_str(), (UINT32)text.size(), format.Get(),
@@ -197,7 +199,12 @@ bool TextImage::Create(ID3D11Device* device,
 }
 
 bool TextImage::SetText(const std::wstring& newText) {
+    if (newText == currentText) return true; // Optimization: Skip redraw if text hasn't changed
+    
     if (!rt || !brush || !format) return false;
+    
+    currentText = newText; // Update cache
+
     rt->BeginDraw();
     rt->Clear(D2D1::ColorF(0, 0));
     rt->DrawText(newText.c_str(), (UINT32)newText.size(), format.Get(),
@@ -208,4 +215,47 @@ bool TextImage::SetText(const std::wstring& newText) {
         return false;
     }
     return true;
+}
+
+void TextImage::Draw() {
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    if (!dx11) return;
+    auto context = dx11->GetMainDevice().GetContext();
+
+    // Lazy create premultiplied blend state
+    static Microsoft::WRL::ComPtr<ID3D11BlendState> s_premulBlendState;
+    static std::once_flag s_blendStateFlag;
+    std::call_once(s_blendStateFlag, [&]() {
+        D3D11_BLEND_DESC desc = {};
+        desc.AlphaToCoverageEnable = FALSE;
+        desc.IndependentBlendEnable = FALSE;
+        desc.RenderTarget[0].BlendEnable = TRUE;
+        desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE; // Premultiply One
+        desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+        desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+        dx11->GetMainDevice().GetDevice()->CreateBlendState(&desc, s_premulBlendState.GetAddressOf());
+    });
+
+    // Save old state
+    Microsoft::WRL::ComPtr<ID3D11BlendState> oldState;
+    FLOAT oldFactor[4];
+    UINT oldMask;
+    context->OMGetBlendState(oldState.GetAddressOf(), oldFactor, &oldMask);
+
+    // Set Premul State
+    if (s_premulBlendState) {
+        float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        context->OMSetBlendState(s_premulBlendState.Get(), blendFactor, 0xFFFFFFFF);
+    }
+
+    // Draw using base Image class
+    Image::Draw();
+
+    // Restore old state
+    context->OMSetBlendState(oldState.Get(), oldFactor, oldMask);
 }
