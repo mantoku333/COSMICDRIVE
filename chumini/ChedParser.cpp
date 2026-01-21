@@ -326,7 +326,7 @@ namespace app::test {
                 }
             }
 
-            // 2n, 3n, 4n: Long/Slide/AirHold
+            // 2n, 3n, 4n: Long/Slide
             // Format: 2 + Lane + HoldID (e.g. 28A)
             if (ch.size() == 3 && (ch[0] == '2' || ch[0] == '3' || ch[0] == '4')) {
                 char laneChar = ch[1];
@@ -335,14 +335,6 @@ namespace app::test {
 
                 // 4k standard (mapping matches Tap logic)
                 int lane = std::clamp(rawLane / 4, 0, 3);
-                
-                // Note: Tap logic relies on tokens for side lanes ("24" -> lane 4).
-                // If Hold notes support side lanes, we might need similar token checks or specific lane IDs.
-                // For now, removing the erroneous AirAction mapping for 8/9.
-                /*
-                if (rawLane == 8) lane = 4; // AirAction
-                if (rawLane == 9) lane = 5; // AirAction
-                */
 
                 if (lane == -1) continue;
 

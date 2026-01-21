@@ -161,6 +161,9 @@ namespace app::test {
 
         sf::SafePtr<SceneChangeComponent> sceneChanger;
 
+        // SongEnd note index cache (to avoid O(n) search every frame)
+        int songEndIndex = -1;
+
         // 分散処理用: 次にミスチェックするレーン番号
         int missCheckLane = 0;
 

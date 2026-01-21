@@ -402,6 +402,10 @@ namespace app::test {
         activeHoldNextBeats.assign(lanes, 0.0); // Init
         
         for (int i = 0; i < (int)noteSequence.size(); ++i) {
+            // Cache SongEnd index for O(1) lookup in CheckMissedNotes
+            if (noteSequence[i].type == NoteType::SongEnd) {
+                songEndIndex = i;
+            }
             int l = std::clamp(noteSequence[i].lane, 0, lanes - 1);
             laneOrder[l].push_back(i);
         }
@@ -504,6 +508,14 @@ namespace app::test {
 
             int idx = order[currentIdx];
 
+            // EARLY SKIP: SongEnd notes must NEVER be processed by player input.
+            // They are handled exclusively by CheckMissedNotes for scene transition.
+            if (noteSequence[idx].type == NoteType::SongEnd) {
+                if (currentIdx == head) ++head;
+                ++currentIdx;
+                continue;
+            }
+
             // 1. Check Spawn Status
 			if (idx >= (int)nextIndex) {
                  // Not spawned yet. Since sorted by time, future notes define end of scope.
@@ -525,13 +537,6 @@ namespace app::test {
             // Ignore HoldEnd notes for tap judgment. They are handled by CheckHold.
             if (noteSequence[idx].type == NoteType::HoldEnd) {
                 // Not a tap target. Skip it.
-                if (currentIdx == head) ++head; 
-                ++currentIdx;
-                continue;
-            }
-
-            // Ignore SongEnd notes. They are handled by CheckMissedNotes for scene transition.
-            if (noteSequence[idx].type == NoteType::SongEnd) {
                 if (currentIdx == head) ++head; 
                 ++currentIdx;
                 continue;
@@ -683,66 +688,63 @@ namespace app::test {
 	}
 
 	void NoteManager::CheckMissedNotes() {
-		// 分散処理: 毎フレーム2レーンずつ処理（ラウンドロビン）
-		// 6レーンの場合、3フレームで全レーンを1周
-		const int lanesPerFrame = 2;
+		// =====================================================
+		// PRIORITY CHECK: SongEnd (O(1) using cached index)
+		// =====================================================
+		if (songEndIndex >= 0 && songEndIndex < (int)noteSequence.size()) {
+			auto& songEnd = noteSequence[songEndIndex];
+			if (!songEnd.judged && songEndIndex < (int)nextIndex) {
+				if (songTime > songEnd.hittime + J_WIN_GOOD) {
+					sf::debug::Debug::Log("SongEnd triggered at idx=" + std::to_string(songEndIndex));
+					if (!sceneChanger.isNull()) {
+						sf::Mesh::ClearAllRegistered();
+						ShowCursor(TRUE);
+
+						LoadingScene::SetLoadingType(LoadingType::Common);
+						sceneChanger->ChangeScene(resultScene);
+					}
+					songEnd.judged = true;
+					return;
+				}
+			}
+		}
+
+		// =====================================================
+		// SIMPLE: Check ALL lanes every frame (no round-robin)
+		// =====================================================
+		// 毎フレーム全レーンをチェック（シンプルで信頼性の高い方式）
 		const int totalLanes = (int)laneOrder.size();
 		
-		for (int i = 0; i < lanesPerFrame && totalLanes > 0; ++i) {
-			int l = missCheckLane;
-			missCheckLane = (missCheckLane + 1) % totalLanes;
-			
+		for (int l = 0; l < totalLanes; ++l) {
 			auto& order = laneOrder[l];
 			size_t& head = laneHeads[l];
 
 			while (head < order.size()) {
-				int i = order[head];
-				if (noteSequence[i].judged) { ++head; continue; }
-				if (i >= (int)nextIndex) break;
+				int idx = order[head];
+				if (noteSequence[idx].judged) { ++head; continue; }
+				if (idx >= (int)nextIndex) break;
+				
+				// SongEnd は優先チェックで処理済みなのでスキップ
+				if (noteSequence[idx].type == NoteType::SongEnd) { ++head; continue; }
 
-				if (songTime > noteSequence[i].hittime + J_WIN_GOOD) {
-                    // SongEnd Logic
-					if (noteSequence[i].type == NoteType::SongEnd) {
-						if (!sceneChanger.isNull()) {
-							// 曲終了時、未判定ノーツを数える
-							int unjudgedCount = 0;
-							for (size_t j = 0; j < noteSequence.size(); ++j) {
-								if (!noteSequence[j].judged && noteSequence[j].type != NoteType::SongEnd) {
-									unjudgedCount++;
-									sf::debug::Debug::Log("UNJUDGED: idx=" + std::to_string(j) + " lane=" + std::to_string(noteSequence[j].lane) + " hittime=" + std::to_string(noteSequence[j].hittime) + " type=" + std::to_string((int)noteSequence[j].type));
-								}
-							}
-							sf::debug::Debug::Log("=== SONG END: Total Unjudged Notes = " + std::to_string(unjudgedCount) + " ===");
-
-							sf::Mesh::ClearAllRegistered();
-							ShowCursor(TRUE);
-
-							LoadingScene::SetLoadingType(LoadingType::Common);
-							sceneChanger->ChangeScene(resultScene);
-						}
-						noteSequence[i].judged = true;
-						return;
-					}
-
+				if (songTime > noteSequence[idx].hittime + J_WIN_GOOD) {
                     // Miss Processing
-					noteSequence[i].judged = true;
-					noteSequence[i].result = JudgeResult::Miss;
+					noteSequence[idx].judged = true;
+					noteSequence[idx].result = JudgeResult::Miss;
 					JudgeStatsService::AddResult(JudgeResult::Miss);
 
                     // Re-entry Logic: If HoldStart is missed, we still register it as "Active" 
                     // so the player can pick it up later.
-                    if (noteSequence[i].type == NoteType::HoldStart) {
-                        if (noteSequence[i].pairIndex != -1) {
-                            activeHolds[l] = noteSequence[i].pairIndex;
+                    if (noteSequence[idx].type == NoteType::HoldStart) {
+                        if (noteSequence[idx].pairIndex != -1) {
+                            activeHolds[l] = noteSequence[idx].pairIndex;
                             // Initialize Combo Beat for late entry
-                            activeHoldNextBeats[l] = std::max(noteSequence[i].absBeat + 0.5, SecondsToBeat(songTime));
-                            sf::debug::Debug::Log("CheckMissedNotes: HoldStart Missed but Registered for Re-entry! Lane=" + std::to_string(l));
+                            activeHoldNextBeats[l] = std::max(noteSequence[idx].absBeat + 0.5, SecondsToBeat(songTime));
                         }
                     } 
                     // If HoldEnd is missed, strictly fail the hold (Destroy Start Actor)
-                    else if (noteSequence[i].type == NoteType::HoldEnd) {
-                        sf::debug::Debug::Log("CheckMissedNotes: HoldEnd Missed (TimeOut)! Lane=" + std::to_string(l) + " ID=" + std::to_string(i));
-                        int startIdx = noteSequence[i].pairIndex;
+                    else if (noteSequence[idx].type == NoteType::HoldEnd) {
+                        int startIdx = noteSequence[idx].pairIndex;
                         if (startIdx >= 0 && startIdx < (int)noteActors.size()) {
                             if (auto* act = noteActors[startIdx].Target()) {
                                 act->DeActivate();
@@ -753,7 +755,7 @@ namespace app::test {
                     } 
                     else {
                         // Normal Note Miss -> Destroy
-					    if (auto* act = noteActors[i].Target()) {
+					    if (auto* act = noteActors[idx].Target()) {
 						    act->DeActivate();
 						    act->Destroy();
 					    }
@@ -1166,8 +1168,10 @@ namespace app::test {
         // sf::debug::Debug::Log("UpdateInstanceBuffer Start");
         m_instanceDataCPU.clear();
 
-        // Collect visible notes
-        for (size_t i = 0; i < noteActors.size(); ++i) {
+        // Collect visible notes (OPTIMIZATION: only check spawned notes)
+        // Notes with index >= nextIndex haven't been spawned yet, so skip them
+        size_t maxIdx = std::min(nextIndex, noteActors.size());
+        for (size_t i = 0; i < maxIdx; ++i) {
              // Safety check for index
              if (i >= noteSequence.size()) continue;
 
@@ -1176,7 +1180,8 @@ namespace app::test {
 
              // SKIP HOLD NOTES - they use individual Mesh rendering for dynamic scale
              if (noteSequence[i].type == NoteType::HoldStart || 
-                 noteSequence[i].type == NoteType::HoldEnd) continue;
+                 noteSequence[i].type == NoteType::HoldEnd ||
+                 noteSequence[i].type == NoteType::SongEnd) continue;
 
              // Check if Ref is null (e.g. SongEnd dummy)
              if (noteActors[i].IsNull()) continue;
