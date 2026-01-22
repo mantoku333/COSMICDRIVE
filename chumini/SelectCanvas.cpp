@@ -114,6 +114,12 @@ namespace app::test {
             bpmText->SetText(bpmStr);
         }
 
+        // ★追加: 難易度
+        if (difficultyText) {
+            std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
+            difficultyText->SetText(levelStr);
+        }
+
         // Score & Rank Update
         if (!songs.empty() && highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
@@ -219,6 +225,8 @@ namespace app::test {
                              }
 
                              info.bpm = std::to_string(parser.bpm);
+                             info.level = parser.level;
+                             info.difficulty = parser.difficulty;
                              newGenre.songs.push_back(info);
                          }
                     }
@@ -401,6 +409,21 @@ namespace app::test {
             80.0f, // フォントサイズ少し小さめ
             D2D1::ColorF(D2D1::ColorF::LightGray), // 色を少しグレーにすると階層感が出る
             1024, 200
+        );
+
+        // ---------------------------------------------------------
+        // ★追加: 難易度表示 (右下スコアの上)
+        // ---------------------------------------------------------
+        difficultyText = AddUI<sf::ui::TextImage>();
+        difficultyText->transform.SetPosition(Vector3(650, -300, 1.0f)); // スコアの上
+        difficultyText->transform.SetScale(Vector3(4.0f, 1.0f, 1.0f));
+        difficultyText->Create(
+            device,
+            L"", 
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            40.0f, 
+            D2D1::ColorF(D2D1::ColorF::White), 
+            512, 128
         );
 
         // ---------------------------------------------------------
@@ -596,6 +619,7 @@ namespace app::test {
             if(songTitleText) songTitleText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
             if(artistText) artistText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
             if(bpmText) bpmText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
+            if(difficultyText) difficultyText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
 
         } else {
             // Song Select: Active
@@ -620,6 +644,7 @@ namespace app::test {
              if(songTitleText) songTitleText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
              if(artistText) artistText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
              if(bpmText) bpmText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
+             if(difficultyText) difficultyText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
         }
         
         // Frame Breathing (Scale only)
@@ -732,6 +757,12 @@ namespace app::test {
             bpmText->SetText(bpmStr);
         }
 
+        // 難易度更新
+        if (difficultyText) {
+            std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
+            difficultyText->SetText(levelStr);
+        }
+
         // Score & Rank Update
         if (!songs.empty() && highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
@@ -778,6 +809,12 @@ namespace app::test {
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
+        }
+
+        // 難易度更新
+        if (difficultyText) {
+            std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
+            difficultyText->SetText(levelStr);
         }
 
         // Score & Rank Update

@@ -35,6 +35,6 @@ namespace app::test {
 		float displayScore = 0.0f;
 		bool isScoreAnimationFinished = false;
 
-		
+		void UpdateRankDisplay(int score);
 	};
 }

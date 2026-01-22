@@ -71,6 +71,7 @@ namespace app {
             sf::ui::TextImage* titleOutline[4] = { nullptr };
             sf::ui::TextImage* artistText = nullptr;
             sf::ui::TextImage* bpmText = nullptr;
+            sf::ui::TextImage* difficultyText = nullptr; // Define difficulty text
             sf::ui::TextImage* highScoreText = nullptr;
             sf::ui::TextImage* rankMark = nullptr;
 

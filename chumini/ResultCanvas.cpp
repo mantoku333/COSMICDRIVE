@@ -58,7 +58,7 @@ namespace app::test {
 
 		// --- 判定内訳 (PERFECT)
 		perfectText = AddUI<sf::ui::TextImage>();
-		perfectText->transform.SetPosition(Vector3(-300, 120, 0));
+		perfectText->transform.SetPosition(Vector3(-350, 80, 0));
 		perfectText->transform.SetScale(Vector3(9.0f, 1.5f, 0));   // 横長・縦短
 		perfectText->Create(
 			context, L"", 
@@ -68,7 +68,7 @@ namespace app::test {
 
 		// --- 判定内訳 (GREAT)
 		greatText = AddUI<sf::ui::TextImage>();
-		greatText->transform.SetPosition(Vector3(-300, 50, 0));
+		greatText->transform.SetPosition(Vector3(-350, 10, 0));
 		greatText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		greatText->Create(
 			context, L"",
@@ -78,7 +78,7 @@ namespace app::test {
 
 		// --- 判定内訳 (GOOD)
 		goodText = AddUI<sf::ui::TextImage>();
-		goodText->transform.SetPosition(Vector3(-300, -20, 0));
+		goodText->transform.SetPosition(Vector3(-350, -60, 0));
 		goodText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		goodText->Create(
 			context, L"",
@@ -88,7 +88,7 @@ namespace app::test {
 
 		// --- 判定内訳 (MISS)
 		missText = AddUI<sf::ui::TextImage>();
-		missText->transform.SetPosition(Vector3(-300, -90, 0));
+		missText->transform.SetPosition(Vector3(-350, -130, 0));
 		missText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
 		missText->Create(
 			context, L"",
@@ -99,7 +99,7 @@ namespace app::test {
 		// --- 判定内訳 (FAST)
 		// MISSとの間を少し空ける
 		fastText = AddUI<sf::ui::TextImage>();
-		fastText->transform.SetPosition(Vector3(-450, -190, 0));
+		fastText->transform.SetPosition(Vector3(-500, -230, 0));
 		fastText->transform.SetScale(Vector3(7.0f, 1.2f, 0));
 		fastText->Create(
 			context, L"",
@@ -109,7 +109,7 @@ namespace app::test {
 
 		// --- 判定内訳 (SLOW)
 		slowText = AddUI<sf::ui::TextImage>();
-		slowText->transform.SetPosition(Vector3(-150, -190, 0));
+		slowText->transform.SetPosition(Vector3(-200, -230, 0));
 		slowText->transform.SetScale(Vector3(7.0f, 1.2f, 0));
 		slowText->Create(
 			context, L"",
@@ -120,7 +120,7 @@ namespace app::test {
 
 		// --- マックスコンボ
 		comboText = AddUI<sf::ui::TextImage>();
-		comboText->transform.SetPosition(Vector3(-300, -290, 0)); // -360 -> -290
+		comboText->transform.SetPosition(Vector3(-350, -330, 0)); // -360 -> -290 -> -330
 		comboText->transform.SetScale(Vector3(8, 2, 0));
 		comboText->Create(
 			context,
@@ -164,8 +164,8 @@ namespace app::test {
 
 		// --- スコア
 		scoreText = AddUI<sf::ui::TextImage>();
-		scoreText->transform.SetPosition(Vector3(-300, 180, 0)); // 上すぎたので下げる
-		scoreText->transform.SetScale(Vector3(8, 2, 0));
+		scoreText->transform.SetPosition(Vector3(-350, 180, 0)); // 上すぎたので下げる
+		scoreText->transform.SetScale(Vector3(12, 3, 0));
 		scoreText->Create(
 			context,
 			L"",
@@ -340,17 +340,8 @@ namespace app::test {
 		swprintf_s(scoreBuf, L"SCORE: %d", 0); // スタートは0点から
 		scoreText->SetText(scoreBuf);
 
-		// ランク (本体)
-		rankText->SetText(rankStr);
-		rankText->material.SetColor({ mainColor.r, mainColor.g, mainColor.b, 1.0f });
-
-		// ランク (ふち)
-		for (int i = 0; i < 4; ++i) {
-			if (rankOutline[i]) {
-				rankOutline[i]->SetText(rankStr);
-				rankOutline[i]->material.SetColor({ edgeColor.r, edgeColor.g, edgeColor.b, 1.0f });
-			}
-		}
+		// ランク (初期表示は0点相当)
+		UpdateRankDisplay(0);
 
 		updateCommand.Bind(std::bind(&ResultCanvas::Update, this, std::placeholders::_1));
 	}
@@ -368,12 +359,15 @@ namespace app::test {
 				isScoreAnimationFinished = true;
 			} else {
 				// ターゲットに近づくように補間 (係数5.0fはスピード調整用)
-				displayScore += diff * 5.0f * dt;
+				displayScore += diff * 4.0f * dt;
 			}
 
 			wchar_t scoreBuf[64];
 			swprintf_s(scoreBuf, L"SCORE: %d", (int)displayScore);
 			scoreText->SetText(scoreBuf);
+			
+			// ランクもアニメーション
+			UpdateRankDisplay((int)displayScore);
 		}
 
 		// 点滅アニメーション
@@ -391,6 +385,54 @@ namespace app::test {
 
 				// 遷移先のシーンを生成して渡すだけ。あとの面倒はコンポーネントがみます。
 				sceneChanger->ChangeScene(SelectScene::StandbyScene());
+			}
+		}
+	}
+
+	void ResultCanvas::UpdateRankDisplay(int score) {
+		std::wstring rankStr = L"C";
+		D2D1_COLOR_F mainColor = D2D1::ColorF(0.8f, 1.0f, 0.8f);
+		D2D1_COLOR_F edgeColor = D2D1::ColorF(0.0f, 0.8f, 0.0f);
+
+		if (score >= 1000000) {
+			rankStr = L"SSS";
+			mainColor = D2D1::ColorF(1.0f, 1.0f, 0.9f);
+			edgeColor = D2D1::ColorF(1.0f, 0.85f, 0.0f);
+		}
+		else if (score >= 900000) {
+			rankStr = L"SS";
+			mainColor = D2D1::ColorF(1.0f, 1.0f, 0.6f);
+			edgeColor = D2D1::ColorF(0.85f, 0.7f, 0.0f);
+		}
+		else if (score >= 800000) {
+			rankStr = L"S";
+			mainColor = D2D1::ColorF(1.0f, 0.95f, 0.4f);
+			edgeColor = D2D1::ColorF(0.8f, 0.6f, 0.0f);
+		}
+		else if (score >= 600000) {
+			rankStr = L"A";
+			mainColor = D2D1::ColorF(1.0f, 0.8f, 0.8f);
+			edgeColor = D2D1::ColorF(1.0f, 0.0f, 0.0f);
+		}
+		else if (score >= 400000) {
+			rankStr = L"B";
+			mainColor = D2D1::ColorF(0.8f, 0.9f, 1.0f);
+			edgeColor = D2D1::ColorF(0.0f, 0.0f, 1.0f);
+		}
+		else {
+			rankStr = L"C";
+			mainColor = D2D1::ColorF(0.8f, 1.0f, 0.8f);
+			edgeColor = D2D1::ColorF(0.0f, 0.7f, 0.0f);
+		}
+
+		if (rankText) {
+			rankText->SetText(rankStr);
+			rankText->material.SetColor({ mainColor.r, mainColor.g, mainColor.b, 1.0f });
+		}
+		for (int i = 0; i < 4; ++i) {
+			if (rankOutline[i]) {
+				rankOutline[i]->SetText(rankStr);
+				rankOutline[i]->material.SetColor({ edgeColor.r, edgeColor.g, edgeColor.b, 1.0f });
 			}
 		}
 	}
