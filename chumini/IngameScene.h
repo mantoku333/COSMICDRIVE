@@ -32,6 +32,8 @@ namespace app
 
 			void DrawOverlay() override;
 
+			void OnGUI() override;
+
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
 			//--------------

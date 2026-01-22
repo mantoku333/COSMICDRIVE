@@ -60,7 +60,11 @@ namespace app::test {
 
         // 判定API（同時押し一括）? 追加
         // 同一フレームで押下されたレーン一覧を渡すと、それぞれ最適なノーツに割り当てて判定
+        // 同一フレームで押下されたレーン一覧を渡すと、それぞれ最適なノーツに割り当てて判定
         void JudgeBatch(const std::vector<int>& pressedLanes, float inputTime);
+
+        // デバッグ機能：強制全Perfect＆終了
+        void DebugForceComplete();
 
         // デバッグ表示
         std::string judgeResultToString(app::test::JudgeResult result) {

@@ -30,6 +30,10 @@ namespace app::test {
                 sf::ui::TextImage* guideText = nullptr; // 操作ガイド
 
 		float timer = 0.0f; //アニメーション用
+		
+		int targetScore = 0;
+		float displayScore = 0.0f;
+		bool isScoreAnimationFinished = false;
 
 		
 	};

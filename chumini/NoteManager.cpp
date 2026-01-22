@@ -2,6 +2,7 @@
 #include "NoteComponent.h"
 #include "Scene.h"
 #include "Time.h"
+#include "BGMComponent.h" // Added for DebugForceComplete
 #include "Config.h" // Added include
 #include "DirectX11.h" // Added for Instancing
 #include <d3dcompiler.h> // Required for D3DCompileFromFile
@@ -684,6 +685,64 @@ namespace app::test {
 	void NoteManager::JudgeBatch(const std::vector<int>& pressedLanes, float inputTime) {
 		for (int l : pressedLanes) {
 			JudgeLane(l, inputTime);
+		}
+	}
+
+	void NoteManager::DebugForceComplete() {
+		sf::debug::Debug::Log("DEBUG: Force Complete Triggered");
+
+		for (auto& note : noteSequence) {
+			if (note.judged) continue;
+			if (note.type == NoteType::SongEnd) continue; // Skip transition trigger for now
+
+			// Mark as Perfect
+			note.judged = true;
+			note.result = JudgeResult::Perfect;
+			
+			// Add Stats
+			JudgeStatsService::AddResult(JudgeResult::Perfect);
+		}
+
+		// Calculate total combo based on all notes processed
+		// Note: JudgeStatsService::AddResult tracks combo count internally? 
+		// Yes, AddResult typically increments combo. 
+		// But AddCombo(1) might be needed for Hold ticks?
+		// "Simply treat as all perfect" -> Let's assume just hitting the notes + holds naturally.
+		// For simplicity, we just mark them. 
+		// If Hold Ticks are important for score, strict counting is complex (depends on duration).
+		// But usually Score is based on results.
+		// Let's assume AddResult(Perfect) is sufficient for "All Perfect" status for basic notes.
+		// For Holds, we might miss the tick combos if we don't simulate ticks.
+		// HOWEVER, user said "Treat all as perfect". Usually implies Max Combo + All Perfect judgments.
+		// Simply iterating notes and adding Perfect is a good approximation.
+
+		// Stop BGM
+		/*if (auto* bgm = actorRef.Target()->GetComponent<BGMComponent>()) {
+			bgm->Stop();
+		}*/
+
+		// Stop BGM - Removed to prevent potential crash (CheckMissedNotes doesn't stop it)
+		/*
+		if (auto* bgm = actorRef.Target()->GetComponent<app::test::BGMComponent>()) {
+			bgm->Stop(); // Verify Stop method exists or use Pause
+		}
+		*/
+
+		// Force Transition to Result
+		// Force Transition to Result
+		if (!sceneChanger.isNull()) {
+			sf::debug::Debug::Log("DEBUG: Calling ClearAllRegistered");
+			sf::Mesh::ClearAllRegistered();
+			ShowCursor(TRUE);
+			LoadingScene::SetLoadingType(LoadingType::Common);
+			sf::debug::Debug::Log("DEBUG: Calling ChangeScene");
+			if (resultScene.Get() == nullptr) {
+				sf::debug::Debug::Log("DEBUG: resultScene is null, calling StandbyScene");
+				sceneChanger->ChangeScene(ResultScene::StandbyScene());
+			}
+			else {
+				sceneChanger->ChangeScene(resultScene);
+			}
 		}
 	}
 

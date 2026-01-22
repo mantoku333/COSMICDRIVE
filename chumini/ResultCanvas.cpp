@@ -99,8 +99,8 @@ namespace app::test {
 		// --- 判定内訳 (FAST)
 		// MISSとの間を少し空ける
 		fastText = AddUI<sf::ui::TextImage>();
-		fastText->transform.SetPosition(Vector3(-300, -190, 0));
-		fastText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
+		fastText->transform.SetPosition(Vector3(-450, -190, 0));
+		fastText->transform.SetScale(Vector3(7.0f, 1.2f, 0));
 		fastText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
@@ -109,8 +109,8 @@ namespace app::test {
 
 		// --- 判定内訳 (SLOW)
 		slowText = AddUI<sf::ui::TextImage>();
-		slowText->transform.SetPosition(Vector3(-300, -260, 0));
-		slowText->transform.SetScale(Vector3(9.0f, 1.5f, 0));
+		slowText->transform.SetPosition(Vector3(-150, -190, 0));
+		slowText->transform.SetScale(Vector3(7.0f, 1.2f, 0));
 		slowText->Create(
 			context, L"",
 			L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
@@ -120,7 +120,7 @@ namespace app::test {
 
 		// --- マックスコンボ
 		comboText = AddUI<sf::ui::TextImage>();
-		comboText->transform.SetPosition(Vector3(-300, -360, 0)); // -280 -> -360
+		comboText->transform.SetPosition(Vector3(-300, -290, 0)); // -360 -> -290
 		comboText->transform.SetScale(Vector3(8, 2, 0));
 		comboText->Create(
 			context,
@@ -192,8 +192,8 @@ namespace app::test {
 		for (int i = 0; i < 4; ++i) {
 			rankOutline[i] = AddUI<sf::ui::TextImage>();
 			// 少しズラし、Z軸を奥(0.1f)にする
-			rankOutline[i]->transform.SetPosition(Vector3(450 + offsets[i].x, -100 + offsets[i].y, 0.1f));
-			rankOutline[i]->transform.SetScale(Vector3(20, 20, 0)); // 巨大サイズ
+			rankOutline[i]->transform.SetPosition(Vector3(450 + offsets[i].x, 100 + offsets[i].y, 0.1f));
+			rankOutline[i]->transform.SetScale(Vector3(13, 13, 0)); // 巨大サイズ
 			rankOutline[i]->Create(
 				context,
 				L"", // 後でランク文字を入れる
@@ -206,8 +206,8 @@ namespace app::test {
 
 		// --- メイン文字 (手前に配置) ---
 		rankText = AddUI<sf::ui::TextImage>();
-		rankText->transform.SetPosition(Vector3(450, -100, 0));
-		rankText->transform.SetScale(Vector3(20, 20, 0));
+		rankText->transform.SetPosition(Vector3(450, 100, 0));
+		rankText->transform.SetScale(Vector3(13, 13, 0));
 		rankText->Create(
 			context,
 			L"",
@@ -236,6 +236,10 @@ namespace app::test {
 			double p = (perfect * 1.0 + great * 0.8 + good * 0.5) / totalNotes;
 			score = static_cast<int>(p * 1000000);
 		}
+		
+		targetScore = score;
+		displayScore = 0.0f;
+		isScoreAnimationFinished = false;
 
 		// --- ランクと色の決定 ---
 		std::wstring rankStr = L"C";
@@ -333,7 +337,7 @@ namespace app::test {
 
 		// スコア
 		wchar_t scoreBuf[64];
-		swprintf_s(scoreBuf, L"SCORE: %d", score);
+		swprintf_s(scoreBuf, L"SCORE: %d", 0); // スタートは0点から
 		scoreText->SetText(scoreBuf);
 
 		// ランク (本体)
@@ -352,6 +356,25 @@ namespace app::test {
 	}
 
 	void ResultCanvas::Update(const sf::command::ICommand&) {
+
+		// スコアアニメーション
+		if (!isScoreAnimationFinished && scoreText) {
+			float dt = sf::Time::DeltaTime();
+			float diff = (float)targetScore - displayScore;
+			
+			// 差分が小さくなったら完了
+			if (std::abs(diff) < 1.0f) {
+				displayScore = (float)targetScore;
+				isScoreAnimationFinished = true;
+			} else {
+				// ターゲットに近づくように補間 (係数5.0fはスピード調整用)
+				displayScore += diff * 5.0f * dt;
+			}
+
+			wchar_t scoreBuf[64];
+			swprintf_s(scoreBuf, L"SCORE: %d", (int)displayScore);
+			scoreText->SetText(scoreBuf);
+		}
 
 		// 点滅アニメーション
 		timer += sf::Time::DeltaTime();

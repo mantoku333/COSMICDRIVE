@@ -12,6 +12,9 @@
 #include "NoteManager.h"
 #include "SongInfo.h"
 #include "JudgeStatsService.h"
+#include "JudgeStatsService.h"
+#include "GUI.h"
+#include "SInput.h"
 
 #include "EffectManager.h"
 #include <Effekseer.h>
@@ -348,6 +351,15 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 		static float time = 0.0f;
 		time += sf::Time::DeltaTime();
 
+		// DEBUG SKIP: Key 'P'
+		if (SInput::Instance().GetKeyDown(Key::KEY_P)) {
+			if (managerActor.Target()) {
+				if (auto* noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>()) {
+					noteMgr->DebugForceComplete();
+				}
+			}
+		}
+
 		for (auto& edge : laneEdges)
 		{
 			if (edge.Target() == nullptr) continue;
@@ -434,4 +446,9 @@ void app::test::IngameScene::DrawOverlay()
 	if (l2dComp.Get()) {
 		l2dComp->Draw();
 	}
+}
+
+void app::test::IngameScene::OnGUI()
+{
+	// ImGui causes crashes in some environments, so we use Keyboard Shortcut (P) instead.
 }
