@@ -287,11 +287,13 @@ namespace app::test {
 
         // --- Save Score ---
         std::string chartPath = JudgeStatsService::GetChartPath();
+        int difficulty = JudgeStatsService::GetDifficulty();
         if (!chartPath.empty()) {
             std::string rankUtf8(rankStr.begin(), rankStr.end()); // ASCII only
-            app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8);
+            app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8, difficulty);
             app::test::ScoreManager::Instance().Save();
-            sf::debug::Debug::Log("Score Saved: " + std::to_string(score) + " Rank: " + rankUtf8);
+            sf::debug::Debug::Log("Score Saved: " + std::to_string(score) + " Rank: " + rankUtf8 + 
+                                  " Difficulty: " + std::to_string(difficulty));
         } else {
              sf::debug::Debug::Log("Score Check: ChartPath is empty, not saved.");
         }

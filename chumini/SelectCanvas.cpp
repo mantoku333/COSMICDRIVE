@@ -19,6 +19,7 @@
 #include <fstream>
 #include "ChedParser.h" 
 #include "ScoreManager.h" 
+#include "RatingManager.h"
 
 namespace app::test {
 
@@ -472,14 +473,14 @@ namespace app::test {
         // ★追加: ハイスコア
         highScoreText = AddUI<sf::ui::TextImage>();
         highScoreText->transform.SetPosition(Vector3(650, -400, 1.0f)); 
-        highScoreText->transform.SetScale(Vector3(4.0f, 1.0f, 1.0f));
+        highScoreText->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f));
         highScoreText->Create(
             device,
             L"",
             L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
             40.0f,
             D2D1::ColorF(D2D1::ColorF::White),
-            512, 128
+            1536, 128  // 横幅を1024から1536に拡大
         );
 
         // ★追加: ランクマーク
@@ -494,6 +495,29 @@ namespace app::test {
             D2D1::ColorF(D2D1::ColorF::Yellow),
             256, 256
         );
+
+
+        // ★追加: プレイヤーレート表示（左下）
+        playerRatingText = AddUI<sf::ui::TextImage>();
+        playerRatingText->transform.SetPosition(Vector3(-750, -450, 1.0f)); // 左下
+        playerRatingText->transform.SetScale(Vector3(6.0f, 1.5f, 1.0f));
+        playerRatingText->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            50.0f,
+            D2D1::ColorF(D2D1::ColorF::Cyan),
+            1024, 128
+        );
+
+        // プレイヤーレートを計算して表示（小数点第2位で切り捨て）
+        float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
+        // 切り捨て: 100倍して整数部分を取り、100で割る
+        float truncatedRating = std::floor(playerRating * 100.0f) / 100.0f;
+        wchar_t ratingBuf[64];
+        swprintf_s(ratingBuf, L"Rating: %.2f", truncatedRating);
+        playerRatingText->SetText(ratingBuf);
+
 
 
 

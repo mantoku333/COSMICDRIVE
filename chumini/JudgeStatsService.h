@@ -23,6 +23,9 @@ namespace app::test
         static void SetChartPath(const std::string& path);
         static std::string GetChartPath();
 
+        static void SetDifficulty(int diff);
+        static int GetDifficulty();
+
     private:
         static inline int perfect = 0;
         static inline int great = 0;
@@ -35,6 +38,7 @@ namespace app::test
         static inline int maxCombo = 0;
         static inline JudgeResult lastResult = JudgeResult::None;
         static inline std::string chartPath = "";
+        static inline int difficulty = 0;
     };
 }
 

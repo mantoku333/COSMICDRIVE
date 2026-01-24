@@ -87,3 +87,13 @@ std::string JudgeStatsService::GetChartPath()
 {
     return chartPath;
 }
+
+void JudgeStatsService::SetDifficulty(int diff)
+{
+    difficulty = diff;
+}
+
+int JudgeStatsService::GetDifficulty()
+{
+    return difficulty;
+}

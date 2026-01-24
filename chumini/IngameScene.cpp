@@ -395,8 +395,9 @@ void app::test::IngameScene::OnActivated()
     std::string sjisPath = Utf8ToShiftJis(selectedSong.musicPath);
     bgmPlayer->SetPath(sjisPath);
 
-    // Set chart path for score saving
+    // Set chart path and difficulty for score saving
     JudgeStatsService::SetChartPath(selectedSong.chartPath);
+    JudgeStatsService::SetDifficulty(selectedSong.difficulty);
 
     //bgmPlayer->Play();
 }

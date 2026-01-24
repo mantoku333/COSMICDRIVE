@@ -74,6 +74,7 @@ namespace app {
             sf::ui::TextImage* difficultyText = nullptr; // Define difficulty text
             sf::ui::TextImage* highScoreText = nullptr;
             sf::ui::TextImage* rankMark = nullptr;
+            sf::ui::TextImage* playerRatingText = nullptr; // Player rating display
 
             // =========================
             // レイアウト / 見た目

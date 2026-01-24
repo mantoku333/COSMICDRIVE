@@ -48,10 +48,39 @@ namespace app::test {
             std::string rank(rankLen, '\0');
             ifs.read(&rank[0], rankLen);
 
+            // Difficulty (新規追加、後方互換性のためチェック)
+            int difficulty = 0;
+            if (ifs.good() && !ifs.eof()) {
+                // 読み込める状態かチェックしてから読む
+                std::streampos before = ifs.tellg();
+                ifs.read(reinterpret_cast<char*>(&difficulty), sizeof(int));
+                if (ifs.fail()) {
+                    // 読み込み失敗したら0にリセット
+                    ifs.clear();
+                    ifs.seekg(before);
+                    difficulty = 0;
+                }
+            }
+
+            // Rating (新規追加、後方互換性のためチェック)
+            float rating = 0.0f;
+            if (ifs.good() && !ifs.eof()) {
+                std::streampos before = ifs.tellg();
+                ifs.read(reinterpret_cast<char*>(&rating), sizeof(float));
+                if (ifs.fail()) {
+                    // 読み込み失敗したら0にリセット
+                    ifs.clear();
+                    ifs.seekg(before);
+                    rating = 0.0f;
+                }
+            }
+
             // Store
             ScoreRecord record;
             record.highScore = score;
             record.rank = rank;
+            record.difficulty = difficulty;
+            record.rating = rating;
             scores[path] = record;
         }
 
@@ -90,24 +119,65 @@ namespace app::test {
             int rankLen = static_cast<int>(record.rank.size());
             ofs.write(reinterpret_cast<const char*>(&rankLen), sizeof(int));
             ofs.write(record.rank.c_str(), rankLen);
+
+            // Difficulty
+            ofs.write(reinterpret_cast<const char*>(&record.difficulty), sizeof(int));
+
+            // Rating
+            ofs.write(reinterpret_cast<const char*>(&record.rating), sizeof(float));
         }
 
         sf::debug::Debug::Log("Score saved. Entries: " + std::to_string(entryCount));
     }
 
-    bool ScoreManager::UpdateScore(const std::string& chartPath, int score, const std::string& rank) {
+    // レート計算ヘルパー関数
+    static float CalculateRating(int difficulty, int score) {
+        float base = static_cast<float>(difficulty);
+        
+        // スコアに応じたボーナスを計算
+        if (score >= 1000000) {
+            return base + 1.0f;  // SSS
+        } else if (score >= 900000) {
+            // SS: +0.8 ~ +1.0 (線形補間)
+            float ratio = (score - 900000) / 100000.0f;
+            return base + 0.8f + 0.2f * ratio;
+        } else if (score >= 800000) {
+            // S: +0.6 ~ +0.8
+            float ratio = (score - 800000) / 100000.0f;
+            return base + 0.6f + 0.2f * ratio;
+        } else if (score >= 600000) {
+            // A: +0.3 ~ +0.6
+            float ratio = (score - 600000) / 200000.0f;
+            return base + 0.3f + 0.3f * ratio;
+        } else if (score >= 400000) {
+            // B: +0.0 ~ +0.3
+            float ratio = (score - 400000) / 200000.0f;
+            return base + 0.0f + 0.3f * ratio;
+        } else {
+            // C: 0.0
+            return base;
+        }
+    }
+
+    bool ScoreManager::UpdateScore(const std::string& chartPath, int score, const std::string& rank, int difficulty) {
         bool updated = false;
+        float rating = CalculateRating(difficulty, score);
+        
         auto it = scores.find(chartPath);
         if (it != scores.end()) {
             if (score > it->second.highScore) {
                 it->second.highScore = score;
                 it->second.rank = rank;
+                it->second.difficulty = difficulty;
+                it->second.rating = rating;
                 updated = true;
             }
         } else {
             ScoreRecord newRecord;
             newRecord.highScore = score;
             newRecord.rank = rank;
+            newRecord.difficulty = difficulty;
+            newRecord.rating = rating;
             scores[chartPath] = newRecord;
             updated = true;
         }
@@ -120,6 +190,10 @@ namespace app::test {
             return it->second;
         }
         return ScoreRecord{};
+    }
+
+    const std::map<std::string, ScoreRecord>& ScoreManager::GetAllScores() const {
+        return scores;
     }
 
 }
