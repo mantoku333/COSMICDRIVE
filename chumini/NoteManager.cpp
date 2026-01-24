@@ -912,7 +912,13 @@ namespace app::test {
             double curBeat = SecondsToBeat(songTime);
             // While to catch up if we missed a frame (unlikely but safe)
             while (curBeat >= activeHoldNextBeats[lane] && activeHoldNextBeats[lane] < endNote.absBeat) {
-                AddCombo(1); // Add 1 Combo (Split for smoother feel)
+                // AddCombo(1); // Add 1 Combo (Split for smoother feel)
+                
+                // Treat hold ticks as Perfect judgements to match Total Notes with Max Combo
+                JudgeResult res = JudgeResult::Perfect;
+                JudgeStatsService::AddResult(res);
+                UpdateCombo(res);
+
                 activeHoldNextBeats[lane] += 0.5; // Next 0.5 beat
             }
 
