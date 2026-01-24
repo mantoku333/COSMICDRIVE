@@ -202,7 +202,8 @@ void app::Application::Loop()
 				t += sf::Time::DeltaTime();
 				System sys;
 				sys.time.x = t;
-				sys.screenSize = DirectX::XMFLOAT2A(1920, 1080);
+				sys.screenSize = DirectX::XMFLOAT2(1920, 1080);
+				sys.glitchIntensity = dx11->GetGlitchIntensity();
 				dx11->systemBuffer.SetGPU(sys, dx11->GetMainDevice());
 
 #ifdef USEGUI

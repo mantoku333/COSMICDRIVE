@@ -1,4 +1,5 @@
 #include "IngameScene.h"
+#include "DirectX11.h"
 #include "MoveComponent.h"
 #include "PlayerComponent.h"
 #include "SceneChangeComponent.h"
@@ -279,6 +280,31 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 	else if (state == State::Countdown) {
 		countdownTimer -= sf::Time::DeltaTime();
 
+        // Glitch Effect during Countdown
+        // 3.0 -> 2.0 -> 1.0 -> 0.0
+        // Spike glitch at integer crossings
+        float t = countdownTimer;
+        float glitch = 0.0f;
+        
+        // Timer is 3.0 down to 0.0
+        // Trigger at 3.0(start), 2.0, 1.0, 0.0
+        // Simple modulo-like check or just continuous noise
+        // Let's add slight constant noise
+        glitch = 0.02f; 
+        
+        // Big spike at 2.0, 1.0, 0.0 (approx)
+        float fracT = t - std::floor(t);
+        if (fracT > 0.9f || fracT < 0.1f) {
+             glitch = 0.5f;
+        }
+        
+        // Intense noise at the end (GO)
+        if (t < 0.5f) {
+             glitch = 0.8f * (1.0f - t / 0.5f);
+        }
+
+        sf::dx::DirectX11::Instance()->SetGlitchIntensity(glitch);
+
 		// Canvasに通知
 		if (managerActor.Target()) {
 			if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
@@ -289,6 +315,7 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 		if (countdownTimer <= 0.0f) {
 			// カウントダウン終了 → START表示 → ゲーム開始
 			state = State::Playing;
+            sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f); // Reset
 			
 			// CanvasにSTART表示指示
 			if (managerActor.Target()) {

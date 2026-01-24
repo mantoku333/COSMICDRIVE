@@ -5,6 +5,14 @@ Texture2D uiDraw : register(t6);
 
 SamplerState mySampler : register(s0); //サンプラー
 
+cbuffer SystemBuffer : register(b5)
+{
+    float4 time;
+    float2 screenSize;
+    float glitchIntensity;
+    float padding;
+};
+
 struct In
 {
     float4 pos : SV_POSITION;
@@ -32,26 +40,67 @@ float4 GetSceneColor(float2 uv)
     return c;
 }
 
+// Random noise function
+float nrand(float2 uv)
+{
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453);
+}
+
 float4 main(In input) : SV_Target
 {
     float offsetx = 1.0f / 1920.0f;
     float offsety = 1.0f / 1080.0f;
+    
+    // --- Glitch Effect ---
+    float2 uv = input.uv;
+    if (glitchIntensity > 0.0f)
+    {
+        float t = time.x * 20.0f; // Increase speed
+        
+        // Thin scanline strips instead of blocks
+        float splitY = floor(uv.y * 50.0f + t * 0.5f);
+        float noise = nrand(float2(splitY, t));
+        
+        // Scanline offset
+        if (noise < glitchIntensity) 
+        {
+             float shift = (nrand(float2(splitY, splitY)) - 0.5f) * glitchIntensity * 0.1f;
+             uv.x += shift;
+        }
+        
+        // High frequency jitter (Biri-Biri effect)
+        float jitter = nrand(uv + t) - 0.5f;
+        if (abs(jitter) < glitchIntensity) {
+            uv.x += jitter * 0.02f * glitchIntensity;
+        }
+    }
 
     // --- Chromatic Aberration ---
-    float2 dist = input.uv - 0.5f;
+    float2 dist = uv - 0.5f;
     float r2 = dot(dist, dist);
     float2 caOffset = dist * (r2 * 0.025f); 
+    
+    // If glitching, increase CA significantly
+    if (glitchIntensity > 0.0f)
+    {
+        float t = time.x * 50.0f;
+        float rgbNoise = nrand(float2(t, t));
+        caOffset += float2(glitchIntensity * 0.02f * rgbNoise, 0.0f);
+    }
 
-    float R = GetSceneColor(input.uv - caOffset).r;
-    float G = GetSceneColor(input.uv).g;
-    float B = GetSceneColor(input.uv + caOffset).b;
+    float R = GetSceneColor(uv - caOffset).r;
+    float G = GetSceneColor(uv).g;
+    float B = GetSceneColor(uv + caOffset).b;
 
     float4 color = float4(R, G, B, 1.0f);
 
-    color = DrawUIColor(color, input.uv);
+    color = DrawUIColor(color, input.uv); // UI uses original UV to stay sharp? or glitch UI too? Glitch UI too for immersion
+    // To glitch UI, use 'uv' instead of 'input.uv'. 
+    // Let's use 'uv' for consistency.
+    color = DrawUIColor(float4(R,G,B,1.0f), uv);
 
     // --- Vignette ---
-    float len = length(input.uv - 0.5f);
+    float len = length(uv - 0.5f);
     float vignette = 1.0f - smoothstep(0.4f, 1.2f, len); 
     color.rgb *= vignette;
 

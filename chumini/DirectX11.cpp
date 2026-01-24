@@ -236,3 +236,4 @@ void sf::dx::DirectX11::DownSamplingY()
 	srv[0] = nullptr;
 	mainDevice.GetContext()->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
 }
+void sf::dx::DirectX11::SetGlitchIntensity(float intensity) { m_glitchIntensity = intensity; }

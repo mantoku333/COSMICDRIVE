@@ -344,39 +344,98 @@ namespace app::test {
 	{
 		if (!countdownText) return;
 
-		// カウントダウン中は中央に表示（別途UIにしたので位置制御不要）
-		// judgeResultText->transform.SetPosition(Vector3(0, 100, 0));
-		
-		// ★重要: カウントダウン中はタイマー更新を止めるフラグを立てる（未実装ならここで強制的にタイマーテキスト更新をスキップする仕組みを入れる）
-		// ここでは簡易的に、メンバ変数 isCountdownActive を追加して管理するか、
-		// もしくは IngameScene 側で制御する。
-		// 今回は IngameCanvas::Update でカウントダウン中判定を行うために isCountdownStartShown を流用するか、
-		// countdownTimerの値を見る。しかし countdownTimer はここだけのローカル引数。
-		
-		// 解決策: UpdateTimerDisplay の呼び出し元 (IngameCanvas::Update) を制御したいが、
-		// ここではとりあえずテキスト更新を行う。
+		// フラグ更新
+		isCountdownActive = (time > 0.0f) || isStart;
 
+        // Animation Parameters
+        float animT = 0.0f; 
+        
 		if (isStart) {
+            // START!! Animation
+            // Assuming startDisplayTimer logic in IngameScene keeps calling this with isStart=true 
+            // We don't have the timer value passed here for START logic in current signature...
+            // But we can just behave static or pulse if called repeatedly.
+            // Wait, IngameScene calls UpdateCountdownDisplay(0.0f, true) ONCE, then relies on ... wait.
+            // IngameScene doesn't call this every frame for START?
+            // Checking IngameScene.cpp:
+            // It calls UpdateCountdownDisplay(0.0f, true) when countdown <= 0.
+            // Then loop continues in Playing state.
+            // It calls UpdateCountdownDisplay(-1.0f, false) after 1.0s.
+            // So for START, we only get ONE call? If so, we can't animate it easily without Update() support.
+            
+            // However, countdown numbers (3, 2, 1) are called every frame in Countdown state.
+            // So 3, 2, 1 CAN be animated.
+            
 			if (!isCountdownStartShown) {
 				countdownText->SetText(L"START!!");
-				countdownText->material.SetColor({ 1, 0, 0, 1 }); // 赤
-				countdownText->transform.SetScale(Vector3(12, 3, 0)); // 少し大きく
+				countdownText->material.SetColor({ 1, 0, 0, 1 }); // Red
+				countdownText->transform.SetScale(Vector3(12, 4, 0)); 
 				isCountdownStartShown = true;
+                
+                // For "START", let's just set a big scale. 
+                // Real animation for START requires per-frame update. 
+                // But user asked for "Countdown" animation (3,2,1).
 			}
 		}
 		else if (time > 0.0f) {
 			isCountdownStartShown = false;
-			// ceilして 3, 2, 1 を表示
 			int count = (int)ceil(time);
+            
+            // Fractional part for animation: 1.0 -> 0.0
+            float frac = time - floor(time);
+            if (frac == 0.0f && time > 0.0f) frac = 1.0f; // Handle exact integers
+
+            // Animation: Pop in
+            // Scale: Large -> Normal
+            // Alpha: 0 -> 1 (Fade In) or 1 -> 0 (Fade Out)?
+            // "Common countdown": 3 (Bam!) -> fade/shrink -> 2 (Bam!)
+            
+            // t goes 1.0 -> 0.0 as time decreases.
+            // effectively: starts at integer (t=0 or 1?), decreases.
+            // Let's us animate from frac=1.0 (start of second) down to 0.0 (end of second).
+            // Actually time decreases: 3.0 -> 2.9 -> ...
+            // So frac is 0.9 -> 0.0.
+            // Wait, ceil(2.9) = 3. 
+            // We want animation to start at 2.999...
+            
+            // Let's use 1.0 - frac as "progress".
+            // progress: 0.0 (start of beat) -> 1.0 (end of beat)
+            // But time isn't perfectly synced to beats, checking countdownTimer.
+            // countdownTimer starts at 3.0 and goes down.
+            
+            // Let's calculate 't' as (1.0 - frac).
+            // At 2.99: frac=0.99, t=0.01 (Just started)
+            // At 2.50: frac=0.50, t=0.50
+            // At 2.01: frac=0.01, t=0.99 (About to switch)
+            
+            // Desired effect: Scale 2.0 -> 1.0, Alpha 0.5 -> 1.0 -> 0.0?
+            // Usually: Boom (Scale 1.5, Alpha 1) -> Shrink to 1.0, Alpha remains 1?
+            // Or Fade out?
+            
+            float t = 1.0f - frac; // 0.0 (Start of number) -> 1.0 (End)
+            
+            // Easing: Elastic Out or similar? Simple exponential decay is fine.
+            float scale = 1.0f + 1.0f * (1.0f - t) * (1.0f - t); // 2.0 -> 1.0
+            float alpha = 1.0f;
+            // Fade out at the very end?
+            if (t > 0.8f) {
+                alpha = 1.0f - (t - 0.8f) / 0.2f; 
+            }
+            
+            // Clamp
+            float baseScaleW = 10.0f;
+            float baseScaleH = 5.0f;
 			
 			if (count != lastCountdownVal) {
 				wchar_t buf[16];
 				swprintf_s(buf, L"%d", count);
 				countdownText->SetText(buf);
-				countdownText->material.SetColor({ 1, 1, 0, 1 }); // 黄
-				countdownText->transform.SetScale(Vector3(10, 5, 0)); // 元のサイズ
+				countdownText->material.SetColor({ 1, 1, 0, 1 }); // Yellow
 				lastCountdownVal = count;
 			}
+            
+            countdownText->transform.SetScale(Vector3(baseScaleW * scale, baseScaleH * scale, 0));
+            countdownText->material.SetColor({ 1, 1, 0, alpha });
 		}
 		else {
 			if (lastCountdownVal != 0 || isCountdownStartShown) {
@@ -385,11 +444,6 @@ namespace app::test {
 			}
 			isCountdownStartShown = false;
 		}
-		
-		// フラグ更新
-		// 時間が0以上ならカウントダウン中、START表示中も含むが、START表示後はPlayingになるので呼ばれなくなるはず
-		// 厳密には time > 0 || isStart
-		isCountdownActive = (time > 0.0f) || isStart;
 	}
 
 	void IngameCanvas::UpdateJacketImage() {
