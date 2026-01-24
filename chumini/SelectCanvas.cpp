@@ -530,9 +530,37 @@ namespace app::test {
         ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f}); // 黒、90%不透明
         ratingDetailBackground->SetVisible(false);
 
-        // タイトル（左側）
+        // "RATING" ラベル（一番上）
+        ratingDetailLabelText = AddUI<sf::ui::TextImage>();
+        ratingDetailLabelText->transform.SetPosition(Vector3(-650, 460, 10.0f));
+        ratingDetailLabelText->transform.SetScale(Vector3(6.0f, 2.0f, 1.0f));
+        ratingDetailLabelText->Create(
+            device,
+            L"RATING",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            60.0f,
+            D2D1::ColorF(D2D1::ColorF::Cyan),
+            512, 128
+        );
+        ratingDetailLabelText->SetVisible(false);
+
+        // 合計レート表示（ラベルの下）
+        ratingDetailTotalText = AddUI<sf::ui::TextImage>();
+        ratingDetailTotalText->transform.SetPosition(Vector3(-650, 380, 10.0f)); // 400 -> 380
+        ratingDetailTotalText->transform.SetScale(Vector3(10.0f, 3.0f, 1.0f));
+        ratingDetailTotalText->Create(
+            device,
+            L"",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            100.0f, // 大きく
+            D2D1::ColorF(D2D1::ColorF::Cyan),
+            1024, 200
+        );
+        ratingDetailTotalText->SetVisible(false);
+
+        // タイトル（合計レートの下）
         ratingDetailTitle = AddUI<sf::ui::TextImage>();
-        ratingDetailTitle->transform.SetPosition(Vector3(-550, 400, 10.0f)); // 背景より手前
+        ratingDetailTitle->transform.SetPosition(Vector3(-650, 280, 10.0f)); // 300 -> 280
         ratingDetailTitle->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
         ratingDetailTitle->Create(
             device,
@@ -547,7 +575,7 @@ namespace app::test {
         // 詳細リスト（10行、左側）
         for (int i = 0; i < 10; ++i) {
             auto* line = AddUI<sf::ui::TextImage>();
-            line->transform.SetPosition(Vector3(-550, 300 - i * 70, 10.0f)); // 背景より手前
+            line->transform.SetPosition(Vector3(-650, 200 - i * 70, 10.0f)); // 220 -> 200
             line->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f)); // 少し小さく
             line->Create(
                 device,
@@ -667,6 +695,16 @@ namespace app::test {
                     
                     if (showRatingDetail) {
                         // データ設定（アニメーションはUpdateAnimationで自動処理）
+                        // 1. 合計レート設定
+                        if (ratingDetailTotalText) {
+                            float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
+                            float truncated = std::floor(playerRating * 100.0f) / 100.0f;
+                            wchar_t totalBuf[64];
+                            swprintf_s(totalBuf, L"%.2f", truncated);
+                            ratingDetailTotalText->SetText(totalBuf);
+                        }
+
+                        // 2. 詳細リスト設定
                         auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
                         ratingDetailItemCount = std::min((int)topCharts.size(), (int)ratingDetailLines.size()); // 件数を保存
                         
@@ -702,6 +740,16 @@ namespace app::test {
             
             if (showRatingDetail) {
                 // データ設定（アニメーションはUpdateAnimationで自動処理）
+                // 1. 合計レート設定
+                if (ratingDetailTotalText) {
+                    float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
+                    float truncated = std::floor(playerRating * 100.0f) / 100.0f;
+                    wchar_t totalBuf[64];
+                    swprintf_s(totalBuf, L"%.2f", truncated);
+                    ratingDetailTotalText->SetText(totalBuf);
+                }
+
+                // 2. 詳細リスト設定
                 auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
                 ratingDetailItemCount = std::min((int)topCharts.size(), (int)ratingDetailLines.size()); // 件数を保存
                 
@@ -878,10 +926,26 @@ namespace app::test {
                 ratingDetailBackground->SetVisible(true);
             }
             
+            // ラベルの更新
+            if (ratingDetailLabelText) {
+                // 定位置(460) + オフセット
+                ratingDetailLabelText->transform.SetPosition(Vector3(uiX, 460.0f + currentOffsetY, 10.0f));
+                ratingDetailLabelText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer});
+                ratingDetailLabelText->SetVisible(true);
+            }
+
+            // 合計レートの更新
+            if (ratingDetailTotalText) {
+                // 定位置(380) + オフセット
+                ratingDetailTotalText->transform.SetPosition(Vector3(uiX, 380.0f + currentOffsetY, 10.0f));
+                ratingDetailTotalText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer}); // シアンで目立たせる
+                ratingDetailTotalText->SetVisible(true);
+            }
+            
             // タイトルの更新
             if (ratingDetailTitle) {
-                // 定位置(400) + オフセット
-                ratingDetailTitle->transform.SetPosition(Vector3(uiX, 400.0f + currentOffsetY, 10.0f));
+                // 定位置(280) + オフセット
+                ratingDetailTitle->transform.SetPosition(Vector3(uiX, 280.0f + currentOffsetY, 10.0f));
                 ratingDetailTitle->material.SetColor({1.0f, 1.0f, 0.0f, easedTimer});
                 ratingDetailTitle->SetVisible(true);
             }
@@ -890,8 +954,8 @@ namespace app::test {
             int lineIndex = 0;
             for (auto* line : ratingDetailLines) {
                 if (line) {
-                    // 定位置(300 - i*70) + オフセット
-                    float baseLineY = 300.0f - lineIndex * 70.0f;
+                    // 定位置(200 - i*70) + オフセット
+                    float baseLineY = 200.0f - lineIndex * 70.0f;
                     line->transform.SetPosition(Vector3(uiX, baseLineY + currentOffsetY, 10.0f));
                     line->material.SetColor({1.0f, 1.0f, 1.0f, easedTimer});
                     
@@ -907,7 +971,9 @@ namespace app::test {
         } else {
             // アニメーション終了時は非表示
             if (ratingDetailBackground) ratingDetailBackground->SetVisible(false);
+            if (ratingDetailLabelText) ratingDetailLabelText->SetVisible(false);
             if (ratingDetailTitle) ratingDetailTitle->SetVisible(false);
+            if (ratingDetailTotalText) ratingDetailTotalText->SetVisible(false);
             for (auto* line : ratingDetailLines) {
                 if (line) line->SetVisible(false);
             }

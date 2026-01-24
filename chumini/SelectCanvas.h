@@ -83,6 +83,8 @@ namespace app {
             sf::Texture ratingDetailBackgroundTexture; // 背景用テクスチャ
             sf::ui::Image* ratingDetailBackground = nullptr; // 半透明背景
             sf::ui::TextImage* ratingDetailTitle = nullptr;
+            sf::ui::TextImage* ratingDetailLabelText = nullptr; // "RATING" ラベル
+            sf::ui::TextImage* ratingDetailTotalText = nullptr; // 合計レート表示
             std::vector<sf::ui::TextImage*> ratingDetailLines; // Top 10 chart details
             int ratingDetailItemCount = 0; // アクティブな詳細ライン数
 
