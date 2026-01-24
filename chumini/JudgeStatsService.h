@@ -26,6 +26,9 @@ namespace app::test
         static void SetDifficulty(int diff);
         static int GetDifficulty();
 
+        static void SetTitle(const std::string& titleStr);
+        static std::string GetTitle();
+
     private:
         static inline int perfect = 0;
         static inline int great = 0;
@@ -39,6 +42,7 @@ namespace app::test
         static inline JudgeResult lastResult = JudgeResult::None;
         static inline std::string chartPath = "";
         static inline int difficulty = 0;
+        static inline std::string title = "";
     };
 }
 

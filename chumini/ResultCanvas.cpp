@@ -288,9 +288,10 @@ namespace app::test {
         // --- Save Score ---
         std::string chartPath = JudgeStatsService::GetChartPath();
         int difficulty = JudgeStatsService::GetDifficulty();
+        std::string title = JudgeStatsService::GetTitle();
         if (!chartPath.empty()) {
             std::string rankUtf8(rankStr.begin(), rankStr.end()); // ASCII only
-            app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8, difficulty);
+            app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8, difficulty, title);
             app::test::ScoreManager::Instance().Save();
             sf::debug::Debug::Log("Score Saved: " + std::to_string(score) + " Rank: " + rankUtf8 + 
                                   " Difficulty: " + std::to_string(difficulty));

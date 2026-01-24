@@ -76,6 +76,16 @@ namespace app {
             sf::ui::TextImage* rankMark = nullptr;
             sf::ui::TextImage* playerRatingText = nullptr; // Player rating display
 
+            // Rating detail display
+            bool showRatingDetail = false;
+            float ratingDetailAnimationTimer = 0.0f; // アニメーション用タイマー（0.0f〜1.0f）
+            const float RATING_DETAIL_ANIMATION_DURATION = 0.5f; // アニメーション時間（秒） 0.3 -> 0.5
+            sf::Texture ratingDetailBackgroundTexture; // 背景用テクスチャ
+            sf::ui::Image* ratingDetailBackground = nullptr; // 半透明背景
+            sf::ui::TextImage* ratingDetailTitle = nullptr;
+            std::vector<sf::ui::TextImage*> ratingDetailLines; // Top 10 chart details
+            int ratingDetailItemCount = 0; // アクティブな詳細ライン数
+
             // =========================
             // レイアウト / 見た目
             // =========================

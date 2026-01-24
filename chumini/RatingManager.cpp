@@ -54,4 +54,38 @@ namespace app::test {
         return playerRating;
     }
 
+    std::vector<std::tuple<std::string, float, std::string>> RatingManager::GetTopCharts(int count) const {
+        const auto& allScores = ScoreManager::Instance().GetAllScores();
+        
+        if (allScores.empty()) {
+            return {};
+        }
+
+        // title, rating, chartPathのタプルのリストを作成
+        std::vector<std::tuple<std::string, float, std::string>> chartRatings;
+        chartRatings.reserve(allScores.size());
+        
+        for (const auto& pair : allScores) {
+            const ScoreRecord& record = pair.second;
+            if (record.highScore > 0 && record.rating >= 0.0f && record.rating < 100.0f) {
+                std::string displayTitle = record.title.empty() ? "Unknown" : record.title;
+                chartRatings.push_back(std::make_tuple(displayTitle, record.rating, pair.first));
+            }
+        }
+
+        if (chartRatings.empty()) {
+            return {};
+        }
+
+        // レート値を降順にソート
+        std::sort(chartRatings.begin(), chartRatings.end(), 
+                  [](const auto& a, const auto& b) { return std::get<1>(a) > std::get<1>(b); });
+
+        // 上位count曲を返す
+        int topCount = std::min(count, static_cast<int>(chartRatings.size()));
+        chartRatings.resize(topCount);
+        
+        return chartRatings;
+    }
+
 }

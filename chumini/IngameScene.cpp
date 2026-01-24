@@ -398,6 +398,7 @@ void app::test::IngameScene::OnActivated()
     // Set chart path and difficulty for score saving
     JudgeStatsService::SetChartPath(selectedSong.chartPath);
     JudgeStatsService::SetDifficulty(selectedSong.difficulty);
+    JudgeStatsService::SetTitle(selectedSong.title);
 
     //bgmPlayer->Play();
 }

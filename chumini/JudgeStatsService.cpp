@@ -97,3 +97,13 @@ int JudgeStatsService::GetDifficulty()
 {
     return difficulty;
 }
+
+void JudgeStatsService::SetTitle(const std::string& titleStr)
+{
+    title = titleStr;
+}
+
+std::string JudgeStatsService::GetTitle()
+{
+    return title;
+}

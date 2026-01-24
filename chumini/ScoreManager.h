@@ -10,6 +10,7 @@ namespace app::test {
         std::string rank = "-";
         int difficulty = 0;
         float rating = 0.0f;
+        std::string title = "";  // 曲名（日本語対応）
     };
 
     class ScoreManager {
@@ -21,7 +22,7 @@ namespace app::test {
         void Save();
 
         // スコア更新 (ハイスコアなら更新してtrueを返す)
-        bool UpdateScore(const std::string& chartPath, int score, const std::string& rank, int difficulty);
+        bool UpdateScore(const std::string& chartPath, int score, const std::string& rank, int difficulty, const std::string& title);
 
         // スコア取得
         ScoreRecord GetScore(const std::string& chartPath) const;

@@ -515,9 +515,51 @@ namespace app::test {
         // 切り捨て: 100倍して整数部分を取り、100で割る
         float truncatedRating = std::floor(playerRating * 100.0f) / 100.0f;
         wchar_t ratingBuf[64];
-        swprintf_s(ratingBuf, L"Rating: %.2f", truncatedRating);
+        swprintf_s(ratingBuf, L"Rating: %.2f [R or Click]", truncatedRating);
         playerRatingText->SetText(ratingBuf);
 
+        // ★追加: レート詳細表示UI（初期は非表示）
+        // 背景用テクスチャを読み込む（既存の背景を再利用）
+        ratingDetailBackgroundTexture.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
+        
+        // 半透明背景（左側に配置）
+        ratingDetailBackground = AddUI<sf::ui::Image>();
+        ratingDetailBackground->transform.SetPosition(Vector3(-550, 0, 5.0f)); // テキストより奥に
+        ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f)); // 10倍に拡大
+        ratingDetailBackground->material.texture = &ratingDetailBackgroundTexture;
+        ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f}); // 黒、90%不透明
+        ratingDetailBackground->SetVisible(false);
+
+        // タイトル（左側）
+        ratingDetailTitle = AddUI<sf::ui::TextImage>();
+        ratingDetailTitle->transform.SetPosition(Vector3(-550, 400, 10.0f)); // 背景より手前
+        ratingDetailTitle->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
+        ratingDetailTitle->Create(
+            device,
+            L"Top 10 Charts",
+            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            60.0f,
+            D2D1::ColorF(D2D1::ColorF::Yellow),
+            1024, 128
+        );
+        ratingDetailTitle->SetVisible(false);
+
+        // 詳細リスト（10行、左側）
+        for (int i = 0; i < 10; ++i) {
+            auto* line = AddUI<sf::ui::TextImage>();
+            line->transform.SetPosition(Vector3(-550, 300 - i * 70, 10.0f)); // 背景より手前
+            line->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f)); // 少し小さく
+            line->Create(
+                device,
+                L"",
+                L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+                40.0f,
+                D2D1::ColorF(D2D1::ColorF::White),
+                2048, 128
+            );
+            line->SetVisible(false);
+            ratingDetailLines.push_back(line);
+        }
 
 
 
@@ -551,6 +593,15 @@ namespace app::test {
         animationTime += sf::Time::DeltaTime();
         if (inputCooldown > 0) inputCooldown -= sf::Time::DeltaTime();
 
+        // レーティング詳細アニメーション更新
+        if (showRatingDetail && ratingDetailAnimationTimer < 1.0f) {
+            ratingDetailAnimationTimer += sf::Time::DeltaTime() / RATING_DETAIL_ANIMATION_DURATION;
+            if (ratingDetailAnimationTimer > 1.0f) ratingDetailAnimationTimer = 1.0f;
+        } else if (!showRatingDetail && ratingDetailAnimationTimer > 0.0f) {
+            ratingDetailAnimationTimer -= sf::Time::DeltaTime() / RATING_DETAIL_ANIMATION_DURATION;
+            if (ratingDetailAnimationTimer < 0.0f) ratingDetailAnimationTimer = 0.0f;
+        }
+
         UpdateInput();
         UpdateAnimation();
         UpdateJacketPositions();
@@ -582,6 +633,99 @@ namespace app::test {
                 if(genreText) genreText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f}); // 白に戻す
                 if(selectFrame) selectFrame->material.SetColor({1.0f, 1.0f, 1.0f, 0.8f}); // 枠を明るく
             }
+            inputCooldown = INPUT_DELAY;
+        }
+
+        // クリック判定: レーティングテキストをクリックで詳細表示切り替え
+        if (SInput::Instance().GetMouseDown(0)) {  // 左クリック
+            POINT mousePoint;
+            GetCursorPos(&mousePoint);
+            HWND hwnd = GetActiveWindow();
+            ScreenToClient(hwnd, &mousePoint);
+            
+            // マウス座標をUI座標系に変換（画面中央が原点）
+            float uiX = static_cast<float>(mousePoint.x) - 1920.0f * 0.5f;
+            float uiY = 1080.0f * 0.5f - static_cast<float>(mousePoint.y);
+            
+            // PlayerRatingTextの当たり判定
+            if (playerRatingText) {
+                Vector3 pos = playerRatingText->transform.GetPosition();
+                Vector3 scale = playerRatingText->transform.GetScale();
+                
+                // 幅と高さの計算（経験的な係数を使用）
+                float width = scale.x * 80.0f;
+                float height = scale.y * 40.0f;
+                
+                float left = pos.x - width * 0.5f;
+                float right = pos.x + width * 0.5f;
+                float top = pos.y + height * 0.5f;
+                float bottom = pos.y - height * 0.5f;
+                
+                // 当たり判定
+                if (uiX >= left && uiX <= right && uiY >= bottom && uiY <= top) {
+                    showRatingDetail = !showRatingDetail;
+                    
+                    if (showRatingDetail) {
+                        // データ設定（アニメーションはUpdateAnimationで自動処理）
+                        auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
+                        ratingDetailItemCount = std::min((int)topCharts.size(), (int)ratingDetailLines.size()); // 件数を保存
+                        
+                        for (size_t i = 0; i < ratingDetailLines.size(); ++i) {
+                            if (i < topCharts.size()) {
+                                // titleを取得
+                                std::string title = std::get<0>(topCharts[i]);
+                                
+                                // 切り捨てレート値
+                                float rating = std::get<1>(topCharts[i]);
+                                float truncated = std::floor(rating * 100.0f) / 100.0f;
+                                
+                                // テキスト設定（UTF-8からwstringへ変換）
+                                wchar_t lineBuf[256];
+                                std::wstring titleW = Utf8ToWstring(title);
+                                swprintf_s(lineBuf, L"%d. %s - %.2f", (int)i + 1, titleW.c_str(), truncated);
+                                
+                                ratingDetailLines[i]->SetText(lineBuf);
+                            } else {
+                                ratingDetailLines[i]->SetText(L"");
+                            }
+                        }
+                    }
+                    
+                    inputCooldown = INPUT_DELAY;
+                }
+            }
+        }
+
+        // Rキー: レート詳細表示の切り替え
+        if (input.GetKeyDown(Key::KEY_R)) {
+            showRatingDetail = !showRatingDetail;
+            
+            if (showRatingDetail) {
+                // データ設定（アニメーションはUpdateAnimationで自動処理）
+                auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
+                ratingDetailItemCount = std::min((int)topCharts.size(), (int)ratingDetailLines.size()); // 件数を保存
+                
+                for (size_t i = 0; i < ratingDetailLines.size(); ++i) {
+                    if (i < topCharts.size()) {
+                        // titleを取得
+                        std::string title = std::get<0>(topCharts[i]);
+                        
+                        // 切り捨てレート値
+                        float rating = std::get<1>(topCharts[i]);
+                        float truncated = std::floor(rating * 100.0f) / 100.0f;
+                        
+                        // テキスト設定（UTF-8からwstringへ変換）
+                        wchar_t lineBuf[256];
+                        std::wstring titleW = Utf8ToWstring(title);
+                        swprintf_s(lineBuf, L"%d. %s - %.2f", (int)i + 1, titleW.c_str(), truncated);
+                        
+                        ratingDetailLines[i]->SetText(lineBuf);
+                    } else {
+                         ratingDetailLines[i]->SetText(L"");
+                    }
+                }
+            }
+            
             inputCooldown = INPUT_DELAY;
         }
 
@@ -709,6 +853,64 @@ namespace app::test {
             currentIndex = WrapFloat(currentIndex, (float)N);
             slideStartIdx = currentIndex;
             slideTimer = 0.0f;
+        }
+
+        // レーティング詳細表示のスライドインアニメーション（下から上にスライド）
+        if (ratingDetailAnimationTimer > 0.0f) {
+            // イージング適用（EaseOutExpoでシュッと出てくる感じに）
+            float easedTimer = (float)Easing(ratingDetailAnimationTimer, EASE::EaseOutExpo);
+            
+            // スライドインのオフセット計算（下から）
+            // 画面外（下）から定位置（0）へ移動
+            const float startOffsetY = -1080.0f;
+            float currentOffsetY = startOffsetY * (1.0f - easedTimer);
+            
+            // X座標の位置調整（左に詰める： -550 -> -750 -> -650）
+            const float uiX = -650.0f;
+
+            // 背景の更新
+            if (ratingDetailBackground) {
+                // 位置を更新（Xは固定、Yはスライド、Zはそのまま）
+                ratingDetailBackground->transform.SetPosition(Vector3(uiX, 0.0f + currentOffsetY, 5.0f));
+                // スケールは固定（最大サイズ）
+                ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f));
+                ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.50f * easedTimer});
+                ratingDetailBackground->SetVisible(true);
+            }
+            
+            // タイトルの更新
+            if (ratingDetailTitle) {
+                // 定位置(400) + オフセット
+                ratingDetailTitle->transform.SetPosition(Vector3(uiX, 400.0f + currentOffsetY, 10.0f));
+                ratingDetailTitle->material.SetColor({1.0f, 1.0f, 0.0f, easedTimer});
+                ratingDetailTitle->SetVisible(true);
+            }
+            
+            // リストの更新
+            int lineIndex = 0;
+            for (auto* line : ratingDetailLines) {
+                if (line) {
+                    // 定位置(300 - i*70) + オフセット
+                    float baseLineY = 300.0f - lineIndex * 70.0f;
+                    line->transform.SetPosition(Vector3(uiX, baseLineY + currentOffsetY, 10.0f));
+                    line->material.SetColor({1.0f, 1.0f, 1.0f, easedTimer});
+                    
+                    // カウントに基づいて表示制御
+                    if (lineIndex < ratingDetailItemCount) {
+                        line->SetVisible(true);
+                    } else {
+                        line->SetVisible(false);
+                    }
+                }
+                lineIndex++;
+            }
+        } else {
+            // アニメーション終了時は非表示
+            if (ratingDetailBackground) ratingDetailBackground->SetVisible(false);
+            if (ratingDetailTitle) ratingDetailTitle->SetVisible(false);
+            for (auto* line : ratingDetailLines) {
+                if (line) line->SetVisible(false);
+            }
         }
     }
 

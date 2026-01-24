@@ -75,12 +75,31 @@ namespace app::test {
                 }
             }
 
+            // Title (新規追加、後方互換性のためチェック)
+            std::string title = "";
+            if (ifs.good() && !ifs.eof()) {
+                std::streampos before = ifs.tellg();
+                int titleLen = 0;
+                ifs.read(reinterpret_cast<char*>(&titleLen), sizeof(int));
+                if (!ifs.fail() && titleLen > 0 && titleLen < 1000) {
+                    title.resize(titleLen);
+                    ifs.read(&title[0], titleLen);
+                    if (ifs.fail()) {
+                        title = "";
+                    }
+                } else {
+                    if (ifs.fail()) ifs.clear();
+                    ifs.seekg(before);
+                }
+            }
+
             // Store
             ScoreRecord record;
             record.highScore = score;
             record.rank = rank;
             record.difficulty = difficulty;
             record.rating = rating;
+            record.title = title;
             scores[path] = record;
         }
 
@@ -125,6 +144,11 @@ namespace app::test {
 
             // Rating
             ofs.write(reinterpret_cast<const char*>(&record.rating), sizeof(float));
+
+            // Title
+            int titleLen = static_cast<int>(record.title.size());
+            ofs.write(reinterpret_cast<const char*>(&titleLen), sizeof(int));
+            ofs.write(record.title.c_str(), titleLen);
         }
 
         sf::debug::Debug::Log("Score saved. Entries: " + std::to_string(entryCount));
@@ -159,7 +183,7 @@ namespace app::test {
         }
     }
 
-    bool ScoreManager::UpdateScore(const std::string& chartPath, int score, const std::string& rank, int difficulty) {
+    bool ScoreManager::UpdateScore(const std::string& chartPath, int score, const std::string& rank, int difficulty, const std::string& title) {
         bool updated = false;
         float rating = CalculateRating(difficulty, score);
         
@@ -170,6 +194,7 @@ namespace app::test {
                 it->second.rank = rank;
                 it->second.difficulty = difficulty;
                 it->second.rating = rating;
+                it->second.title = title;
                 updated = true;
             }
         } else {
@@ -178,6 +203,7 @@ namespace app::test {
             newRecord.rank = rank;
             newRecord.difficulty = difficulty;
             newRecord.rating = rating;
+            newRecord.title = title;
             scores[chartPath] = newRecord;
             updated = true;
         }
