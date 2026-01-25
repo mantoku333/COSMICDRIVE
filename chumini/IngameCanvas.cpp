@@ -102,8 +102,8 @@ namespace app::test {
 
 		// FAST/SLOW
 		fastSlowText = AddUI<sf::ui::TextImage>();
-		fastSlowText->transform.SetPosition(Vector3(0, -200, 0));
-		fastSlowText->transform.SetScale(Vector3(1.5f, 0.5f, 0)); // 小さく変更 (3.0, 1.0 -> 1.5, 0.5)
+		fastSlowText->transform.SetPosition(Vector3(0, -140, 0)); // More Up (-200 -> -140)
+		fastSlowText->transform.SetScale(Vector3(1.5f, 0.5f, 0));
 		if (!fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128)) {
 			sf::debug::Debug::LogError("IngameCanvas: Failed to create fastSlowText");
 		}
@@ -120,6 +120,22 @@ namespace app::test {
 			D2D1::ColorF(D2D1::ColorF::Yellow),
 			1024, 256
 		);
+
+        // Score (Top Left)
+        scoreText = AddUI<sf::ui::TextImage>();
+        scoreText->transform.SetPosition(Vector3(-750, 450, 0)); // Top Left
+        scoreText->transform.SetScale(Vector3(3.5f, 1.5f, 0)); 
+		if (!scoreText->Create(context, L"0000000", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 60.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create scoreText");
+		}
+
+        // Rank (Next to Score)
+        rankText = AddUI<sf::ui::TextImage>();
+        rankText->transform.SetPosition(Vector3(-550, 450, 0)); // Right of Score
+        rankText->transform.SetScale(Vector3(2.5f, 1.5f, 0)); 
+		if (!rankText->Create(context, L"D", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 60.0f, D2D1::ColorF(D2D1::ColorF::Gray), 512, 128)) {
+			sf::debug::Debug::LogError("IngameCanvas: Failed to create rankText");
+		}
 
 
 
@@ -262,7 +278,50 @@ namespace app::test {
 			// Base Scale (1.5, 0.5)
 			fastSlowText->transform.SetScale(Vector3(1.5f * fsScaleRate, 0.5f * fsScaleRate, 0.0f));
 		}
+
+        UpdateScoreDisplay();
 	}
+
+    void IngameCanvas::UpdateScoreDisplay() {
+        if (!scoreText || !rankText || !noteManager) return;
+
+        int maxCombo = noteManager->GetMaxTotalCombo();
+        if (maxCombo <= 0) maxCombo = 1; // Safety
+
+        // Current weighted sum
+        int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
+        int great = JudgeStatsService::GetCount(JudgeResult::Great);
+        int good = JudgeStatsService::GetCount(JudgeResult::Good);
+        // Miss doesn't add score
+
+        // Calculation: (CurrentSum / MaxPossibleSum) * 1000000
+        double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;
+        // Assume MaxPossible is MaxCombo * 1.0
+        double maxPossible = (double)maxCombo;
+        
+        int score = (int)((currentSum / maxPossible) * 1000000.0);
+        if (score > 1000000) score = 1000000; // Cap?
+
+        // Rank
+        std::wstring rankStr = L"D";
+        DirectX::XMFLOAT4 rankColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // Gray
+
+        if (score >= 1000000) { rankStr = L"SSS"; rankColor = { 1.0f, 0.84f, 0.0f, 1.0f }; } // Gold
+        else if (score >= 990000) { rankStr = L"SS"; rankColor = { 1.0f, 1.0f, 0.8f, 1.0f }; }
+        else if (score >= 970000) { rankStr = L"S"; rankColor = { 1.0f, 0.5f, 0.0f, 1.0f }; } // Orange
+        else if (score >= 950000) { rankStr = L"AAA"; rankColor = { 1.0f, 0.7f, 0.7f, 1.0f }; }
+        else if (score >= 900000) { rankStr = L"AA"; rankColor = { 0.9f, 0.8f, 0.8f, 1.0f }; } 
+        else if (score >= 800000) { rankStr = L"A"; rankColor = { 0.8f, 0.8f, 0.8f, 1.0f }; }
+        else if (score >= 500000) { rankStr = L"B"; rankColor = { 0.6f, 0.6f, 1.0f, 1.0f }; }
+        else if (score >= 300000) { rankStr = L"C"; rankColor = { 0.5f, 0.5f, 0.8f, 1.0f }; }
+
+        wchar_t buf[32];
+        swprintf_s(buf, L"%07d", score);
+        scoreText->SetText(buf);
+
+        rankText->SetText(rankStr.c_str());
+        rankText->material.SetColor(rankColor);
+    }
 
 	void IngameCanvas::SpawnHitEffect(float x, float y, float scale, float duration, const Color& color)
 	{
@@ -528,5 +587,114 @@ namespace app::test {
 			fastSlowText->SetText(L"");
 		}
 	}
+
+
+
+    void IngameCanvas::Draw() {
+        // Draw standard UI (Texts, Images)
+        sf::ui::Canvas::Draw();
+        
+        // Draw Custom Gauge
+        DrawScoreGauge();
+    }
+
+    void IngameCanvas::DrawScoreGauge() {
+        if (!noteManager) return;
+        int maxCombo = noteManager->GetMaxTotalCombo();
+        if (maxCombo <= 0) maxCombo = 1;
+
+        int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
+        int great = JudgeStatsService::GetCount(JudgeResult::Great);
+        int good = JudgeStatsService::GetCount(JudgeResult::Good);
+        int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
+
+        // Simple Score based progress
+        double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;
+        double maxPossible = (double)maxCombo;
+        float ratio = (float)(currentSum / maxPossible);
+        if (ratio > 1.0f) ratio = 1.0f;
+        if (ratio < 0.0f) ratio = 0.0f;
+
+        // Visual Parameters
+        // Position: Below Score Text.
+        // Reduced width from 600 to 450 as per user request
+        float barWidth = 450.0f; 
+        float barHeight = 20.0f;
+        float baseY = 400.0f;
+        
+        // Calculate Rank Color
+        int score = (int)((currentSum / maxPossible) * 1000000.0);
+        if (score > 1000000) score = 1000000;
+
+        DirectX::XMFLOAT4 rankColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // D (Gray)
+        if (score >= 1000000) { rankColor = { 1.0f, 0.84f, 0.0f, 1.0f }; } // SSS (Gold)
+        else if (score >= 990000) { rankColor = { 1.0f, 1.0f, 0.8f, 1.0f }; } // SS
+        else if (score >= 970000) { rankColor = { 1.0f, 0.5f, 0.0f, 1.0f }; } // S (Orange)
+        else if (score >= 950000) { rankColor = { 1.0f, 0.7f, 0.7f, 1.0f }; } // AAA
+        else if (score >= 900000) { rankColor = { 0.9f, 0.8f, 0.8f, 1.0f }; } // AA
+        else if (score >= 800000) { rankColor = { 0.8f, 0.8f, 0.8f, 1.0f }; } // A
+        else if (score >= 500000) { rankColor = { 0.6f, 0.6f, 1.0f, 1.0f }; } // B
+        else if (score >= 300000) { rankColor = { 0.5f, 0.5f, 0.8f, 1.0f }; } // C
+
+        auto* dx11 = sf::dx::DirectX11::Instance();
+        auto device = dx11->GetMainDevice().GetDevice();
+        auto context = dx11->GetMainDevice().GetContext();
+
+        // Common Setup
+        dx11->gsScoreGauge.SetGPU(dx11->GetMainDevice());
+        dx11->psScoreGauge.SetGPU(dx11->GetMainDevice()); // Use Rounded Capsule PS
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+        // --- Layer 1: Background Container ---
+        {
+            float bgWidth = barWidth;
+            float bgCenterX = -750.0f + (bgWidth * 0.5f);
+            
+            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(bgWidth, barHeight, 1.0f);
+            DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(bgCenterX, baseY, 0.0f);
+            
+            WorldMatrixBuffer wb;
+            wb.mtx = DirectX::XMMatrixTranspose(S * T);
+            wb.rot = DirectX::XMMatrixIdentity();
+            dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
+
+            // Material: Dark Gray, Pass Aspect Ratio in Emission.x
+            mtl material;
+            material.diffuseColor = { 0.2f, 0.2f, 0.2f, 0.8f }; // Dark transparent background
+            float aspect = bgWidth / barHeight;
+            material.emissionColor = { aspect, 0, 0, 0 }; // Pass Aspect Ratio
+            dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
+
+            dx11->vsNone.SetGPU(dx11->GetMainDevice()); // Dummy VS
+            context->Draw(1, 0); 
+        }
+
+        // --- Layer 2: Foreground Bar ---
+        if (ratio > 0.001f) // Only draw if perceptible
+        {
+            float currentWidth = barWidth * ratio;
+            float centerX = -750.0f + (currentWidth * 0.5f);
+
+            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(currentWidth, barHeight, 1.0f);
+            DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(centerX, baseY, 0.0f);
+            
+            WorldMatrixBuffer wb;
+            wb.mtx = DirectX::XMMatrixTranspose(S * T);
+            wb.rot = DirectX::XMMatrixIdentity();
+            dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
+
+            // Material: Rank Color, Pass Aspect Ratio
+            mtl material;
+            material.diffuseColor = rankColor;
+            float aspect = currentWidth / barHeight;
+            material.emissionColor = { aspect, 0, 0, 0 }; // Pass Aspect Ratio
+            dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
+
+            context->Draw(1, 0); 
+        }
+
+        // Restore Standard
+        dx11->ps2d.SetGPU(dx11->GetMainDevice());
+    }
 
 } // namespace app::test

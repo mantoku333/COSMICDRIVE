@@ -256,8 +256,8 @@ void app::test::IngameScene::Init()
              sf::debug::Debug::LogError("Failed to load Skill.wav");
         } else {
              skillSePlayer->SetResource(skillSeResource);
-             // Default Volume (Louder as requested)
-             skillSePlayer->SetVolume(3.0f);
+             // Default Volume (Significant Boost)
+             skillSePlayer->SetVolume(8.0f);
         }
     }
 
@@ -428,8 +428,7 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
                 sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f);
             } else {
                  // Decay from 0.5 down to 0
-                 // t goes from 1.0 (start) -> 0.0 (end)
-                 float ratio = skillEffectTimer / 0.3f; 
+                 float ratio = skillEffectTimer / 0.2f; 
                  // Noise intensity
                  float val = 0.5f * ratio;
                  sf::dx::DirectX11::Instance()->SetGlitchIntensity(val);
@@ -511,7 +510,8 @@ void app::test::IngameScene::DrawOverlay()
 void app::test::IngameScene::TriggerSkillEffect()
 {
     // 1. Glitch Effect
-    skillEffectTimer = 0.3f; // Duration
+    // 1. Glitch Effect
+    skillEffectTimer = 0.2f; // Duration (User Requested)
     // Intensity set in Update based on timer
     
     // 2. Play Sound

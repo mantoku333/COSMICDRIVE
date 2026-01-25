@@ -456,6 +456,38 @@ namespace app::test {
         catch (...) {
             sf::debug::Debug::LogError("InitInstancing Failed: Unknown Exception");
         }
+
+        // ----------------------------------
+        // Max Combo Calculation (Pre-calc)
+        // ----------------------------------
+        maxTotalCombo = 0;
+        for (const auto& nd : noteSequence) {
+             if (nd.type == NoteType::SongEnd) continue;
+
+             // Head Judgement
+             if (nd.type == NoteType::Tap || nd.type == NoteType::Skill || nd.type == NoteType::HoldStart) {
+                 maxTotalCombo++;
+             }
+             
+             // Hold Body + Tail (Simulate CheckHold logic)
+             if (nd.type == NoteType::HoldStart && nd.pairIndex != -1 && nd.pairIndex < (int)noteSequence.size()) {
+                 const auto& endNote = noteSequence[nd.pairIndex];
+                 double startBeat = nd.absBeat;
+                 double endBeat = endNote.absBeat;
+                 
+                 // Initial next beat logic matches CheckHold entry
+                 double nextBeat = startBeat + 0.5;
+                 
+                 // Simulate Ticks
+                 while (nextBeat < endBeat) { // Strict less than end beat for ticks
+                     maxTotalCombo++; // Tick
+                     nextBeat += 0.5;
+                 }
+                 
+                 maxTotalCombo++; // Tail Judgement
+             }
+        }
+        sf::debug::Debug::Log("Max Total Combo Calculated: " + std::to_string(maxTotalCombo));
     }
 
 	// ==================================================
@@ -731,11 +763,16 @@ namespace app::test {
                 }
             }
             
-            // FAST/SLOW Update (Simplified)
+             // FAST/SLOW Update
             if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
                  float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
+                 int type = (diff < 0) ? 1 : 2; // 1:FAST, 2:SLOW
                  if (diff < 0) JudgeStatsService::AddFast(); else JudgeStatsService::AddSlow();
-                 // Valid UI Update here if needed...
+                 
+                 // UI Update
+                 if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                     canvas->ShowFastSlow(type);
+                 }
             }
 
             // Destroy Actor Logic

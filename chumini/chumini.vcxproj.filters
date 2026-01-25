@@ -58,6 +58,12 @@
     <FxCompile Include="vsNone.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
+    <FxCompile Include="gsScoreGauge.hlsl">
+      <Filter>App\Shader\gs</Filter>
+    </FxCompile>
+    <FxCompile Include="psScoreGauge.hlsl">
+      <Filter>App\Shader\ps</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp">
@@ -525,6 +531,7 @@
     <ClCompile Include="ConfigCanvas.cpp">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClCompile>
+    <ClCompile Include="RatingManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1073,6 +1080,7 @@
     <ClInclude Include="ConfigCanvas.h">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClInclude>
+    <ClInclude Include="RatingManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">

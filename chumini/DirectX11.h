@@ -141,6 +141,7 @@ namespace sf
 			shader::GeometryShader gs2d;
 			shader::GeometryShader gsOnScreen;
 			shader::GeometryShader gsDebugLine;
+            shader::GeometryShader gsScoreGauge; // New
 			shader::GeometryShader gsDownX;
 			shader::GeometryShader gsDownY;
 
@@ -151,6 +152,7 @@ namespace sf
 			shader::PixelShader psShadow;
 			shader::PixelShader psBlur;
 			shader::PixelShader psPostProcess;
+            shader::PixelShader psScoreGauge; // New
 
 
 		public:

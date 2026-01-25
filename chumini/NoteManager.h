@@ -107,8 +107,12 @@ namespace app::test {
 
         float sideLaneX_Left = -2.5f;  
         float sideLaneX_Right = 2.5f;
+
+        // Exposed Max Combo
+        int GetMaxTotalCombo() const { return maxTotalCombo; }
     
     private:
+        int maxTotalCombo = 0;
 
         struct NoteInstanceData {
             DirectX::XMFLOAT4X4 world; // row_major for HLSL

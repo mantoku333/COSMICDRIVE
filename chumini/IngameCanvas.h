@@ -25,6 +25,7 @@ namespace app
 
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
+            void Draw() override;
 
 			// NoteManagerから呼ばれる窓口
 			void SpawnHitEffect(float x, float y, float scale, float duration, const Color& color);
@@ -46,6 +47,8 @@ namespace app
 			void UpdateCountdownDisplay(float time, bool isStart);
 
 			void ShowFastSlow(int type); // 1:FAST, 2:SLOW
+            void UpdateScoreDisplay();
+            void DrawScoreGauge();
 
 		private:
 			// ... (既存のテクスチャ) ...
@@ -74,6 +77,11 @@ namespace app
 			sf::ui::TextImage* judgeResultText = nullptr;
 			sf::ui::TextImage* fastSlowText = nullptr; // FAST/SLOW
 			sf::ui::TextImage* countdownText = nullptr;
+            
+            // Score & Rank
+            sf::ui::TextImage* scoreText = nullptr;
+            sf::ui::TextImage* rankText = nullptr;
+            sf::ui::TextImage* rankOutline[4] = { nullptr }; // Outline for Rank
 
 
 

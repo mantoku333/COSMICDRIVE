@@ -322,6 +322,8 @@ namespace app::test {
                     n.measure = mm;
                     n.tick = (i * findBar(mm).ticksPerMeasure) / total;
                     n.absBeat = tick / (double)ticksPerBeat;
+                    n.isHold = false;  // Explicitly disable hold
+                    n.holdId = -1;     // Explicitly reset ID
                     notes.push_back(n);
                 }
             }

@@ -154,6 +154,7 @@ void sf::dx::DirectX11::LoadShader()
 	gsDebugLine.LoadCSO("Assets\\Shader\\gsDebugLine.cso");
 	gsDownX.LoadCSO("Assets\\Shader\\gsDownSamplingX.cso");
 	gsDownY.LoadCSO("Assets\\Shader\\gsDownSamplingY.cso");
+    gsScoreGauge.LoadCSO("Assets\\Shader\\gsScoreGauge.cso");
 
 	ps3d.LoadCSO("Assets\\Shader\\ps3d.cso");
 	ps2d.LoadCSO("Assets\\Shader\\ps2d.cso");
@@ -162,6 +163,7 @@ void sf::dx::DirectX11::LoadShader()
 	psShadow.LoadCSO("Assets\\Shader\\psShadow.cso");
 	psBlur.LoadCSO("Assets\\Shader\\psBlur.cso");
 	psPostProcess.LoadCSO("Assets\\Shader\\psPostProcess.cso");
+    psScoreGauge.LoadCSO("Assets\\Shader\\psScoreGauge.cso");
 }
 
 void sf::dx::DirectX11::PostProcessing()
