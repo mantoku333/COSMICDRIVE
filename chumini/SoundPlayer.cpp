@@ -2,22 +2,38 @@
 
 sf::sound::SoundPlayer::~SoundPlayer()
 {
-	Stop();
+	Destroy();
 }
 
 void sf::sound::SoundPlayer::DeActivate()
 {
-	Stop();
+	Destroy();
+}
+
+void sf::sound::SoundPlayer::Destroy()
+{
+	if (source != nullptr)
+	{
+		source->Stop();
+		source->FlushSourceBuffers();
+		source->DestroyVoice();
+		source = nullptr;
+	}
 }
 
 void sf::sound::SoundPlayer::Play(float startTime)
 {
-	Stop();
-	if (source == nullptr)
+	if (source != nullptr)
 	{
-		SetSound(startTime);
+		source->Stop();
+		source->FlushSourceBuffers();
 	}
-	source->Start();
+	
+	SetSound(startTime);
+	
+	if (source) {
+		source->Start();
+	}
 }
 
 void sf::sound::SoundPlayer::Stop()
@@ -25,24 +41,30 @@ void sf::sound::SoundPlayer::Stop()
 	if (source != nullptr)
 	{
 		source->Stop();
-		source = nullptr;
+		source->FlushSourceBuffers();
 	}
 }
 
 void sf::sound::SoundPlayer::SetResource(sf::ref::Ref<SoundResource> _v)
 {
+    // Destroy existing voice to ensure new format is applied and state is clean
+    Destroy();
 	resource = _v;
-
-	SetSound(0.0f);
-
-	//source->Start();
 }
 
 void sf::sound::SoundPlayer::SetSound(float startTime)
 {
+    if (resource.Target() == nullptr) return;
+
 	WAVEFORMATEX data = resource.Target()->GetWAVEFORMATEXTENSIBLE().Format;
 
-	SoundResource::GetIXAudio2()->CreateSourceVoice(&source, &data);
+	if (source == nullptr) {
+		if (FAILED(SoundResource::GetIXAudio2()->CreateSourceVoice(&source, &data))) {
+			return; // Failed
+		}
+		source->SetVolume(currentVolume);
+	}
+
 	XAUDIO2_BUFFER buffer = resource.Target()->GetXAUDIO2_BUFFER();
 
 	// Calculate start position

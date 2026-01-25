@@ -10,6 +10,7 @@
 #include "SelectCanvas.h"
 #include "SongInfo.h"
 #include "Live2DComponent.h"
+#include "SoundPlayer.h"
 
 namespace app { namespace test { class BGMComponent; } }
 
@@ -100,6 +101,10 @@ namespace app
 			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
 			
 			sf::SafePtr<app::test::Live2DComponent> l2dComp;
+
+            // Skill SE
+            sf::ref::Ref<sf::sound::SoundResource> skillSeResource;
+            sf::SafePtr<sf::sound::SoundPlayer> skillSePlayer;
 		};
 	}
 }

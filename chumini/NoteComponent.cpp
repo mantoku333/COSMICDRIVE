@@ -43,7 +43,11 @@ namespace app::test {
         float currentX = actor->transform.GetPosition().x;
         actor->transform.SetPosition({ currentX, startY, startZ });
         actor->transform.SetRotation({ rotX, 0, 0 });
-        actor->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
+        if (info.type == NoteType::Skill) {
+            actor->transform.SetScale({ laneW * 4.0f, 0.5f, 0.2f });
+        } else {
+            actor->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
+        }
 
         // HOLD START SPECIAL HANDLING
         if (info.type == NoteType::HoldStart) {

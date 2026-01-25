@@ -9,8 +9,9 @@ namespace sf
 		class SoundPlayer :public Component
 		{
 		public:
-			~SoundPlayer();
+            ~SoundPlayer();
 			void DeActivate()override;
+            void Destroy(); // Added for proper cleanup
 
 			void Play(float startTime = 0.0f);
 			void Stop();

@@ -12,6 +12,8 @@
 #include "NoteComponent.h"
 #include "NoteManager.h"
 #include "SongInfo.h"
+#include "ScoreManager.h"
+#include "SoundResource.h"
 #include "JudgeStatsService.h"
 #include "JudgeStatsService.h"
 #include "GUI.h"
@@ -244,7 +246,20 @@ void app::test::IngameScene::Init()
         
     }
 
-
+    // SE Actor
+    auto seActor = Instantiate();
+    skillSePlayer = seActor.Target()->AddComponent<sf::sound::SoundPlayer>();
+    if (!skillSePlayer.isNull()) {
+        skillSeResource = sf::ref::Ref<sf::sound::SoundResource>(new sf::sound::SoundResource());
+        // Load SE (No Loop)
+        if (FAILED(skillSeResource.Target()->LoadSound("Assets/Sound/Skill.wav", false))) {
+             sf::debug::Debug::LogError("Failed to load Skill.wav");
+        } else {
+             skillSePlayer->SetResource(skillSeResource);
+             // Default Volume (Louder as requested)
+             skillSePlayer->SetVolume(3.0f);
+        }
+    }
 
     if (auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>())
     {
@@ -495,10 +510,16 @@ void app::test::IngameScene::DrawOverlay()
 
 void app::test::IngameScene::TriggerSkillEffect()
 {
-    // Brief glitch (0.3s)
-    skillEffectTimer = 0.3f;
-    // Set immediate high intensity
-    sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.5f);
+    // 1. Glitch Effect
+    skillEffectTimer = 0.3f; // Duration
+    // Intensity set in Update based on timer
+    
+    // 2. Play Sound
+    if (!skillSePlayer.isNull()) {
+        skillSePlayer->Stop(); // Stop overlapping or re-trigger? 
+        // Better to re-trigger. Stop resets position.
+        skillSePlayer->Play(0.0f);
+    }
 }
 
 void app::test::IngameScene::OnGUI()

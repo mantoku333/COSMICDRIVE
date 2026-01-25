@@ -375,6 +375,10 @@ namespace app::test {
 			else if (noteSequence[i].lane == 5) {
 				laneX = sideLaneX_Right;
 			}
+            else if (noteSequence[i].type == NoteType::Skill) {
+                // Skill Note spans all lanes, center it.
+                laneX = 0.0f;
+            }
 			else {
 				laneX = (noteSequence[i].lane - 4 * 0.5f + 0.5f) * laneW;
 			}
@@ -392,11 +396,17 @@ namespace app::test {
 
                 // Skill Note Color: LightBlue
                 if (noteSequence[i].type == NoteType::Skill) {
-                    // Light Blue (Cyan)
-                    mesh->material.SetColor({ 0.0f, 1.0f, 1.0f, 1.0f }); 
+                     // Light Blue (Cyan)
+                     mesh->material.SetColor({ 0.0f, 1.0f, 1.0f, 1.0f });
+                     // Span 4 lanes
+                     noteActor.Target()->transform.SetScale({ laneW * 4.0f, 0.5f, 0.2f });
+                } else {
+                     noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
                 }
+            } else {
+                 // Tap / Others
+                 noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
             }
-			 noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
 			 noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
 			 noteActor.Target()->transform.SetRotation({ rotX, 0, 0 });
 
@@ -481,10 +491,10 @@ namespace app::test {
         
         float dx = (float)(currentCursorPos.x - lastCursorPos.x);
         float dy = (float)(currentCursorPos.y - lastCursorPos.y);
-        mouseSpeed = std::sqrt(dx * dx + dy * dy);
+        float mouseSpeed = std::sqrt(dx * dx + dy * dy);
         
-        // Threshold: e.g., 20 pixels per frame.
-        if (mouseSpeed > 20.0f) {
+        // Threshold: e.g., 10 pixels per frame (Lowered from 20 to trigger earlier).
+        if (mouseSpeed > 10.0f) {
             // Check ALL lanes for Skill Notes
             for (int l = 0; l < (int)laneOrder.size(); ++l) {
                 // Peek
