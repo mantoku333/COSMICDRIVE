@@ -56,6 +56,7 @@ namespace app::test {
 		const char* GetHitSfxPath(NoteType t) {
 			switch (t) {
 			case NoteType::Tap: return "Assets\\sound\\tap.wav";
+			case NoteType::Skill: return "Assets\\sound\\tap.wav";
 			default:            return "Assets\\sound\\tap.wav";
 			}
 		}
@@ -376,13 +377,20 @@ namespace app::test {
 
 			auto noteActor = scene->Instantiate();
             // ... (Actor Setup) ...
-			// [INSTANCING] Only add Mesh for Hold Notes (they need individual rendering)
+			// [INSTANCING] Only add Mesh for Hold Notes and Skill Notes (they need individual rendering)
             // Tap notes use instanced rendering and don't need Mesh component
             if (noteSequence[i].type == NoteType::HoldStart || 
-                noteSequence[i].type == NoteType::HoldEnd) {
+                noteSequence[i].type == NoteType::HoldEnd ||
+                noteSequence[i].type == NoteType::Skill) {
                 auto mesh = noteActor.Target()->AddComponent<sf::Mesh>();
                 mesh->SetGeometry(g_cube);
                 mesh->material.SetColor({ 1, 1, 1, 1 });
+
+                // Skill Note Color: LightBlue
+                if (noteSequence[i].type == NoteType::Skill) {
+                    // Light Blue (Cyan)
+                    mesh->material.SetColor({ 0.0f, 1.0f, 1.0f, 1.0f }); 
+                }
             }
 			 noteActor.Target()->transform.SetScale({ laneW * 0.8f, 0.5f, 0.2f });
 			 noteActor.Target()->transform.SetPosition({ laneX, startY + laneYOffset, startZ });
@@ -611,6 +619,12 @@ namespace app::test {
             if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
                  // sf::debug::Debug::Log("JudgeLane: Result=" + judgeResultToString(res) + " L=" + std::to_string(lane) + " Idx=" + std::to_string(idx));
                  
+                 // Skill Activation
+                 if (noteSequence[idx].type == NoteType::Skill) {
+                     sf::debug::Debug::Log("Skill Activated! Lane=" + std::to_string(lane));
+                     // Here we can trigger specific effects later
+                 }
+
                  // Spawn Effect
                  if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
 					float hitY = -265.0f;
@@ -1243,9 +1257,10 @@ namespace app::test {
              // SKIP JUDGED NOTES FIRST (Avoids accessing destroyed actors)
              if (noteSequence[i].judged) continue;
 
-             // SKIP HOLD NOTES - they use individual Mesh rendering for dynamic scale
+             // SKIP HOLD NOTES & SKILL NOTES - they use individual Mesh rendering
              if (noteSequence[i].type == NoteType::HoldStart || 
                  noteSequence[i].type == NoteType::HoldEnd ||
+                 noteSequence[i].type == NoteType::Skill ||
                  noteSequence[i].type == NoteType::SongEnd) continue;
 
              // Check if Ref is null (e.g. SongEnd dummy)

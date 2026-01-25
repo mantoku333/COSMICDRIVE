@@ -6,11 +6,12 @@ namespace app::test {
     // ノーツ種類
     enum class NoteType : uint8_t {
         Tap,        // タップ
-		HoldStart,  // ホールド開始
+        HoldStart,  // ホールド開始
         HoldEnd,    // ホールド終了
-		//ExTap       // エクストラタップ 
+        Skill,      // スキルノーツ
+        //ExTap       // エクストラタップ 
 
-		SongEnd,    // 曲終了判定につかう
+        SongEnd,    // 曲終了判定につかう
     };
 
     // 判定結果

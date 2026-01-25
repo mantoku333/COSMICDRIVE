@@ -310,7 +310,7 @@ namespace app::test {
 
                     // コマンド判定
                     if (token == "44") type = NoteType::SongEnd; // 楽曲終了
-                    else if (token == "24") targetLane = 4; // サイドレーンに流す
+                    else if (token == "24") type = NoteType::Skill; // スキルノーツ
                     else {
                         if (DecodeBase36Char(token[1]) <= 0) continue;
                     }
