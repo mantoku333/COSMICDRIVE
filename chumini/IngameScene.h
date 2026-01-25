@@ -62,6 +62,9 @@ namespace app
 			void SetSelectedSong(const SongInfo& song) { selectedSong = song; }
 			const SongInfo& GetSelectedSong() const { return selectedSong; }
 
+            // Trigger visual glitch for Skill Notes
+            void TriggerSkillEffect();
+
 		private:
 			
 			enum class State {
@@ -72,6 +75,7 @@ namespace app
 			State state = State::Idle;
 			float countdownTimer = 0.0f;
 			float startDisplayTimer = 0.0f;
+            float skillEffectTimer = 0.0f; // Effect duration timer
 
 			bool isPlaying = false; // ゲーム中かどうかのフラグ
 

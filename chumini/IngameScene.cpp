@@ -404,6 +404,22 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 
 			mesh->material.SetColor({ r, g, b, a });
 		}
+
+        // Skill Effect Glitch Decay
+        if (skillEffectTimer > 0.0f) {
+            skillEffectTimer -= sf::Time::DeltaTime();
+            if (skillEffectTimer <= 0.0f) {
+                skillEffectTimer = 0.0f;
+                sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f);
+            } else {
+                 // Decay from 0.5 down to 0
+                 // t goes from 1.0 (start) -> 0.0 (end)
+                 float ratio = skillEffectTimer / 0.3f; 
+                 // Noise intensity
+                 float val = 0.5f * ratio;
+                 sf::dx::DirectX11::Instance()->SetGlitchIntensity(val);
+            }
+        }
 	}
 }
 
@@ -475,6 +491,14 @@ void app::test::IngameScene::DrawOverlay()
 	if (l2dComp.Get()) {
 		l2dComp->Draw();
 	}
+}
+
+void app::test::IngameScene::TriggerSkillEffect()
+{
+    // Brief glitch (0.3s)
+    skillEffectTimer = 0.3f;
+    // Set immediate high intensity
+    sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.5f);
 }
 
 void app::test::IngameScene::OnGUI()

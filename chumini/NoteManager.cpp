@@ -622,7 +622,11 @@ namespace app::test {
                  // Skill Activation
                  if (noteSequence[idx].type == NoteType::Skill) {
                      sf::debug::Debug::Log("Skill Activated! Lane=" + std::to_string(lane));
-                     // Here we can trigger specific effects later
+                     
+                     // Trigger Scene Effect
+                     if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
+                         scene->TriggerSkillEffect();
+                     }
                  }
 
                  // Spawn Effect
