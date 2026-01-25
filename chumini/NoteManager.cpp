@@ -613,7 +613,7 @@ namespace app::test {
                  
                  // Spawn Effect
                  if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-				    float hitY = -130.0f;
+					float hitY = -265.0f;
 				    float uiLaneWidth = 300.0f;
 				    float sideOffset = 250.0f;
 				    float hitX = 0.0f;
@@ -946,7 +946,7 @@ namespace app::test {
 					else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
 					else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
 
-					canvas->SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
+					canvas->SpawnHitEffect(hitX, -265.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
 				}
 
 
@@ -1012,7 +1012,7 @@ namespace app::test {
 					                if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
 					                else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
 					                else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
-					                canvas->SpawnHitEffect(hitX, -130.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
+					                canvas->SpawnHitEffect(hitX, -265.0f, (uiLaneWidth / 100.0f) * 1.5f, 0.4f, { 1,1,1,1 });
                                 }
 
                                 // Update Active Hold to this new one

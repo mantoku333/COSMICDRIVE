@@ -73,7 +73,7 @@ void TitleCanvas::InitializeJacketFlow() {
 	// 2. テクスチャロード
 	jacketTextures.resize(jacketPaths.size());
 	for (size_t i = 0; i < jacketPaths.size(); ++i) {
-		jacketTextures[i].LoadTextureFromFile(Utf8ToShiftJis(jacketPaths[i]));
+		jacketTextures[i].LoadTextureFromFile(jacketPaths[i]);
 	}
 	if (jacketTextures.empty()) return;
 
