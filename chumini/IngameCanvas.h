@@ -81,6 +81,7 @@ namespace app
             // Score & Rank
             sf::ui::TextImage* scoreText = nullptr;
             sf::ui::TextImage* rankText = nullptr;
+            sf::ui::TextImage* rankLabels[4] = { nullptr }; // C, B, A, S Markers
             sf::ui::TextImage* rankOutline[4] = { nullptr }; // Outline for Rank
 
 

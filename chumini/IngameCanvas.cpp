@@ -140,6 +140,15 @@ namespace app::test {
 
 
 
+        // Rank Markers (C, B, A, S)
+        const wchar_t* markerChars[] = { L"C", L"B", L"A", L"S" };
+        for (int i = 0; i < 4; i++) {
+            rankLabels[i] = AddUI<sf::ui::TextImage>();
+            rankLabels[i]->transform.SetScale(Vector3(1.0f, 0.5f, 0)); // Small
+            // Position will be set in DrawScoreGauge
+            rankLabels[i]->Create(context, markerChars[i], L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 60.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 64);
+        }
+
 		// =========================================================
 		// 初期化
 		// =========================================================
@@ -616,9 +625,9 @@ namespace app::test {
         if (ratio < 0.0f) ratio = 0.0f;
 
         // Visual Parameters
-        float barWidth = 450.0f; 
-        float barHeight = 20.0f;
-        float baseY = 400.0f;
+        float barWidth = 600.0f; // User requested 600
+        float barHeight = 50.0f; // User requested 50
+        float baseY = 350.0f; // Lowered from 400.0f to avoid overlap with Score Text
         
         // Calculate Rank Color
         int score = (int)((currentSum / maxPossible) * 1000000.0);
@@ -644,7 +653,8 @@ namespace app::test {
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 
         // Calculate Alignment Position
-        float leftEdgeX = -750.0f;
+        // Score Text is at -750 (Center). Shifting gauge left to align with text start.
+        float leftEdgeX = -900.0f;
 
         // --- Layer 1: Background Container ---
         {
@@ -701,6 +711,44 @@ namespace app::test {
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
             context->Draw(1, 0); 
+        }
+
+        // --- Rank Markers (Lines & Text Update) ---
+        // Thresholds: C(300k), B(500k), A(800k), S(970k)
+        float thresholds[] = { 0.3f, 0.5f, 0.8f, 0.97f };
+        
+        // Use simple simple texture/color PS for lines (Not rounded)
+        dx11->ps2d.SetGPU(dx11->GetMainDevice()); 
+
+        for (int i = 0; i < 4; i++) {
+            float th = thresholds[i];
+            
+            // Calculate X position
+            float markX = leftEdgeX + barWidth * th;
+            
+            // Draw Line (White, Thin)
+            float lineHeight = barHeight + 10.0f;
+            
+            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(1.5f, lineHeight * 0.5f, 1.0f); // Width 3px total
+            DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(markX, baseY, 0.0f);
+            
+            WorldMatrixBuffer wb;
+            wb.mtx = DirectX::XMMatrixTranspose(S * T);
+            wb.rot = DirectX::XMMatrixIdentity();
+            dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
+            
+            mtl material;
+            material.diffuseColor = { 1.0f, 1.0f, 1.0f, 0.8f }; 
+            dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
+            
+            dx11->vsNone.SetGPU(dx11->GetMainDevice()); 
+            context->Draw(1, 0);
+            
+            // Update Label Position
+            if (rankLabels[i]) {
+                float labelY = baseY + 55.0f; // Moved up from 35.0f
+                rankLabels[i]->transform.SetPosition(Vector3(markX, labelY, 0));
+            }
         }
 
         // Restore Standard
