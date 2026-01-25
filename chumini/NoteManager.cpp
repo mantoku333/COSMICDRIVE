@@ -141,6 +141,10 @@ namespace app::test {
         isPlaying = false;
         JudgeStatsService::Reset();
 
+        // Mouse Slash Init
+        GetCursorPos(&lastCursorPos);
+        mouseSpeed = 0.0f;
+
         auto owner = actorRef.Target(); if (!owner) return;
         auto* scene = &owner->GetScene();
 
@@ -467,6 +471,65 @@ namespace app::test {
 		}
 
 		CheckMissedNotes();
+
+
+        // ==========================================
+        // Mouse Slash Handling for Skill Notes
+        // ==========================================
+        POINT currentCursorPos;
+        GetCursorPos(&currentCursorPos);
+        
+        float dx = (float)(currentCursorPos.x - lastCursorPos.x);
+        float dy = (float)(currentCursorPos.y - lastCursorPos.y);
+        mouseSpeed = std::sqrt(dx * dx + dy * dy);
+        
+        // Threshold: e.g., 20 pixels per frame.
+        if (mouseSpeed > 20.0f) {
+            // Check ALL lanes for Skill Notes
+            for (int l = 0; l < (int)laneOrder.size(); ++l) {
+                // Peek
+                auto& order = laneOrder[l];
+                size_t& head = laneHeads[l];
+                size_t maxScan = std::min(head + 3, order.size()); // Check top 3 notes
+
+                for (size_t k = head; k < maxScan; ++k) {
+                    int idx = order[k];
+                    if (noteSequence[idx].judged) continue;
+                    
+                    // Only Skill Notes
+                    if (noteSequence[idx].type == NoteType::Skill) {
+                         // Check Timing (within Good window)
+                         float diff = std::abs((songTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime);
+                         if (diff <= J_WIN_GOOD) {
+                             // Hit!
+                             noteSequence[idx].judged = true;
+                             noteSequence[idx].result = JudgeResult::Perfect;
+                             JudgeStatsService::AddResult(JudgeResult::Perfect);
+                             
+                             // Log & Effect
+                             sf::debug::Debug::Log("Skill Slash Hit! Lane=" + std::to_string(l) + " Speed=" + std::to_string(mouseSpeed));
+                             if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
+                                 scene->TriggerSkillEffect();
+                             }
+                             
+                             // Spawn Hit Effect
+                             if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                                 // Central hit effect
+                                 canvas->SpawnHitEffect(0.0f, -100.0f, 6.0f, 0.4f, { 0.0f, 1.0f, 1.0f, 1.0f });
+                             }
+                             
+                             // Destroy
+                             if (auto* act = noteActors[idx].Target()) {
+                                 act->DeActivate();
+                                 act->Destroy();
+                             }
+                         }
+                    }
+                }
+            }
+        }
+        
+        lastCursorPos = currentCursorPos;
 	}
 
 	// ==================================================
@@ -544,7 +607,9 @@ namespace app::test {
             float noteZ = act->transform.GetPosition().z;
         
             // Ignore HoldEnd notes for tap judgment. They are handled by CheckHold.
-            if (noteSequence[idx].type == NoteType::HoldEnd) {
+            // Also ignore Skill Notes for normal Tap logic (handled by Mouse Slash).
+            if (noteSequence[idx].type == NoteType::HoldEnd || 
+                noteSequence[idx].type == NoteType::Skill) {
                 // Not a tap target. Skip it.
                 if (currentIdx == head) ++head; 
                 ++currentIdx;

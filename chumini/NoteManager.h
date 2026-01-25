@@ -185,6 +185,9 @@ namespace app::test {
         ID3D11Buffer* m_cubeIB = nullptr;
         int m_cubeIndexCount = 0;
 
+        // Mouse Slash Support
+        POINT lastCursorPos = { 0, 0 };
+        float mouseSpeed = 0.0f;
     };
 
 } // namespace app::test
