@@ -27,6 +27,9 @@ namespace app::test {
 		if (!textureHitEffect.LoadTextureFromFile("Assets\\Texture\\Effect-Tap.png")) {
 			sf::debug::Debug::LogError("IngameCanvas: Failed to load Effect-Tap.png");
 		}
+        if (!textureSlashEffect.LoadTextureFromFile("Assets\\Texture\\Slash.png")) {
+            sf::debug::Debug::LogError("IngameCanvas: Failed to load Slash.png");
+        }
 
 		// =========================================================
 		// UI逕滓・
@@ -133,6 +136,21 @@ namespace app::test {
 					20
 				);
 			}
+            // Slash Effect Manager (Add Component)
+            auto slashMgrData = actor->AddComponent<EffectManager>();
+            slashEffectManager = slashMgrData;
+            
+            if (!slashEffectManager.isNull()) {
+                // Slash Texture Layout: 5x8 (Cols=5, Rows=8)
+                slashEffectManager->SetGrid(5, 8);
+                
+                slashEffectManager->InitializeSprite(
+                    [this]() { return this->AddUI<sf::ui::Image>(); },
+                    &textureSlashEffect,
+                    20 // Pool size
+                );
+            }
+
 			noteManager = actor->GetComponent<NoteManager>();
 		}
 
@@ -253,6 +271,13 @@ namespace app::test {
 			effectManager->SpawnSprite(x, y, scale, duration, color);
 		}
 	}
+
+    void IngameCanvas::SpawnSlashEffect(float x, float y, float scaleX, float scaleY, float duration, const Color& color)
+    {
+        if (!slashEffectManager.isNull()) {
+            slashEffectManager->SpawnSprite(x, y, scaleX, scaleY, duration, color);
+        }
+    }
 
 	// ---------------------------------------------------------
 	// 陦ｨ遉ｺ譖ｴ譁ｰ髢｢謨ｰ

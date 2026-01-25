@@ -514,8 +514,10 @@ namespace app::test {
                              
                              // Spawn Hit Effect
                              if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                                 // Central hit effect
-                                 canvas->SpawnHitEffect(0.0f, -100.0f, 6.0f, 0.4f, { 0.0f, 1.0f, 1.0f, 1.0f });
+                                 // Central hit effect (Slash)
+                                 // Horizontal long: 16.0f width, 4.0f height
+                                 // Position: Lowered further to -300
+                                 canvas->SpawnSlashEffect(0.0f, -300.0f, 16.0f, 4.0f, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
                              }
                              
                              // Destroy

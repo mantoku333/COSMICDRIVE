@@ -28,6 +28,7 @@ namespace app
 
 			// NoteManagerから呼ばれる窓口
 			void SpawnHitEffect(float x, float y, float scale, float duration, const Color& color);
+            void SpawnSlashEffect(float x, float y, float scaleX, float scaleY, float duration, const Color& color);
 
 			void UpdateTimerDisplay(float time);
 			void UpdateComboDisplay(int combo);
@@ -54,8 +55,10 @@ namespace app
 
 			// エフェクト用
 			sf::Texture textureHitEffect;
+            sf::Texture textureSlashEffect; // New Slash Texture
 
 			sf::SafePtr<EffectManager> effectManager;
+            sf::SafePtr<EffectManager> slashEffectManager; // New Manager for Slash
 
 			// ---------------------------------------------------------
 			// テキストUI
