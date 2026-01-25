@@ -140,13 +140,13 @@ namespace app::test {
 
 
 
-        // Rank Markers (C, B, A, S)
-        const wchar_t* markerChars[] = { L"C", L"B", L"A", L"S" };
-        for (int i = 0; i < 4; i++) {
+        // Rank Markers (B, A, S)
+        const wchar_t* markerChars[] = { L"B", L"A", L"S" };
+        for (int i = 0; i < 3; i++) {
             rankLabels[i] = AddUI<sf::ui::TextImage>();
-            rankLabels[i]->transform.SetScale(Vector3(1.0f, 0.5f, 0)); // Small
+            rankLabels[i]->transform.SetScale(Vector3(0.7f, 0.35f, 0)); // Smaller
             // Position will be set in DrawScoreGauge
-            rankLabels[i]->Create(context, markerChars[i], L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 60.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 64);
+            rankLabels[i]->Create(context, markerChars[i], L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 64);
         }
 
 		// =========================================================
@@ -311,18 +311,16 @@ namespace app::test {
         int score = (int)((currentSum / maxPossible) * 1000000.0);
         if (score > 1000000) score = 1000000; // Cap?
 
-        // Rank
-        std::wstring rankStr = L"D";
-        DirectX::XMFLOAT4 rankColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // Gray
+        // Rank (Synced with ResultCanvas)
+        std::wstring rankStr = L"C";
+        DirectX::XMFLOAT4 rankColor = { 0.8f, 1.0f, 0.8f, 1.0f }; // C (Green)
 
-        if (score >= 1000000) { rankStr = L"SSS"; rankColor = { 1.0f, 0.84f, 0.0f, 1.0f }; } // Gold
-        else if (score >= 990000) { rankStr = L"SS"; rankColor = { 1.0f, 1.0f, 0.8f, 1.0f }; }
-        else if (score >= 970000) { rankStr = L"S"; rankColor = { 1.0f, 0.5f, 0.0f, 1.0f }; } // Orange
-        else if (score >= 950000) { rankStr = L"AAA"; rankColor = { 1.0f, 0.7f, 0.7f, 1.0f }; }
-        else if (score >= 900000) { rankStr = L"AA"; rankColor = { 0.9f, 0.8f, 0.8f, 1.0f }; } 
-        else if (score >= 800000) { rankStr = L"A"; rankColor = { 0.8f, 0.8f, 0.8f, 1.0f }; }
-        else if (score >= 500000) { rankStr = L"B"; rankColor = { 0.6f, 0.6f, 1.0f, 1.0f }; }
-        else if (score >= 300000) { rankStr = L"C"; rankColor = { 0.5f, 0.5f, 0.8f, 1.0f }; }
+        if (score >= 1000000) { rankStr = L"SSS"; rankColor = { 1.0f, 1.0f, 0.9f, 1.0f }; }
+        else if (score >= 900000) { rankStr = L"SS"; rankColor = { 1.0f, 1.0f, 0.6f, 1.0f }; }
+        else if (score >= 800000) { rankStr = L"S"; rankColor = { 1.0f, 0.95f, 0.4f, 1.0f }; }
+        else if (score >= 600000) { rankStr = L"A"; rankColor = { 1.0f, 0.8f, 0.8f, 1.0f }; }
+        else if (score >= 400000) { rankStr = L"B"; rankColor = { 0.8f, 0.9f, 1.0f, 1.0f }; }
+        // Else C
 
         wchar_t buf[32];
         swprintf_s(buf, L"%07d", score);
@@ -629,19 +627,18 @@ namespace app::test {
         float barHeight = 50.0f; // User requested 50
         float baseY = 350.0f; // Lowered from 400.0f to avoid overlap with Score Text
         
-        // Calculate Rank Color
+        // Calculate Rank Color (Synced with ResultCanvas)
         int score = (int)((currentSum / maxPossible) * 1000000.0);
         if (score > 1000000) score = 1000000;
 
-        DirectX::XMFLOAT4 rankColor = { 0.5f, 0.5f, 0.5f, 1.0f }; // D (Gray)
-        if (score >= 1000000) { rankColor = { 1.0f, 0.84f, 0.0f, 1.0f }; } // SSS (Gold)
-        else if (score >= 990000) { rankColor = { 1.0f, 1.0f, 0.8f, 1.0f }; } // SS
-        else if (score >= 970000) { rankColor = { 1.0f, 0.5f, 0.0f, 1.0f }; } // S (Orange)
-        else if (score >= 950000) { rankColor = { 1.0f, 0.7f, 0.7f, 1.0f }; } // AAA
-        else if (score >= 900000) { rankColor = { 0.9f, 0.8f, 0.8f, 1.0f }; } // AA
-        else if (score >= 800000) { rankColor = { 0.8f, 0.8f, 0.8f, 1.0f }; } // A
-        else if (score >= 500000) { rankColor = { 0.6f, 0.6f, 1.0f, 1.0f }; } // B
-        else if (score >= 300000) { rankColor = { 0.5f, 0.5f, 0.8f, 1.0f }; } // C
+        DirectX::XMFLOAT4 rankColor = { 0.8f, 1.0f, 0.8f, 1.0f }; // C (Green)
+        
+        if (score >= 1000000) { rankColor = { 1.0f, 1.0f, 0.9f, 1.0f }; } // SSS (Platinum/Gold)
+        else if (score >= 900000) { rankColor = { 1.0f, 1.0f, 0.6f, 1.0f }; } // SS (Gold)
+        else if (score >= 800000) { rankColor = { 1.0f, 0.95f, 0.4f, 1.0f }; } // S (Gold Std)
+        else if (score >= 600000) { rankColor = { 1.0f, 0.8f, 0.8f, 1.0f }; } // A (Red)
+        else if (score >= 400000) { rankColor = { 0.8f, 0.9f, 1.0f, 1.0f }; } // B (Blue)
+        // Else C (Green)
 
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();
@@ -714,13 +711,13 @@ namespace app::test {
         }
 
         // --- Rank Markers (Lines & Text Update) ---
-        // Thresholds: C(300k), B(500k), A(800k), S(970k)
-        float thresholds[] = { 0.3f, 0.5f, 0.8f, 0.97f };
+        // Thresholds: B(400k), A(600k), S(800k)
+        float thresholds[] = { 0.4f, 0.6f, 0.8f };
         
         // Use simple simple texture/color PS for lines (Not rounded)
         dx11->ps2d.SetGPU(dx11->GetMainDevice()); 
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             float th = thresholds[i];
             
             // Calculate X position
@@ -746,7 +743,7 @@ namespace app::test {
             
             // Update Label Position
             if (rankLabels[i]) {
-                float labelY = baseY + 55.0f; // Moved up from 35.0f
+                float labelY = baseY + 45.0f; // Lowered from 55.0f
                 rankLabels[i]->transform.SetPosition(Vector3(markX, labelY, 0));
             }
         }
