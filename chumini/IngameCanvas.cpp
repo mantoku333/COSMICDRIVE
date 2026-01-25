@@ -616,8 +616,6 @@ namespace app::test {
         if (ratio < 0.0f) ratio = 0.0f;
 
         // Visual Parameters
-        // Position: Below Score Text.
-        // Reduced width from 600 to 450 as per user request
         float barWidth = 450.0f; 
         float barHeight = 20.0f;
         float baseY = 400.0f;
@@ -642,15 +640,23 @@ namespace app::test {
 
         // Common Setup
         dx11->gsScoreGauge.SetGPU(dx11->GetMainDevice());
-        dx11->psScoreGauge.SetGPU(dx11->GetMainDevice()); // Use Rounded Capsule PS
+        dx11->psScoreGauge.SetGPU(dx11->GetMainDevice()); 
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
+
+        // Calculate Alignment Position
+        float leftEdgeX = -750.0f;
 
         // --- Layer 1: Background Container ---
         {
             float bgWidth = barWidth;
-            float bgCenterX = -750.0f + (bgWidth * 0.5f);
+            // Geometry is [-1, 1] (Size 2). So Scale should be width/2.
+            float scaleX = bgWidth * 0.5f;
+            float scaleY = barHeight * 0.5f;
             
-            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(bgWidth, barHeight, 1.0f);
+            // Center is LeftEdge + HalfWidth
+            float bgCenterX = leftEdgeX + scaleX;
+            
+            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scaleX, scaleY, 1.0f);
             DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(bgCenterX, baseY, 0.0f);
             
             WorldMatrixBuffer wb;
@@ -658,24 +664,27 @@ namespace app::test {
             wb.rot = DirectX::XMMatrixIdentity();
             dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
 
-            // Material: Dark Gray, Pass Aspect Ratio in Emission.x
+            // Material
             mtl material;
-            material.diffuseColor = { 0.2f, 0.2f, 0.2f, 0.8f }; // Dark transparent background
+            material.diffuseColor = { 0.2f, 0.2f, 0.2f, 0.8f }; 
             float aspect = bgWidth / barHeight;
-            material.emissionColor = { aspect, 0, 0, 0 }; // Pass Aspect Ratio
+            material.emissionColor = { aspect, 0, 0, 0 }; 
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
-            dx11->vsNone.SetGPU(dx11->GetMainDevice()); // Dummy VS
+            dx11->vsNone.SetGPU(dx11->GetMainDevice()); 
             context->Draw(1, 0); 
         }
 
         // --- Layer 2: Foreground Bar ---
-        if (ratio > 0.001f) // Only draw if perceptible
+        if (ratio > 0.001f) 
         {
             float currentWidth = barWidth * ratio;
-            float centerX = -750.0f + (currentWidth * 0.5f);
+            
+            float scaleX = currentWidth * 0.5f;
+            float scaleY = barHeight * 0.5f;
+            float centerX = leftEdgeX + scaleX;
 
-            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(currentWidth, barHeight, 1.0f);
+            DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scaleX, scaleY, 1.0f);
             DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(centerX, baseY, 0.0f);
             
             WorldMatrixBuffer wb;
@@ -683,11 +692,12 @@ namespace app::test {
             wb.rot = DirectX::XMMatrixIdentity();
             dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
 
-            // Material: Rank Color, Pass Aspect Ratio
+            // Material
             mtl material;
             material.diffuseColor = rankColor;
             float aspect = currentWidth / barHeight;
-            material.emissionColor = { aspect, 0, 0, 0 }; // Pass Aspect Ratio
+            if (aspect < 1.0f) aspect = 1.0f; // Fix visual artifact if extremely small
+            material.emissionColor = { aspect, 0, 0, 0 }; 
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
             context->Draw(1, 0); 
