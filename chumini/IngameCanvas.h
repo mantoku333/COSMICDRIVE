@@ -84,6 +84,11 @@ namespace app
             sf::ui::TextImage* rankLabels[4] = { nullptr }; // C, B, A, S Markers
             sf::ui::TextImage* rankOutline[4] = { nullptr }; // Outline for Rank
 
+            // Song Info (Title, BPM, Difficulty)
+            sf::ui::TextImage* titleText = nullptr;
+            sf::ui::TextImage* bpmText = nullptr;
+            sf::ui::TextImage* difficultyText = nullptr;
+
 
 
 			sf::command::Command<> updateCommand;

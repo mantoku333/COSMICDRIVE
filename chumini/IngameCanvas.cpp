@@ -48,7 +48,7 @@ namespace app::test {
 
 		// 2. 繧ｳ繝ｳ繝・
 		comboText = AddUI<sf::ui::TextImage>();
-		comboText->transform.SetPosition(Vector3(650, 0, 0));
+		comboText->transform.SetPosition(Vector3(650, -100, 0)); // Raised by 50 (-150 -> -100)
 		comboText->transform.SetScale(Vector3(4.5f, 1.8f, 0));
 		if (!comboText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 100.0f, D2D1::ColorF(D2D1::ColorF::Cyan), 512, 256)) {
 			sf::debug::Debug::LogError("IngameCanvas: Failed to create comboText");
@@ -60,7 +60,7 @@ namespace app::test {
 
 		// PERFECT
 		perfectText = AddUI<sf::ui::TextImage>();
-		perfectText->transform.SetPosition(Vector3(-700, 100, 0)); 
+		perfectText->transform.SetPosition(Vector3(-700, 0, 0)); // Raised by 50 (-50 -> 0)
 		perfectText->transform.SetScale(Vector3(3.5f, 1.5f, 0)); 
 		if (!perfectText->Create(context, L"PERFECT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Yellow), 512, 128)) {
 			sf::debug::Debug::LogError("IngameCanvas: Failed to create perfectText");
@@ -68,26 +68,26 @@ namespace app::test {
 
 		// GREAT
 		greatText = AddUI<sf::ui::TextImage>();
-		greatText->transform.SetPosition(Vector3(-700, 50, 0));
+		greatText->transform.SetPosition(Vector3(-700, -50, 0)); // Raised by 50 (-100 -> -50)
 		greatText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
 		greatText->Create(context, L"GREAT: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::HotPink), 512, 128);
 
 		// GOOD
 		goodText = AddUI<sf::ui::TextImage>();
-		goodText->transform.SetPosition(Vector3(-700, 0, 0));
+		goodText->transform.SetPosition(Vector3(-700, -100, 0)); // Raised by 50 (-150 -> -100)
 		goodText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
 		goodText->Create(context, L"GOOD: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::LimeGreen), 512, 128);
 
 		// MISS
 		missText = AddUI<sf::ui::TextImage>();
-		missText->transform.SetPosition(Vector3(-700, -50, 0));
+		missText->transform.SetPosition(Vector3(-700, -150, 0)); // Raised by 50 (-200 -> -150)
 		missText->transform.SetScale(Vector3(3.5f, 1.5f, 0));
 		missText->Create(context, L"MISS: 0", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::Gray), 512, 128);
 
 
 		// 4. 判定結果表示
 		judgeResultText = AddUI<sf::ui::TextImage>();
-		judgeResultText->transform.SetPosition(Vector3(0, -100, 0));
+		judgeResultText->transform.SetPosition(Vector3(0, -200, 0)); // Raised by 50 (-250 -> -200)
 		judgeResultText->transform.SetScale(Vector3(4.5f, 1.15f, 0));
 		if (!judgeResultText->Create(
 			context,
@@ -102,7 +102,7 @@ namespace app::test {
 
 		// FAST/SLOW
 		fastSlowText = AddUI<sf::ui::TextImage>();
-		fastSlowText->transform.SetPosition(Vector3(0, -140, 0)); // More Up (-200 -> -140)
+		fastSlowText->transform.SetPosition(Vector3(0, -250, 0)); // Raised by 50 (-300 -> -250)
 		fastSlowText->transform.SetScale(Vector3(1.5f, 0.5f, 0));
 		if (!fastSlowText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 80.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128)) {
 			sf::debug::Debug::LogError("IngameCanvas: Failed to create fastSlowText");
@@ -148,6 +148,28 @@ namespace app::test {
             // Position will be set in DrawScoreGauge
             rankLabels[i]->Create(context, markerChars[i], L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 128, 64);
         }
+
+        // Song Info (Below Jacket)
+        // Jacket is at (810, 400). Assuming Scale(3,3) makes it reasonably large.
+        // Placing text below.
+        
+        // Title
+        titleText = AddUI<sf::ui::TextImage>();
+        titleText->transform.SetPosition(Vector3(810, 180, 0)); 
+        titleText->transform.SetScale(Vector3(3.5f, 0.6f, 0)); // Smaller
+        titleText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 60.0f, D2D1::ColorF(D2D1::ColorF::White), 1024, 128); // Width 1024
+
+        // BPM
+        bpmText = AddUI<sf::ui::TextImage>();
+        bpmText->transform.SetPosition(Vector3(810, 130, 0));
+        bpmText->transform.SetScale(Vector3(2.5f, 0.5f, 0)); // Smaller
+        bpmText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128); // Width 512
+
+        // Difficulty
+        difficultyText = AddUI<sf::ui::TextImage>();
+        difficultyText->transform.SetPosition(Vector3(810, 80, 0));
+        difficultyText->transform.SetScale(Vector3(2.5f, 0.5f, 0)); // Smaller
+        difficultyText->Create(context, L"", L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8", 50.0f, D2D1::ColorF(D2D1::ColorF::White), 512, 128); // Width 512
 
 		// =========================================================
 		// 初期化
@@ -565,6 +587,50 @@ namespace app::test {
 		if (Jacket) {
 			Jacket->material.texture = loadSuccess ? &textureJacket : &textureDefaultJacket;
 		}
+
+        // Update Song Info Text
+        if (titleText) {
+            std::wstring wTitle = L"";
+            if (!selectedSong.title.empty()) {
+                int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.title.c_str(), -1, nullptr, 0);
+                wTitle.resize(wideSize);
+                MultiByteToWideChar(CP_UTF8, 0, selectedSong.title.c_str(), -1, &wTitle[0], wideSize);
+                if (!wTitle.empty() && wTitle.back() == L'\0') wTitle.pop_back();
+            }
+            titleText->SetText(wTitle.c_str());
+        }
+
+        if (bpmText) {
+             std::wstring wBpm = L"BPM: ";
+             if (!selectedSong.bpm.empty()) {
+                std::wstring val;
+                int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.bpm.c_str(), -1, nullptr, 0);
+                val.resize(wideSize);
+                MultiByteToWideChar(CP_UTF8, 0, selectedSong.bpm.c_str(), -1, &val[0], wideSize);
+                if (!val.empty() && val.back() == L'\0') val.pop_back();
+                wBpm += val;
+             }
+             bpmText->SetText(wBpm.c_str());
+        }
+
+        if (difficultyText) {
+            // Difficulty ID -> String or use Level?
+            // Usually display LEVEL: X
+            wchar_t buf[32];
+            swprintf_s(buf, L"Lv.%d", selectedSong.level);
+            difficultyText->SetText(buf);
+            
+            // Optional: Color by Difficulty? 
+            // 0:BASIC(Green), 1:ADVANCED(Orange), 2:EXPERT(Red), 3:MASTER(Purple)
+            D2D1_COLOR_F difColor = D2D1::ColorF(D2D1::ColorF::White);
+            switch(selectedSong.difficulty) {
+                case 0: difColor = D2D1::ColorF(D2D1::ColorF::LimeGreen); break;
+                case 1: difColor = D2D1::ColorF(D2D1::ColorF::Orange); break;
+                case 2: difColor = D2D1::ColorF(D2D1::ColorF::Red); break;
+                case 3: difColor = D2D1::ColorF(0.8f, 0.0f, 1.0f); break; // Purple
+            }
+            difficultyText->material.SetColor({difColor.r, difColor.g, difColor.b, 1.0f});
+        }
 	}
 
 	void IngameCanvas::DestroyEffect(sf::ui::Image* effect) {
