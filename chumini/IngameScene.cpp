@@ -279,7 +279,7 @@ void app::test::IngameScene::Init()
 
     // --- Background Primitives (3D) ---
     bgObjects.clear();
-    for(int i=0; i<50; ++i) {
+    for(int i=0; i<200; ++i) {
         auto obj = Instantiate();
         auto mesh = obj.Target()->AddComponent<sf::Mesh>();
         mesh->SetGeometry(g_cube); // Cube
@@ -289,21 +289,24 @@ void app::test::IngameScene::Init()
         // Camera sees X: -15 ~ 15, Y: 0 ~ 30, Z: 0 ~ 100?
         // User Request: "More to sides", "Closer"
         
+        // User Request: "Closer to center, surrounding lanes"
+        
         float x = 0.0f;
-        // Avoid center (Lanes are roughly -8 to +8)
+        // avoid center [-10, 10] (Lanes are approx -6 to +6)
         if (rand() % 2 == 0) {
-             // Left
-             x = -15.0f - (rand() % 350) * 0.1f; // -15 to -50
+             // Left Side: -10 to -40
+             x = -10.0f - (rand() % 300) * 0.1f; 
         } else {
-             // Right
-             x = 15.0f + (rand() % 350) * 0.1f; // 15 to 50
+             // Right Side: 10 to 40
+             x = 10.0f + (rand() % 300) * 0.1f;
         }
 
-        float y = ((rand() % 400) - 100) * 0.1f; // -10 to 30
+        // Y: Spread vertically to fill the side void
+        // User Request: "Lower upper limit" -> -20 to 15
+        float y = ((rand() % 350) - 200) * 0.1f;
         
-        // Closer Z: Camera is at -20. Lanes at 0.
-        // Range: -10 to 40
-        float z = ((rand() % 500) - 100) * 0.1f;
+        // Z: Closer (Camera at -20). Range -40 to 20
+        float z = -40.0f + (rand() % 600) * 0.1f;
         
         obj.Target()->transform.SetPosition({x, y, z});
         
@@ -327,7 +330,8 @@ void app::test::IngameScene::Init()
         BgObject bo;
         bo.actor = obj.Target();
         bo.rotVel = { (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f };
-        bo.moveVel = { (float)((rand()%100)-50)*0.01f, (float)((rand()%100)-50)*0.01f, 0.0f };
+        // Disable X movement to prevent drifting into lanes
+        bo.moveVel = { 0.0f, (float)((rand()%100)-50)*0.01f, 0.0f };
         bgObjects.push_back(bo);
     }
 
@@ -504,8 +508,8 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
                  pos.x += bo.moveVel.x * sf::Time::DeltaTime();
                  pos.y += bo.moveVel.y * sf::Time::DeltaTime();
                  // Simple bounds?
-                 if(pos.x > 30) pos.x = -30;
-                 if(pos.x < -30) pos.x = 30;
+                 // X movement is disabled, so no x check needed/wanted (to avoid jumping to center)
+                 
                  if(pos.y > 40) pos.y = -10;
                  if(pos.y < -10) pos.y = 40;
                  act->transform.SetPosition(pos);
