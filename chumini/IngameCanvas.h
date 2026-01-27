@@ -112,6 +112,7 @@ namespace app
 			int lastTotalJudges = -1;
 			float judgeScaleTimer = 0.0f;
 			float fastSlowScaleTimer = 0.0f;
+
 		};
 	}
 }

@@ -28,6 +28,7 @@ namespace app::test{
         float offsetSec = 0.0f; // Offset in seconds
         bool enableLog = true; // ログ出力のオンオフ（リリース時はfalse推奨）
         bool enableCommandLog = true; // コマンドログ出力のオンオフ
+        bool enableDebugCamera = false; // デバッグカメラの有効化
     };
 
     struct SaveData {

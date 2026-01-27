@@ -151,6 +151,7 @@ void ConfigCanvas::RebuildLayout()
 	// ----------------------
 	AddHeader(L"-- CONTROL --");
 	AddBoolItem(L"Controller", &gGameConfig.isControllerMode);
+	AddBoolItem(L"Debug Camera", &gGameConfig.enableDebugCamera);
 	AddKeyItem(0, L"Lane 1");
 	AddKeyItem(1, L"Lane 2");
 	AddKeyItem(2, L"Lane 3");

@@ -1,4 +1,5 @@
 #include "ControlCamera.h"
+#include "Config.h"
 
 void app::ControlCamera::Begin()
 {
@@ -43,13 +44,14 @@ void app::ControlCamera::Update()
 
 void app::ControlCamera::Rotation()
 {
+	if (!test::gGameConfig.enableDebugCamera) return;
+
 	POINT p;
 	GetCursorPos(&p);
 
 	float x = float(p.x - pre.x);
 	float y = float(p.y - pre.y);
 
-	/*
 	if (SInput::Instance().GetMouse(1))
 	{
 		Vector3 rot = actorRef.Target()->transform.GetRotation();
@@ -61,7 +63,6 @@ void app::ControlCamera::Rotation()
 		SetCursorPos(1920 / 2, 1080 / 2);
 		GetCursorPos(&p);
 	}
-	*/
 
 
 	pre = p;
@@ -69,7 +70,8 @@ void app::ControlCamera::Rotation()
 
 void app::ControlCamera::Move()
 {
-	/*
+	if (!test::gGameConfig.enableDebugCamera) return;
+
 	if (SInput::Instance().GetMouse(1))
 	{
 		const float speed = 5.0f * sf::Time::DeltaTime();
@@ -118,5 +120,4 @@ void app::ControlCamera::Move()
 		v3 += moveVec;
 		actorRef.Target()->transform.SetPosition(v3);
 	}
-	*/
 }

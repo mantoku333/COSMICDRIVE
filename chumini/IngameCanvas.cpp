@@ -41,6 +41,7 @@ namespace app::test {
 
 
 
+
 		// ---------------------------------------------------------
 		// 繝・く繧ｹ繝・I逕滓・
 		// ---------------------------------------------------------
@@ -818,4 +819,5 @@ namespace app::test {
         dx11->ps2d.SetGPU(dx11->GetMainDevice());
     }
 
+    // --- Background Particles Removed (Moved to IngameScene 3D) ---
 } // namespace app::test

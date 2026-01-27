@@ -57,6 +57,9 @@ void app::test::IngameScene::Init()
 		// 位置は lanes 全体が見渡せる位置に設定
 		camera.Target()->transform.SetPosition({ 0.0f, 20.0f, -20.0f });
 		camera.Target()->transform.SetRotation({ 45.0f, 0.0f, 0.0f });
+        
+        // Debug Camera Control (Right Click + WASD)
+        camera.Target()->AddComponent<app::ControlCamera>();
 	}
 
 	// ── マネージャを生成 ──
@@ -274,6 +277,60 @@ void app::test::IngameScene::Init()
         noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio, leftX, rightX);
     }
 
+    // --- Background Primitives (3D) ---
+    bgObjects.clear();
+    for(int i=0; i<50; ++i) {
+        auto obj = Instantiate();
+        auto mesh = obj.Target()->AddComponent<sf::Mesh>();
+        mesh->SetGeometry(g_cube); // Cube
+        
+        // Random Pos
+        // Random Pos
+        // Camera sees X: -15 ~ 15, Y: 0 ~ 30, Z: 0 ~ 100?
+        // User Request: "More to sides", "Closer"
+        
+        float x = 0.0f;
+        // Avoid center (Lanes are roughly -8 to +8)
+        if (rand() % 2 == 0) {
+             // Left
+             x = -15.0f - (rand() % 350) * 0.1f; // -15 to -50
+        } else {
+             // Right
+             x = 15.0f + (rand() % 350) * 0.1f; // 15 to 50
+        }
+
+        float y = ((rand() % 400) - 100) * 0.1f; // -10 to 30
+        
+        // Closer Z: Camera is at -20. Lanes at 0.
+        // Range: -10 to 40
+        float z = ((rand() % 500) - 100) * 0.1f;
+        
+        obj.Target()->transform.SetPosition({x, y, z});
+        
+        // Random Scale (Referencing laneW=3.0)
+        float s = 0.5f + (rand() % 15) * 0.1f; // 0.5 to 2.0
+        obj.Target()->transform.SetScale({s, s, s});
+        
+        // Random Rotation
+        float rx = (float)(rand() % 360);
+        float ry = (float)(rand() % 360);
+        float rz = (float)(rand() % 360);
+        obj.Target()->transform.SetRotation({rx, ry, rz});
+        
+        // Color: Dark, translucent?
+        // Lanes are 0.3, 0.3, 0.3.
+        float r = 0.1f + (rand()%20)*0.01f;
+        float g = 0.1f + (rand()%20)*0.01f;
+        float b = 0.2f + (rand()%30)*0.01f;
+        mesh->material.SetColor({r, g, b, 0.3f}); // alpha 0.3
+        
+        BgObject bo;
+        bo.actor = obj.Target();
+        bo.rotVel = { (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f };
+        bo.moveVel = { (float)((rand()%100)-50)*0.01f, (float)((rand()%100)-50)*0.01f, 0.0f };
+        bgObjects.push_back(bo);
+    }
+
     updateCommand.Bind(std::bind(&IngameScene::Update, this, std::placeholders::_1));
 }
 
@@ -420,7 +477,6 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 			mesh->material.SetColor({ r, g, b, a });
 		}
 
-        // Skill Effect Glitch Decay
         if (skillEffectTimer > 0.0f) {
             skillEffectTimer -= sf::Time::DeltaTime();
             if (skillEffectTimer <= 0.0f) {
@@ -433,6 +489,27 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
                  float val = 0.5f * ratio;
                  sf::dx::DirectX11::Instance()->SetGlitchIntensity(val);
             }
+        }
+        
+        // Update BG Objects
+        for(auto& bo : bgObjects) {
+             if(auto act = bo.actor.Target()) {
+                 Vector3 rot = act->transform.GetRotation();
+                 rot.x += bo.rotVel.x * sf::Time::DeltaTime();
+                 rot.y += bo.rotVel.y * sf::Time::DeltaTime();
+                 rot.z += bo.rotVel.z * sf::Time::DeltaTime();
+                 act->transform.SetRotation(rot);
+                 
+                 Vector3 pos = act->transform.GetPosition();
+                 pos.x += bo.moveVel.x * sf::Time::DeltaTime();
+                 pos.y += bo.moveVel.y * sf::Time::DeltaTime();
+                 // Simple bounds?
+                 if(pos.x > 30) pos.x = -30;
+                 if(pos.x < -30) pos.x = 30;
+                 if(pos.y > 40) pos.y = -10;
+                 if(pos.y < -10) pos.y = 40;
+                 act->transform.SetPosition(pos);
+             }
         }
 	}
 }

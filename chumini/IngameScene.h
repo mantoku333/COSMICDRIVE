@@ -105,6 +105,14 @@ namespace app
             // Skill SE
             sf::ref::Ref<sf::sound::SoundResource> skillSeResource;
             sf::SafePtr<sf::sound::SoundPlayer> skillSePlayer;
+
+            // Background Objects (3D Primitives)
+            struct BgObject {
+                sf::ref::Ref<sf::Actor> actor;
+                Vector3 rotVel;
+                Vector3 moveVel;
+            };
+            std::vector<BgObject> bgObjects;
 		};
 	}
 }
