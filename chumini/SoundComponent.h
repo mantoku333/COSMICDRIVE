@@ -1,7 +1,7 @@
 #pragma once
 #include "App.h"
 #include "NoteData.h"
-#include <map> // ★ 追加: これが必要です
+#include <map>
 
 namespace app
 {
@@ -13,7 +13,7 @@ namespace app
 			void Begin()override;
 			void Update();
 
-			// 文字列指定での再生（※注意: これもキャッシュしないと連打で落ちる可能性がありますが、一旦そのままにします）
+			// 文字列指定での再生
 			void Play(const std::string& path);
 
 			// 効果音引数
@@ -36,11 +36,9 @@ namespace app
 			// 音再生コンポーネント(AudioSource)
 			sf::SafePtr<sf::sound::SoundPlayer> Player;
 
-			// ★ 変更: 単一のResourceではなく、SfxのIDをキーにしたマップに変更
-			// sf::sound::SoundResource Resource; // ← これは削除
 			std::map<Sfx, sf::sound::SoundResource> soundResources;
 
-			// ★ 追加: 指定したIDの音をロードしてマップに保存する関数
+			// 指定したIDの音をロードしてマップに保存
 			void LoadAndCache(Sfx id);
 
 			int SongVolume = 1.0;

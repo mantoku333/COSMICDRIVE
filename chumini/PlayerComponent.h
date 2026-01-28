@@ -1,4 +1,3 @@
-// PlayerComponent.h
 #pragma once
 #include "Component.h"
 //#include <Windows.h>

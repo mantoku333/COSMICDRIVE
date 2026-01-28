@@ -12,7 +12,6 @@ namespace app::test {
 
     private:
         
-
         sf::command::Command<> updateCommand;
         sf::SafePtr<sf::IScene> nextScene;
         bool isChanging = false; // ‘JˆÚˆ—’†‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
