@@ -78,20 +78,26 @@ namespace app::test {
 
     // ============================================================
     // テンポマップ構築
+    // BPM変化イベントを時間順にソートし、
+    // 各イベントの開始秒数（atSec）を計算する
     // ============================================================
     static void BuildTempoMap(std::vector<TempoEvent>& tm) {
+        // テンポイベントがない場合はデフォルトBPMを設定
         if (tm.empty()) {
             tm.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
             return;
         }
 
+        // 拍数順にソート
         std::sort(tm.begin(), tm.end(), [](const TempoEvent& a, const TempoEvent& b) {
             return a.atBeat < b.atBeat;
         });
 
+        // 最初のイベントは0秒から開始
         tm[0].spb = 60.0 / tm[0].bpm;
         tm[0].atSec = 0.0;
 
+        // 各イベントの開始秒数を累積計算
         for (size_t i = 1; i < tm.size(); ++i) {
             tm[i].spb = 60.0 / tm[i].bpm;
             const double beatsSpan = tm[i].atBeat - tm[i - 1].atBeat;
@@ -99,6 +105,10 @@ namespace app::test {
         }
     }
 
+    // ============================================================
+    // 拍数を秒数に変換
+    // テンポマップを二分探索して該当セグメントを特定
+    // ============================================================
     static double BeatToSeconds(double absBeat, const std::vector<TempoEvent>& tm) {
         size_t lo = 0, hi = tm.size();
         while (lo + 1 < hi) {
@@ -111,10 +121,18 @@ namespace app::test {
     }
 
     // ============================================================
-    // 初期化
+    // 初期化（Begin）
+    // 譜面ファイルを読み込み、ノーツを生成する
+    // 1. ハイスピード設定
+    // 2. 譜面ファイルのパース
+    // 3. テンポマップ構築
+    // 4. ノーツデータのソートとペアリング
+    // 5. ノーツアクターの生成
+    // 6. インスタンシング初期化
+    // 7. 最大コンボ数の事前計算
     // ============================================================
     void NoteManager::Begin() {
-        // ハイスピード設定
+        // UI上の 7.0 が内部値 30.0 になるように変換
         float factor = 30.0f / 7.0f;
         HiSpeed = gGameConfig.hiSpeed * factor;
         noteSpeed = basenoteSpeed * HiSpeed;
@@ -392,14 +410,21 @@ namespace app::test {
     }
 
     // ============================================================
-    // 更新
+    // 更新（Update）
+    // 毎フレーム呼び出される
+    // 1. 曲時間の更新
+    // 2. ノーツのアクティベート（画面外から可視化）
+    // 3. ミスノーツの検出
+    // 4. マウススラッシュによるスキルノーツ判定
     // ============================================================
     void NoteManager::Update(const sf::command::ICommand&) {
         if (!isPlaying) return;
 
+        // 曲時間を進める
         songTime += sf::Time::DeltaTime();
 
         // ノーツのアクティベート
+        // leadTime分前倒しでノーツを画面に出現させる
         while (nextIndex < noteSequence.size()
             && songTime + leadTime >= noteSequence[nextIndex].hittime)
         {
@@ -413,10 +438,13 @@ namespace app::test {
             ++nextIndex;
         }
 
+        // ミスノーツの検出と処理
         CheckMissedNotes();
 
         // ------------------------------------------
         // マウススラッシュ処理
+        // マウスの移動速度が閾値を超えたら
+        // スキルノーツを判定する
         // ------------------------------------------
         POINT currentCursorPos;
         GetCursorPos(&currentCursorPos);
@@ -464,23 +492,37 @@ namespace app::test {
     }
 
     // ============================================================
-    // 判定
+    // 単一ノーツの時間判定
+    // ノーツのヒット時間と入力時間の差から判定結果を決定
+    // HoldStartは判定緩和（ホールドは始まりが重要）
     // ============================================================
     JudgeResult NoteManager::JudgeNote(NoteType type, float noteTime, float inputTime) {
+        // 入力オフセットを適用
         inputTime += INPUT_OFFSET_SEC;
         float diff = std::abs(noteTime - inputTime);
 
+        // HoldStartは判定ウィンドウを広げる（ホールドは開始が重要）
         if (type == NoteType::HoldStart) {
             if (diff <= J_WIN_PERFECT * 2.0f) return JudgeResult::Perfect;
             if (diff <= J_WIN_GREAT * 1.5f)   return JudgeResult::Great;
             if (diff <= J_WIN_GOOD * 1.5f)    return JudgeResult::Good;
         } else {
+            // 通常ノーツの判定
             if (diff <= J_WIN_PERFECT) return JudgeResult::Perfect;
             if (diff <= J_WIN_GREAT)   return JudgeResult::Great;
             if (diff <= J_WIN_GOOD)    return JudgeResult::Good;
         }
         return JudgeResult::Miss;
     }
+
+    // ============================================================
+    // レーン単位の判定処理
+    // 先読み範囲内から最適なノーツを探して判定
+    // - 判定済みノーツはスキップ
+    // - まだスポーンしていないノーツはスキップ
+    // - HoldEndとSkillはタップ判定しない
+    // - 位置許容度を考慮した判定
+    // ============================================================
 
     JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
         if (lane < 0 || lane >= 6) {
@@ -724,6 +766,8 @@ namespace app::test {
 
     // ============================================================
     // コンボ管理
+    // 判定結果に応じてコンボを更新
+    // Perfect/Great/Good: +1、Miss: 0にリセット
     // ============================================================
     void NoteManager::UpdateCombo(JudgeResult result) {
         switch (result) {
@@ -774,18 +818,24 @@ namespace app::test {
 
     // ============================================================
     // 時間同期
+    // BGMとノーツマネージャーの時間を同期
+    // - 大きなズレ（50ms以上）: 即座に合わせる
+    // - 小さなズレ: 補間で滑らかに近づける
+    // - 音声未開始時: ゲーム時間をそのまま進める
     // ============================================================
     void NoteManager::SyncTime(float time) {
         float diff = time - this->songTime;
 
+        // 大きなズレは即座に合わせる
         if (std::abs(diff) > 0.05f) {
             this->songTime = time;
         }
         else {
+            // 音声未開始時は同期しない
             if (time <= 0.001f) {
-                // 音声未開始時はスキップ
             }
             else {
+                // 小さなズレは補間で滑らかに
                 this->songTime += diff * 0.2f;
             }
         }
@@ -793,6 +843,11 @@ namespace app::test {
 
     // ============================================================
     // ホールドチェック
+    // ホールドノーツの継続判定
+    // - 押し続けている間: 0.5拍ごとにコンボ加算
+    // - 終端到達時: Perfect判定、エフェクト再生
+    // - チェーンホールド: 次のホールドを自動判定
+    // - リリース時: コンボ加算をスキップ
     // ============================================================
     void NoteManager::CheckHold(int lane, bool isPressed) {
         if (lane < 0 || lane >= (int)activeHolds.size()) return;
@@ -920,18 +975,22 @@ namespace app::test {
     }
 
     // ============================================================
-    // インスタンシング
+    // インスタンシング初期化
+    // タップノーツを一括描画するためのリソースを準備
+    // 1. インスタンスバッファ（動的、最大2048ノーツ）
+    // 2. キューブメッシュ（頂点・インデックス）
+    // 3. シェーダーと入力レイアウト
     // ============================================================
     void NoteManager::InitInstancing()
     {
         sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();
 
-        // インスタンスバッファ
+        // インスタンスバッファ（動的書き込み用）
         m_instanceDataCPU.reserve(2048);
 
         D3D11_BUFFER_DESC desc{};
-        desc.ByteWidth = sizeof(NoteInstanceData) * 2048;
+        desc.ByteWidth = sizeof(NoteInstanceData) * 2048;  // 最大2048ノーツ
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
@@ -941,7 +1000,7 @@ namespace app::test {
             sf::debug::Debug::LogError("Failed to create Instance Buffer");
         }
 
-        // キューブメッシュ
+        // キューブメッシュの頂点データ（6面×4頂点 = 24頂点）
         struct SimpleVertex {
             float pos[3];
             float nor[3];
@@ -1043,26 +1102,38 @@ namespace app::test {
         vsBlob->Release();
     }
 
+    // ============================================================
+    // インスタンスバッファ更新
+    // 可視なタップノーツのワールド行列を収集し、GPUに転送
+    // - 判定済みノーツはスキップ
+    // - Hold/Skill/SongEndは個別描画なのでスキップ
+    // ============================================================
     void NoteManager::UpdateInstanceBuffer()
     {
         m_instanceDataCPU.clear();
 
+        // スポーン済みノーツのみチェック
         size_t maxIdx = std::min(nextIndex, noteActors.size());
         for (size_t i = 0; i < maxIdx; ++i) {
             if (i >= noteSequence.size()) continue;
+            
+            // 判定済みはスキップ（破棄済み）
             if (noteSequence[i].judged) continue;
 
+            // ホールド・スキル・終了ノーツは個別描画
             if (noteSequence[i].type == NoteType::HoldStart ||
                 noteSequence[i].type == NoteType::HoldEnd ||
                 noteSequence[i].type == NoteType::Skill ||
                 noteSequence[i].type == NoteType::SongEnd) continue;
 
+            // 無効なアクターはスキップ
             if (noteActors[i].IsNull()) continue;
             if (!noteActors[i].IsValid()) continue;
 
             auto act = noteActors[i].Target();
             if (!act) continue;
 
+            // ワールド行列を収集
             NoteInstanceData data;
             DirectX::XMMATRIX m = act->transform.Matrix();
             DirectX::XMStoreFloat4x4(&data.world, m);
@@ -1084,9 +1155,15 @@ namespace app::test {
         }
     }
 
+    // ============================================================
+    // インスタンス描画
+    // 収集したノーツデータを一括描画
+    // DrawIndexedInstancedで全ノーツを1回のDrawCallで描画
+    // ============================================================
     void NoteManager::DrawInstanced()
     {
         try {
+            // バッファ更新
             UpdateInstanceBuffer();
             if (m_instanceDataCPU.empty()) return;
             if (!m_vs || !m_layout || !m_cubeVB || !m_cubeIB) return;
@@ -1094,11 +1171,13 @@ namespace app::test {
             sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
             auto context = dx11->GetMainDevice().GetContext();
 
+            // シェーダー設定
             context->VSSetShader(m_vs, nullptr, 0);
             context->IASetInputLayout(m_layout);
             dx11->ps3d.SetGPU(dx11->GetMainDevice());
             dx11->gsNone.SetGPU(dx11->GetMainDevice());
 
+            // 頂点バッファ設定（キューブ + インスタンス）
             UINT strides[2] = { sizeof(float) * 12, sizeof(NoteInstanceData) };
             UINT offsets[2] = { 0, 0 };
             ID3D11Buffer* buffers[2] = { m_cubeVB, m_instanceBuffer };
@@ -1107,11 +1186,13 @@ namespace app::test {
             context->IASetIndexBuffer(m_cubeIB, DXGI_FORMAT_R32_UINT, 0);
             context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+            // マテリアル設定
             mtl material;
             material.diffuseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             material.textureEnable = { 0.0f, 0.0f, 0.0f, 0.0f };
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
+            // インスタンス描画（1 DrawCallで全ノーツ）
             context->DrawIndexedInstanced(m_cubeIndexCount, (UINT)m_instanceDataCPU.size(), 0, 0, 0);
         } catch (...) {
             sf::debug::Debug::LogError("DrawInstanced Exception");

@@ -10,72 +10,116 @@
 // 判定関連の定数
 // ============================================================
 
-// 判定範囲（Z座標の許容距離）
+/// 判定範囲（Z座標の許容距離）
+/// ノーツが判定ラインに近いかどうかを判定する際に使用
 constexpr float judgeRange = 1.5f;
 
-// 判定ウィンドウ（秒）
+/// 判定ウィンドウ（秒）
+/// Perfect: ±0.08秒、Great: ±0.3秒、Good: ±0.5秒
 constexpr float JUDGE_PERFECT = 0.08f;
 constexpr float JUDGE_GREAT = 0.3f;
 constexpr float JUDGE_GOOD = 0.5f;
 
-// 判定ウィンドウのエイリアス
+/// 判定ウィンドウのエイリアス（cpp側で使用）
 inline constexpr float J_WIN_PERFECT = JUDGE_PERFECT;
 inline constexpr float J_WIN_GREAT = JUDGE_GREAT;
 inline constexpr float J_WIN_GOOD = JUDGE_GOOD;
 
-// 同時押し・トリル対応のパラメータ
-inline constexpr int   J_LOOKAHEAD_NOTES = 5;      // 先読みノーツ数
-inline constexpr float J_ASSIGN_EARLY_BIAS = 0.005f; // 早押しバイアス
-inline constexpr float J_POS_TOL_MULT = 2.0f;      // 位置許容倍率
+/// 同時押し・トリル対応のパラメータ
+/// J_LOOKAHEAD_NOTES: 先読みするノーツ数（同時押し時に複数候補から選択）
+/// J_ASSIGN_EARLY_BIAS: 早押しへの微小ペナルティ（早い側を優先）
+/// J_POS_TOL_MULT: 位置判定の許容倍率
+inline constexpr int   J_LOOKAHEAD_NOTES = 5;
+inline constexpr float J_ASSIGN_EARLY_BIAS = 0.005f;
+inline constexpr float J_POS_TOL_MULT = 2.0f;
 
 namespace app::test {
 
     // ============================================================
-    // BPM変化用の構造体
+    // BPM変化対応用の構造体
+    // 曲中でBPMが変化する場合、各変化点の情報を保持
     // ============================================================
     struct TempoEvent {
-        double atBeat = 0.0;  // 開始拍
-        double bpm = 120.0;   // テンポ
-        double spb = 0.5;     // 1拍あたりの秒数
-        double atSec = 0.0;   // 開始秒数
+        double atBeat = 0.0;  ///< この変化が起きる拍数
+        double bpm = 120.0;   ///< 新しいテンポ（BPM）
+        double spb = 0.5;     ///< Seconds Per Beat（1拍あたりの秒数）
+        double atSec = 0.0;   ///< この変化が起きる秒数（計算で求める）
     };
 
     // ============================================================
-    // ノーツ管理クラス
+    // NoteManager - ノーツ管理クラス
+    // 
+    // 役割:
+    // - 譜面ファイル（.sus/.chart）の読み込みと解析
+    // - ノーツの生成とアクティベート管理
+    // - プレイヤー入力に対する判定処理
+    // - ホールドノーツの継続判定
+    // - ミスノーツの検出と処理
+    // - インスタンシング描画による高速レンダリング
     // ============================================================
     class NoteManager : public sf::Component {
     public:
+        /// コンポーネント初期化（譜面読み込み・ノーツ生成）
         void Begin() override;
+        
+        /// 毎フレーム更新（ノーツのアクティベート・ミスチェック）
         void Update(const sf::command::ICommand&);
 
         // --------------------------------------------
         // 公開メンバー変数
         // --------------------------------------------
-        float leadTime = 0;       // ノーツ生成のリードタイム
-        int   currentCombo = 0;   // 現在のコンボ数
+        
+        /// ノーツが画面上部に出現してから判定ラインに到達するまでの時間（秒）
+        float leadTime = 0;
+        
+        /// 現在のコンボ数
+        int currentCombo = 0;
 
-        // ノーツ速度
-        const float basenoteSpeed = 1.0f;
-        float HiSpeed = 18.0f;
-        float noteSpeed = basenoteSpeed * HiSpeed;
+        /// ノーツ速度関連
+        const float basenoteSpeed = 1.0f;  ///< 基本速度
+        float HiSpeed = 18.0f;             ///< ハイスピード倍率
+        float noteSpeed = basenoteSpeed * HiSpeed;  ///< 実際の速度
 
-        // サイドレーンのX座標
+        /// サイドレーン（レーン4, 5）のX座標
         float sideLaneX_Left = -2.5f;
         float sideLaneX_Right = 2.5f;
 
         // --------------------------------------------
         // 判定API
         // --------------------------------------------
+        
+        /// 単一ノーツの時間判定
+        /// @param type ノーツタイプ（HoldStartは判定緩和あり）
+        /// @param noteTime ノーツのヒット予定時間
+        /// @param inputTime プレイヤーの入力時間
+        /// @return 判定結果（Perfect/Great/Good/Miss）
         JudgeResult JudgeNote(NoteType type, float noteTime, float inputTime);
+        
+        /// 指定レーンの判定処理
+        /// 先読み範囲内から最適なノーツを探して判定
+        /// @param lane 判定するレーン番号（0-5）
+        /// @param inputTime 入力時間
+        /// @return 判定結果
         JudgeResult JudgeLane(int lane, float inputTime);
+        
+        /// 複数レーン同時判定（同時押し対応）
         void JudgeBatch(const std::vector<int>& pressedLanes, float inputTime);
 
         // --------------------------------------------
         // ホールドノーツ処理
         // --------------------------------------------
+        
+        /// ホールドノーツの継続判定
+        /// 押し続けている間、一定間隔でコンボを加算
+        /// @param lane レーン番号
+        /// @param isPressed 現在押されているか
         void CheckHold(int lane, bool isPressed);
-        std::vector<int> activeHolds;          // 各レーンのアクティブなホールド終端インデックス
-        std::vector<double> activeHoldNextBeats; // コンボ加算用の次のビート
+        
+        /// 各レーンでアクティブなホールドの終端インデックス（-1なら非アクティブ）
+        std::vector<int> activeHolds;
+        
+        /// 各レーンでコンボ加算用の次のビート
+        std::vector<double> activeHoldNextBeats;
 
         // --------------------------------------------
         // 時間・状態取得
@@ -84,21 +128,30 @@ namespace app::test {
         void SetCurrentSongTime(float time);
         int GetCurrentCombo() const;
         void AddCombo(int amount);
+        
+        /// 最大コンボ数（譜面から事前計算）
         int GetMaxTotalCombo() const { return maxTotalCombo; }
 
         // --------------------------------------------
         // 初期化・設定
         // --------------------------------------------
+        
+        /// シーンからレーンパラメータを受け取る
         void SetLaneParams(
             const std::vector<sf::ref::Ref<sf::Actor>>& lanes,
             float laneW_, float laneH_, float rotX_,
             float baseY_, float barRatio_,
             float sideLeftX_, float sideRightX_);
+        
+        /// ゲーム開始（更新処理を有効化）
         void StartGame();
+        
+        /// BGMとの時間同期
         void SyncTime(float time);
 
         // --------------------------------------------
         // インスタンシング描画
+        // タップノーツを一括描画することでDrawCall削減
         // --------------------------------------------
         void InitInstancing();
         void UpdateInstanceBuffer();
@@ -107,9 +160,14 @@ namespace app::test {
         // --------------------------------------------
         // ユーティリティ
         // --------------------------------------------
+        
+        /// 秒数を拍数に変換（BPM変化対応）
         double SecondsToBeat(double seconds) const;
+        
+        /// デバッグ用：全ノーツをPerfectとして強制終了
         void DebugForceComplete();
 
+        /// 判定結果を文字列に変換（デバッグ用）
         std::string judgeResultToString(app::test::JudgeResult result) {
             switch (result) {
             case app::test::JudgeResult::None:    return "None";
@@ -125,42 +183,44 @@ namespace app::test {
         // --------------------------------------------
         // 内部データ構造
         // --------------------------------------------
+        
+        /// インスタンシング用のノーツデータ
         struct NoteInstanceData {
-            DirectX::XMFLOAT4X4 world;
-            DirectX::XMFLOAT4   color;
+            DirectX::XMFLOAT4X4 world;  ///< ワールド変換行列
+            DirectX::XMFLOAT4   color;  ///< 色
         };
 
         // --------------------------------------------
         // 状態管理
         // --------------------------------------------
-        bool isPlaying = false;
-        float songTime = 0.f;
-        size_t nextIndex = 0;
-        int maxTotalCombo = 0;
-        int songEndIndex = -1;
-        int missCheckLane = 0;
-        double noteOffset = 0.0;
+        bool isPlaying = false;      ///< ゲーム中かどうか
+        float songTime = 0.f;        ///< 曲の経過時間
+        size_t nextIndex = 0;        ///< 次にアクティベートするノーツのインデックス
+        int maxTotalCombo = 0;       ///< 最大コンボ数（事前計算）
+        int songEndIndex = -1;       ///< SongEndノーツのインデックス（キャッシュ）
+        int missCheckLane = 0;       ///< ミスチェック用レーン（分散処理用）
+        double noteOffset = 0.0;     ///< 譜面のオフセット
 
         // --------------------------------------------
         // 譜面データ
         // --------------------------------------------
-        std::vector<TempoEvent> tempoMap;
-        std::vector<NoteData> noteSequence;
-        std::vector<sf::ref::Ref<sf::Actor>> noteActors;
+        std::vector<TempoEvent> tempoMap;  ///< BPM変化イベントリスト
+        std::vector<NoteData> noteSequence;  ///< 全ノーツデータ（時間順）
+        std::vector<sf::ref::Ref<sf::Actor>> noteActors;  ///< ノーツのアクター参照
 
         // --------------------------------------------
         // レーン管理
         // --------------------------------------------
-        std::vector<sf::ref::Ref<sf::Actor>> laneRefs;
-        std::vector<std::vector<int>> laneOrder;
-        std::vector<size_t> laneHeads;
+        std::vector<sf::ref::Ref<sf::Actor>> laneRefs;  ///< レーンアクター参照
+        std::vector<std::vector<int>> laneOrder;  ///< レーンごとのノーツインデックス
+        std::vector<size_t> laneHeads;  ///< 各レーンの先頭ポインタ
 
-        float laneW;
-        float laneH;
-        float rotX;
-        float baseY;
-        float barRatio;
-        float judgeZ;
+        float laneW;      ///< レーン幅
+        float laneH;      ///< レーン奥行き
+        float rotX;       ///< レーン傾斜角
+        float baseY;      ///< レーン高さ基準
+        float barRatio;   ///< 判定バーの位置比率
+        float judgeZ;     ///< 判定ラインのZ座標
 
         // --------------------------------------------
         // インスタンシング用リソース
@@ -181,14 +241,18 @@ namespace app::test {
         sf::command::Command<> updateCommand;
         sf::geometry::GeometryCube g_cube;
 
-        // マウススラッシュ用
+        /// マウススラッシュ用（スキルノーツ判定）
         POINT lastCursorPos = { 0, 0 };
         float mouseSpeed = 0.0f;
 
         // --------------------------------------------
         // 内部メソッド
         // --------------------------------------------
+        
+        /// 判定結果に応じてコンボを更新
         void UpdateCombo(JudgeResult result);
+        
+        /// ミスしたノーツを検出して処理
         void CheckMissedNotes();
     };
 

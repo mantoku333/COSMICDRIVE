@@ -186,7 +186,6 @@
     <ClCompile Include="ConstBuffer.cpp" />
     <ClCompile Include="Context.cpp" />
     <ClCompile Include="ControlCamera.cpp" />
-    <ClCompile Include="D.cpp" />
     <ClCompile Include="Debug.cpp" />
     <ClCompile Include="Depth.cpp" />
     <ClCompile Include="Device.cpp" />
@@ -345,7 +344,6 @@
     <ClInclude Include="ConstBuffer.h" />
     <ClInclude Include="Context.h" />
     <ClInclude Include="ControlCamera.h" />
-    <ClInclude Include="D.h" />
     <ClInclude Include="D3D.h" />
     <ClInclude Include="Debug.h" />
     <ClInclude Include="Delegate.h" />

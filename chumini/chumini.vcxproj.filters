@@ -363,9 +363,6 @@
     <ClCompile Include="DirectWrite.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="D.cpp">
-      <Filter>App\Component</Filter>
-    </ClCompile>
     <ClCompile Include="TextComponent.cpp">
       <Filter>App\Component</Filter>
     </ClCompile>
@@ -872,9 +869,6 @@
     </ClInclude>
     <ClInclude Include="DirectWriteCustomFont.h">
       <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="D.h">
-      <Filter>App\Component</Filter>
     </ClInclude>
     <ClInclude Include="DirectWrite.h">
       <Filter>App</Filter>
