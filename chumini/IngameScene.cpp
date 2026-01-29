@@ -15,7 +15,6 @@
 #include "ScoreManager.h"
 #include "SoundResource.h"
 #include "JudgeStatsService.h"
-#include "JudgeStatsService.h"
 #include "GUI.h"
 #include "SInput.h"
 
