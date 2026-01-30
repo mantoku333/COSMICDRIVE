@@ -20,42 +20,14 @@
 #include "ChedParser.h" 
 #include "ScoreManager.h" 
 #include "RatingManager.h"
+#include "StringUtils.h"  // 文字コード変換ユーティリティ
 
 namespace app::test {
 
-    // 既存のヘルパー
-    static std::string WstringToUtf8(const std::wstring& wstr) {
-        if (wstr.empty()) return "";
-        int sizeNeeded = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-        std::string str(sizeNeeded, 0);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
-        if (!str.empty() && str.back() == '\0') str.pop_back();
-        return str;
-    }
-
-    static std::wstring Utf8ToWstring(const std::string& str) {
-        if (str.empty()) return L"";
-        int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-        std::wstring wstr(sizeNeeded, 0);
-        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
-        return wstr;
-    }
-
-    // UTF-8 -> Shift-JIS (ログ表示 & 古いAPI用) 
-    // これを通さないと、日本語パスの画像読み込みやログ出力が失敗します
-    static std::string Utf8ToShiftJis(const std::string& utf8Str) {
-        // 1. UTF-8 -> Unicode (wstring)
-        std::wstring wstr = Utf8ToWstring(utf8Str);
-        if (wstr.empty()) return "";
-
-        // 2. Unicode -> Shift-JIS (CP_ACP)
-        int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-        std::string str(sizeNeeded, 0);
-        WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
-
-        if (!str.empty() && str.back() == '\0') str.pop_back();
-        return str;
-    }
+    // sf::util の関数を使用（ローカル関数は削除）
+    using sf::util::WstringToUtf8;
+    using sf::util::Utf8ToWstring;
+    using sf::util::Utf8ToShiftJis;
 
     // ===== ユーティリティ =====
     static inline float WrapFloat(float x, float N) {
@@ -312,14 +284,14 @@ namespace app::test {
         RebuildJacketPool();
         UpdateJacketPositions();
 
-        // =========================================================
-     // ★ 1. ふち（アウトライン）の生成
+     // =========================================================
+     // アウトラインの生成
      // =========================================================
 
-     // ふちの太さ（3.0f くらいが丁度いいです）
+     // ふちの太さ
         float outlineSize = 3.0f;
 
-        // 4方向のズレを定義（左、右、下、上）
+        // 4方向のズレを定義
         Vector3 offsets[4] = {
             Vector3(-outlineSize, 0, 0),
             Vector3(outlineSize, 0, 0),
@@ -331,32 +303,25 @@ namespace app::test {
         for (int i = 0; i < 4; ++i) {
             titleOutline[i] = AddUI<sf::ui::TextImage>();
 
-            // 座標：メインの位置(0, 480) から少しズラす
-            // Z座標：メインより奥に見せたいので 1.0f に設定
             titleOutline[i]->transform.SetPosition(Vector3(0 + offsets[i].x, LAYOUT_TITLE_Y + offsets[i].y, 1.0f));
 
-            // スケール：メインと全く同じにする（ここ重要！）
             titleOutline[i]->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
 
             titleOutline[i]->Create(
                 device,
-                L"SONG SELECT",         // 同じ文字
-                L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",     // 同じフォント
-                120.0f,                 // 同じサイズ
+                L"SONG SELECT",     
+                L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",   
+                120.0f,         
                 D2D1::ColorF(D2D1::ColorF::White),
                 1024, 240
             );
         }
 
         // =========================================================
-        // ★ 2. メイン文字（本体）の生成
+        // メイン文字（本体）の生成
         // =========================================================
         titleText = AddUI<sf::ui::TextImage>();
-
-        // 座標：中心 (0, 480), Z座標は手前 (0.0f)
         titleText->transform.SetPosition(Vector3(0, LAYOUT_TITLE_Y, 0.0f));
-
-        // スケール
         titleText->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
 
         titleText->Create(
@@ -379,41 +344,38 @@ namespace app::test {
             D2D1::ColorF(D2D1::ColorF::White),
             1800, 200);
 
-        // ---------------------------------------------------------
-    // ★追加: アーティスト名 (タイトルの下)
+    // ---------------------------------------------------------
+    // アーティスト名
     // ---------------------------------------------------------
         artistText = AddUI<sf::ui::TextImage>();
-        // Y座標をタイトル(-270)より下げる (-350あたり)
         artistText->transform.SetPosition(Vector3(0, LAYOUT_ARTIST_Y, LAYOUT_SONG_INFO_Z));
-        // スケールはタイトルより少し小さく
         artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
             device,
             L"", // 初期値
             L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
-            80.0f, // フォントサイズ少し小さめ
-            D2D1::ColorF(D2D1::ColorF::LightGray), // 色を少しグレーにすると階層感が出る
+            80.0f,
+            D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
         );
 
         // ---------------------------------------------------------
-        // ★追加: BPM表示 (さらに下)
+        // BPM表示
         // ---------------------------------------------------------
         bpmText = AddUI<sf::ui::TextImage>();
-        // Y座標をさらに下げる (-420あたり)
         bpmText->transform.SetPosition(Vector3(0, LAYOUT_BPM_Y, LAYOUT_SONG_INFO_Z));
         bpmText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         bpmText->Create(
             device,
             L"", // 初期値
             L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
-            80.0f, // フォントサイズ少し小さめ
-            D2D1::ColorF(D2D1::ColorF::LightGray), // 色を少しグレーにすると階層感が出る
+            80.0f,
+            D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
         );
 
         // ---------------------------------------------------------
-        // ★追加: 難易度表示 (右下スコアの上)
+        // 難易度表示
         // ---------------------------------------------------------
         difficultyText = AddUI<sf::ui::TextImage>();
         difficultyText->transform.SetPosition(Vector3(650, -300, 1.0f)); // スコアの上

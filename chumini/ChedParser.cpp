@@ -6,46 +6,18 @@
 #include <vector>
 #include <algorithm>
 #include <filesystem>
+#include "StringUtils.h"  // 文字コード変換ユーティリティ
 
 
 namespace app::test {
 
-    // =========================================================
-    // 文字コード変換ヘルパ (UTF-8/SJIS -> Unicode -> UTF-8)
-    // =========================================================
+    // sf::util の関数を使用（ローカル関数は削除）
+    using sf::util::WstringToUtf8;
+    using sf::util::AutoDetectToWstring;
 
-    // wstring (UTF-16) -> string (UTF-8)
-    static std::string WStringToUtf8(const std::wstring& wstr) {
-        if (wstr.empty()) return "";
-        int size = WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-        std::string str(size, 0);
-        WideCharToMultiByte(CP_UTF8, 0, wstr.c_str(), -1, &str[0], size, nullptr, nullptr);
-        if (!str.empty() && str.back() == '\0') str.pop_back();
-        return str;
-    }
-
-    // string -> wstring (UTF-16)
-    static std::wstring AnyToWString(const std::string& str) {
-        if (str.empty()) return L"";
-
-        int sizeUtf8 = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str.c_str(), -1, nullptr, 0);
-        if (sizeUtf8 > 0) {
-            std::wstring wstr(sizeUtf8, 0);
-            MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeUtf8);
-            if (!wstr.empty() && wstr.back() == L'\0') wstr.pop_back();
-            return wstr;
-        }
-
-        int sizeAcp = MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, nullptr, 0);
-        if (sizeAcp > 0) {
-            std::wstring wstr(sizeAcp, 0);
-            MultiByteToWideChar(CP_ACP, 0, str.c_str(), -1, &wstr[0], sizeAcp);
-            if (!wstr.empty() && wstr.back() == L'\0') wstr.pop_back();
-            return wstr;
-        }
-
-        return L"";
-    }
+    // 別名定義（既存コードとの互換性のため）
+    static inline std::string WStringToUtf8(const std::wstring& wstr) { return WstringToUtf8(wstr); }
+    static inline std::wstring AnyToWString(const std::string& str) { return AutoDetectToWstring(str); }
 
     // ログ出力用
     static std::string WStringToLog(const std::wstring& wstr) {
