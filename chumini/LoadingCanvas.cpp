@@ -1,6 +1,7 @@
 #include "LoadingCanvas.h"
 #include "Time.h"
 #include "DirectX11.h"
+#include "StringUtils.h"  // 文字コード変換ユーティリティ
 
 namespace app::test {
 
@@ -82,33 +83,19 @@ namespace app::test {
             return;
         }
 
-        // 文字列変換ラムダ
-        auto toWstr = [](const std::string& src) -> std::wstring {
-            if (src.empty()) return L"";
-            int size = MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, nullptr, 0);
-            std::wstring dst(size, 0);
-            MultiByteToWideChar(CP_UTF8, 0, src.c_str(), -1, &dst[0], size);
-            return dst;
-            };
-
         // 情報がある時だけ表示をオンにする
         if (songTitleText) {
-            songTitleText->SetText(toWstr(info.title));
+            songTitleText->SetText(sf::util::Utf8ToWstring(info.title));
             songTitleText->SetVisible(true); // ★ここで表示
         }
         if (artistText) {
-            artistText->SetText(toWstr(info.artist));
+            artistText->SetText(sf::util::Utf8ToWstring(info.artist));
             artistText->SetVisible(true); // ★ここで表示
         }
 
         // Jacket Image
         if (jacketImage && !info.jacketPath.empty()) {
-            std::wstring wPath = toWstr(info.jacketPath);
-            int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, nullptr, 0, nullptr, nullptr);
-            std::string sjisPath(sizeNeeded, 0);
-            WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, &sjisPath[0], sizeNeeded, nullptr, nullptr);
-            if (!sjisPath.empty() && sjisPath.back() == '\0') sjisPath.pop_back();
-
+            std::string sjisPath = sf::util::Utf8ToShiftJis(info.jacketPath);
             if (jacketTexture.LoadTextureFromFile(sjisPath)) {
                 jacketImage->material.texture = &jacketTexture;
                 jacketImage->SetVisible(true);

@@ -7,6 +7,7 @@
 #include "JudgeStatsService.h"
 #include <algorithm>
 #include "DirectX11.h"
+#include "StringUtils.h"  // 文字コード変換ユーティリティ
 
 namespace app::test {
 
@@ -572,16 +573,8 @@ namespace app::test {
 
 		bool loadSuccess = false;
 		if (!selectedSong.jacketPath.empty()) {
-			// UTF-8 -> wstring -> Shift-JIS に変換（日本語パス対応）
-			int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.jacketPath.c_str(), -1, nullptr, 0);
-			std::wstring wPath(wideSize, 0);
-			MultiByteToWideChar(CP_UTF8, 0, selectedSong.jacketPath.c_str(), -1, &wPath[0], wideSize);
-
-			int sjisSize = WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, nullptr, 0, nullptr, nullptr);
-			std::string sjisPath(sjisSize, 0);
-			WideCharToMultiByte(CP_ACP, 0, wPath.c_str(), -1, &sjisPath[0], sjisSize, nullptr, nullptr);
-			if (!sjisPath.empty() && sjisPath.back() == '\0') sjisPath.pop_back();
-
+			// 日本語パス対応: UTF-8 → Shift-JIS
+			std::string sjisPath = sf::util::Utf8ToShiftJis(selectedSong.jacketPath);
 			loadSuccess = textureJacket.LoadTextureFromFile(sjisPath);
 		}
 
@@ -591,26 +584,12 @@ namespace app::test {
 
         // Update Song Info Text
         if (titleText) {
-            std::wstring wTitle = L"";
-            if (!selectedSong.title.empty()) {
-                int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.title.c_str(), -1, nullptr, 0);
-                wTitle.resize(wideSize);
-                MultiByteToWideChar(CP_UTF8, 0, selectedSong.title.c_str(), -1, &wTitle[0], wideSize);
-                if (!wTitle.empty() && wTitle.back() == L'\0') wTitle.pop_back();
-            }
+            std::wstring wTitle = sf::util::Utf8ToWstring(selectedSong.title);
             titleText->SetText(wTitle.c_str());
         }
 
         if (bpmText) {
-             std::wstring wBpm = L"BPM: ";
-             if (!selectedSong.bpm.empty()) {
-                std::wstring val;
-                int wideSize = MultiByteToWideChar(CP_UTF8, 0, selectedSong.bpm.c_str(), -1, nullptr, 0);
-                val.resize(wideSize);
-                MultiByteToWideChar(CP_UTF8, 0, selectedSong.bpm.c_str(), -1, &val[0], wideSize);
-                if (!val.empty() && val.back() == L'\0') val.pop_back();
-                wBpm += val;
-             }
+             std::wstring wBpm = L"BPM: " + sf::util::Utf8ToWstring(selectedSong.bpm);
              bpmText->SetText(wBpm.c_str());
         }
 

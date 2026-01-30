@@ -13,29 +13,14 @@
 #include "DWriteContext.h"   // フォント描画用
 #include <filesystem>
 #include "App.h"
+#include "StringUtils.h"     // 文字コード変換ユーティリティ
 
 using namespace app::test;
 using namespace sf;
 
-
-// ヘルパー関数 (SelectCanvasからコピー)
-static std::wstring Utf8ToWstring(const std::string& str) {
-	if (str.empty()) return L"";
-	int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, nullptr, 0);
-	std::wstring wstr(sizeNeeded, 0);
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, &wstr[0], sizeNeeded);
-	return wstr;
-}
-
-static std::string Utf8ToShiftJis(const std::string& utf8Str) {
-	std::wstring wstr = Utf8ToWstring(utf8Str);
-	if (wstr.empty()) return "";
-	int sizeNeeded = WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, nullptr, 0, nullptr, nullptr);
-	std::string str(sizeNeeded, 0);
-	WideCharToMultiByte(CP_ACP, 0, wstr.c_str(), -1, &str[0], sizeNeeded, nullptr, nullptr);
-	if (!str.empty() && str.back() == '\0') str.pop_back();
-	return str;
-}
+// sf::util の関数を使用（ローカル関数は削除）
+using sf::util::Utf8ToWstring;
+using sf::util::Utf8ToShiftJis;
 
 void TitleCanvas::InitializeJacketFlow() {
 	namespace fs = std::filesystem;
