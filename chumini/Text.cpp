@@ -1,5 +1,6 @@
 #include "Text.h"
 #include "DWriteContext.h"
+#include "Debug.h"
 
 #include <d2d1.h>
 #include <d2d1helper.h>
@@ -9,7 +10,7 @@ using namespace sf::ui;
 
 Text::Text() : UI()
 {
-    // 初期フォーマット（遅延生成でもOKだが、ここで作っておく）
+    // Initial format (Can be delayed, but create here)
     EnsureFormat();
 }
 
@@ -17,9 +18,12 @@ void Text::EnsureFormat()
 {
     mFormat.Reset();
     auto* dw = DWriteContext::DWriteFactory();
-    if (!dw) return;
+    if (!dw) {
+        sf::debug::Debug::LogWarning("[Text] EnsureFormat: DWriteFactory is null");
+        return;
+    }
 
-    dw->CreateTextFormat(
+    HRESULT hr = dw->CreateTextFormat(
         mFont.c_str(), nullptr,
         DWRITE_FONT_WEIGHT_NORMAL,
         DWRITE_FONT_STYLE_NORMAL,
@@ -28,7 +32,12 @@ void Text::EnsureFormat()
         L"ja-jp",
         mFormat.ReleaseAndGetAddressOf());
 
-    // デフォの揃え
+    if (FAILED(hr)) {
+        sf::debug::Debug::LogError("[Text] EnsureFormat: CreateTextFormat Failed HRESULT=" + std::to_string(hr));
+        return;
+    }
+
+    // Default Alignment
     if (mFormat) {
         mFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
         mFormat->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
@@ -37,24 +46,54 @@ void Text::EnsureFormat()
 
 void Text::Draw()
 {
+    // Return if text is empty or invalid
     if (!enable || mText.empty()) return;
+    
+    // ===== Robustness: Check DWriteContext Validity =====
+    if (!DWriteContext::IsReady()) {
+        // Try Auto-Recovery
+        if (DWriteContext::NeedsRecreate()) {
+            sf::debug::Debug::LogWarning("[Text] Draw: DWriteContext invalid - Trying auto-recovery");
+            if (!DWriteContext::TryAutoRecreate()) {
+                sf::debug::Debug::LogError("[Text] Draw: DWriteContext auto-recovery failed - Skipping Draw");
+                return;
+            }
+        } else {
+            // RT might not be initialized yet
+            return;
+        }
+    }
+    
     auto* rt = DWriteContext::RT();
-    if (!rt) return;
+    if (!rt) {
+        sf::debug::Debug::LogWarning("[Text] Draw: RenderTarget is null - Skipping Draw");
+        return;
+    }
 
     DWriteContext::FrameBegin();
 
+    // Create Brush (Add Failure Check)
     Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
-    rt->CreateSolidColorBrush(mColor, brush.ReleaseAndGetAddressOf());
+    HRESULT hr = rt->CreateSolidColorBrush(mColor, brush.ReleaseAndGetAddressOf());
+    if (FAILED(hr) || !brush) {
+        sf::debug::Debug::LogError("[Text] Draw: CreateSolidColorBrush Failed HRESULT=" + std::to_string(hr));
+        DWriteContext::FrameEnd();
+        return;
+    }
 
-    // === ここから座標変換 ===
+    // === Coordinate Conversion Start ===
     const float sw = DWriteContext::ScreenW();
     const float sh = DWriteContext::ScreenH();
-    if (sw <= 0.f || sh <= 0.f) { DWriteContext::FrameEnd(); return; }
+    if (sw <= 0.f || sh <= 0.f) { 
+        sf::debug::Debug::LogWarning("[Text] Draw: Invalid Screen Size (" + std::to_string(sw) + "x" + std::to_string(sh) + ")");
+        DWriteContext::FrameEnd(); 
+        return; 
+    }
 
     const Vector3 pos = transform.GetPosition();
     const Vector3 sca = transform.GetScale();
 
-    // UIは中心原点・Y上、D2Dは左上原点・Y下 → 変換
+    // UI Center-Origin/Y-Up -> D2D Top-Left/Y-Down Conversion
     const float cx = sw * 0.5f;
     const float cy = sh * 0.5f;
     const float screenX = cx + pos.x;
@@ -68,9 +107,17 @@ void Text::Draw()
         screenY - h * 0.5f,
         screenX + w * 0.5f,
         screenY + h * 0.5f);
-    // === ここまで座標変換 ===
+    // === Coordinate Conversion End ===
 
-    if (!mFormat) EnsureFormat();
+    // Check Format Validity
+    if (!mFormat) {
+        EnsureFormat();
+        if (!mFormat) {
+            sf::debug::Debug::LogError("[Text] Draw: Cannot create mFormat - Skipping Draw");
+            DWriteContext::FrameEnd();
+            return;
+        }
+    }
 
     rt->DrawText(
         mText.c_str(),

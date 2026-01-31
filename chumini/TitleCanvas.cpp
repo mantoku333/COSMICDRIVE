@@ -101,8 +101,9 @@ void TitleCanvas::Begin()
 	ID3D11Device* device = dx11->GetMainDevice().GetDevice();
 	ID3D11DeviceContext* context = dx11->GetMainDevice().GetContext();
 
-	Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
-	Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device); // ★重要: シェーダー生成
+	// ★削除: Live2D レンダラー初期化は Live2DComponent::LoadModel() で行われるため、ここでの重複呼び出しを削除
+	// Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
+	// Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device);
 
 	// 4. Live2Dモデルの生成 (必ずInitializeの後に)
 	// _hiyoriModel = new AppModel();

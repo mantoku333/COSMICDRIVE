@@ -27,37 +27,37 @@ void sf::IScene::Load()
 		{
 			std::string sceneName = typeid(*this).name();
 
-			sf::debug::Debug::LogEngine("シーンの読み込みを開始します:" + sceneName);
+			sf::debug::Debug::LogEngine("Start Scene Loading: " + sceneName);
 
 			bool result = true;
 
 			try
 			{
-				//シーンの読み込み処理
+				// Scene Init
 				this->Init();
 			}
 			catch (const std::exception& hoge)
 			{
-				sf::debug::Debug::LogError("シーン読み込み時に例外がスローされました\n" + std::string(hoge.what()));
+				sf::debug::Debug::LogError("Exception during scene loading:\n" + std::string(hoge.what()));
 
 				result = false;
 			}
 
-			//アプリケーションにスタンバイ状態としてシーンを追加
-			//app::Application::GetMain()->SetStandbyScene(this);
+			// Add scene as standby
+			// app::Application::GetMain()->SetStandbyScene(this);
 
-			//ログ表示
+			// Log
 
 			if (result)
 			{
-				sf::debug::Debug::LogEngine("シーンの読み込みが完了しました:" + sceneName);
+				sf::debug::Debug::LogEngine("Scene Loading Completed: " + sceneName);
 			}
 			else
 			{
-				sf::debug::Debug::LogWarning("シーンの読み込みが完了しましたが例外がスローされています:" + sceneName);
+				sf::debug::Debug::LogWarning("Scene Loading Completed with Exception: " + sceneName);
 			}
 
-			//読み込み完了フラグ
+			// Loaded Flag
 			this->Loaded();
 		}
 	);
@@ -65,19 +65,27 @@ void sf::IScene::Load()
 
 void sf::IScene::Activate()
 {
+	std::string sceneName = typeid(*this).name();
+	sf::debug::Debug::LogEngine("[Scene] Activate Start: " + sceneName);
+	
 	activate = true;
 
 	for (auto& i : actors) {
-		i->Activate();
+		if (i) i->Activate();
 	}
 
 	OnActivated();
 
 	app::Application::GetMain()->ActivateScene(this);
+	
+	sf::debug::Debug::LogSafety("[Scene] Activate Completed: " + sceneName);
 }
 
 void sf::IScene::DeActivate()
 {
+	std::string sceneName = typeid(*this).name();
+	sf::debug::Debug::LogEngine("[Scene] DeActivate Start: " + sceneName);
+	
 	activate = false;
 
 	{
@@ -85,6 +93,8 @@ void sf::IScene::DeActivate()
 		deActiveScene.push(this);
 	}
 	app::Application::GetMain()->DeActivateScene(this);
+	
+	sf::debug::Debug::Log("[Scene] DeActivate Completed: " + sceneName);
 }
 
 void sf::IScene::DestroyScenes()
@@ -95,7 +105,7 @@ void sf::IScene::DestroyScenes()
 		deActiveScene.pop();
 		std::string name = typeid(*scene).name();
 		delete scene;
-		sf::debug::Debug::LogEngine("シーンがディアクティベートされました:" + name);
+		sf::debug::Debug::LogEngine("Scene Deactivated: " + name);
 	}
 }
 

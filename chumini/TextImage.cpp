@@ -201,7 +201,19 @@ bool TextImage::Create(ID3D11Device* device,
 bool TextImage::SetText(const std::wstring& newText) {
     if (newText == currentText) return true; // Optimization: Skip redraw if text hasn't changed
     
-    if (!rt || !brush || !format) return false;
+    // ===== Robustness: Check Resource Validity =====
+    if (!rt) {
+        sf::debug::Debug::LogWarning("[TextImage] SetText: rt is null - Skipping Draw");
+        return false;
+    }
+    if (!brush) {
+        sf::debug::Debug::LogWarning("[TextImage] SetText: brush is null - Skipping Draw");
+        return false;
+    }
+    if (!format) {
+        sf::debug::Debug::LogWarning("[TextImage] SetText: format is null - Skipping Draw");
+        return false;
+    }
     
     currentText = newText; // Update cache
 
@@ -211,9 +223,9 @@ bool TextImage::SetText(const std::wstring& newText) {
         D2D1::RectF(0, 0, (FLOAT)width, (FLOAT)height), brush.Get());
     HRESULT hr = rt->EndDraw();
     
-    // ★ D2DERR_RECREATE_TARGET の場合、レンダーターゲットを再作成
+    // ★ Handle D2DERR_RECREATE_TARGET
     if (hr == D2DERR_RECREATE_TARGET) {
-        sf::debug::Debug::LogError("TextImage: D2DERR_RECREATE_TARGET - Recreating render target");
+        sf::debug::Debug::LogWarning("[TextImage] SetText: D2DERR_RECREATE_TARGET Detected - Recreating Render Target");
         
         // レンダーターゲットを再作成
         rt.Reset();
@@ -241,16 +253,17 @@ bool TextImage::SetText(const std::wstring& newText) {
     }
     
     if (FAILED(hr)) {
-        sf::debug::Debug::LogError("TextImage: SetText EndDraw failed. HRESULT: " + std::to_string(hr));
+        sf::debug::Debug::LogError("[TextImage] SetText: EndDraw Failed HRESULT=" + std::to_string(hr));
         return false;
     }
     return true;
 }
 
 void TextImage::Draw() {
-    // ★ SRV（シェーダーリソースビュー）の有効性チェック
-    // シーン遷移時にテクスチャが未作成の場合、描画をスキップ
+    // ===== Robustness: Check SRV Validity =====
+    // Skip draw if texture is not created during scene transition
     if (!srv) {
+        // Normal case before init, so no log
         return;
     }
 

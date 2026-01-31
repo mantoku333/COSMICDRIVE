@@ -25,8 +25,13 @@ void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileN
     auto device = dx11->GetMainDevice().GetDevice();
 
     // ★重要: レンダラーの静的初期化をモデルロードの前に行う (s_deviceの設定)
-    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
-    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device);
+    // ★修正: 静的フラグで重複初期化を防止（シーン遷移時のクラッシュ防止）
+    static ID3D11Device* s_initializedDevice = nullptr;
+    if (s_initializedDevice != device) {
+        Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
+        Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device);
+        s_initializedDevice = device;
+    }
 
     _model->LoadAssets(device, dir, fileName);
 
