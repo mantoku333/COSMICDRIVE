@@ -64,18 +64,31 @@ void Live2DComponent::Draw() {
     if (!_model) return;
 
     auto* dx11 = sf::dx::DirectX11::Instance();
+    if (!dx11) return;
+
     auto device = dx11->GetMainDevice().GetDevice();
     auto context = dx11->GetMainDevice().GetContext();
 
-    // Live2Dの描画
+    // ★デバイス/コンテキストの有効性チェック（Intel GPUクラッシュ防止）
+    if (!device || !context) {
+        OutputDebugStringA("Live2DComponent::Draw - Device or Context is null, skipping draw.\n");
+        return;
+    }
 
+    // Live2Dの描画
 
     // =========================================================
     // 描画実行
     // =========================================================
     UINT numViewports = 1;
-    D3D11_VIEWPORT vp;
+    D3D11_VIEWPORT vp = {};
     context->RSGetViewports(&numViewports, &vp);
+
+    // ★ビューポートの有効性チェック（ゼロ除算防止）
+    if (numViewports == 0 || vp.Width <= 0.0f || vp.Height <= 0.0f) {
+        OutputDebugStringA("Live2DComponent::Draw - Invalid viewport, skipping draw.\n");
+        return;
+    }
 
     Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
 

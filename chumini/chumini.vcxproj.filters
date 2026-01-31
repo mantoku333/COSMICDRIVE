@@ -1075,6 +1075,9 @@
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClInclude>
     <ClInclude Include="RatingManager.h" />
+    <ClInclude Include="StringUtils.h">
+      <Filter>App</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">

@@ -6,11 +6,12 @@ struct In
     float3 nor : NORMAL;
     float2 uv : TEXCOORD;
     float4 color : COLOR;
-    // Instance Data - Split into 4 float4 for safety/clarity with Input Layout
-    float4 iWorld0 : INSTANCE_WORLD0;
-    float4 iWorld1 : INSTANCE_WORLD1;
-    float4 iWorld2 : INSTANCE_WORLD2;
-    float4 iWorld3 : INSTANCE_WORLD3;
+    // インスタンスデータ - 入力レイアウトと一致させるためfloat4×4で分割
+    // セマンティクス: INSTANCE_WORLD + インデックス0-3 (C++側の定義と一致)
+    float4 iWorld0 : INSTANCE_WORLD;   // インデックス0
+    float4 iWorld1 : INSTANCE_WORLD1;  // インデックス1
+    float4 iWorld2 : INSTANCE_WORLD2;  // インデックス2
+    float4 iWorld3 : INSTANCE_WORLD3;  // インデックス3
     float4 instanceColor : INSTANCE_COLOR;
     uint instanceId : SV_InstanceID;
 };

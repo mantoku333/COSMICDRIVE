@@ -5,7 +5,7 @@
 #include "BGMComponent.h"
 #include "Config.h"
 #include "DirectX11.h"
-#include <d3dcompiler.h>
+#include <cstdio>
 #pragma comment(lib, "d3dcompiler.lib")
 #include <fstream>
 #include <sstream>
@@ -1052,21 +1052,31 @@ namespace app::test {
         iInitData.pSysMem = indices;
         hr = device->CreateBuffer(&ibd, &iInitData, &m_cubeIB);
 
-        // シェーダー
-        ID3DBlob* vsBlob = nullptr;
-        ID3DBlob* errorBlob = nullptr;
-
-        hr = D3DCompileFromFile(L"vsNoteInstancing.hlsl", nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, "main", "vs_5_0", 0, 0, &vsBlob, &errorBlob);
-        if (FAILED(hr)) {
-            if (errorBlob) {
-                sf::debug::Debug::LogError((char*)errorBlob->GetBufferPointer());
-                errorBlob->Release();
-            }
-            if (vsBlob) vsBlob->Release();
+        // プリコンパイル済みシェーダー（CSO）をロード
+        // Shader::LoadCSOと同じ方式でファイルを読み込む
+        FILE* fp = nullptr;
+        fopen_s(&fp, "Assets\\Shader\\vsNoteInstancing.cso", "rb");
+        if (!fp) {
+            sf::debug::Debug::LogError("Failed to open vsNoteInstancing.cso");
             return;
         }
 
-        hr = device->CreateVertexShader(vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), nullptr, &m_vs);
+        // ファイルサイズを取得
+        fseek(fp, 0, SEEK_END);
+        long fileSize = ftell(fp);
+        fseek(fp, 0, SEEK_SET);
+
+        // メモリに読み込み
+        char* pShaderData = new char[fileSize];
+        fread(pShaderData, fileSize, 1, fp);
+        fclose(fp);
+
+        hr = device->CreateVertexShader(pShaderData, fileSize, nullptr, &m_vs);
+        if (FAILED(hr)) {
+            delete[] pShaderData;
+            sf::debug::Debug::LogError("Failed to create vertex shader from CSO");
+            return;
+        }
 
         // 入力レイアウト
         D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
@@ -1082,8 +1092,8 @@ namespace app::test {
             { "INSTANCE_COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 1, 64, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
         };
 
-        hr = device->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), vsBlob->GetBufferPointer(), vsBlob->GetBufferSize(), &m_layout);
-        vsBlob->Release();
+        hr = device->CreateInputLayout(layoutDesc, ARRAYSIZE(layoutDesc), pShaderData, fileSize, &m_layout);
+        delete[] pShaderData;
     }
 
     // ============================================================
@@ -1153,7 +1163,15 @@ namespace app::test {
             if (!m_vs || !m_layout || !m_cubeVB || !m_cubeIB) return;
 
             sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
+            if (!dx11) return;
+
             auto context = dx11->GetMainDevice().GetContext();
+
+            // ★デバイス/コンテキストの有効性チェック（Intel GPUクラッシュ防止）
+            if (!context) {
+                sf::debug::Debug::LogError("DrawInstanced: Context is null, skipping draw.");
+                return;
+            }
 
             // シェーダー設定
             context->VSSetShader(m_vs, nullptr, 0);

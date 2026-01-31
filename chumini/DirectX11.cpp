@@ -81,6 +81,9 @@ void sf::dx::DirectX11::SetRenderingDoubleBuffer2D()
 
 void sf::dx::DirectX11::OnScreenRendering()
 {
+	// ★コンテキストの有効性チェック（Intel GPUクラッシュ防止）
+	auto* ctx = mainDevice.GetContext();
+	if (!ctx) return;
 
 	//オンスクリーンを塗りつぶし
 	mainDevice.ClearRTV(onScreen.GetRTV());
