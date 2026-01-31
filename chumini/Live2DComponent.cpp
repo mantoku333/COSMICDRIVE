@@ -95,69 +95,83 @@ void Live2DComponent::Draw() {
         return;
     }
 
-    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
+    try {
+        OutputDebugStringA("Live2DComponent::Draw - Before StartFrame\n");
+        Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
+        OutputDebugStringA("Live2DComponent::Draw - After StartFrame\n");
 
-    auto renderer = _model->GetMyRenderer();
-    if (renderer) {
-        renderer->SetDefaultRenderState(); // Live2D側のデフォルト設定も適用
+        auto renderer = _model->GetMyRenderer();
+        if (renderer) {
+            renderer->SetDefaultRenderState(); // Live2D側のデフォルト設定も適用
 
-        // =========================================================
-        // レンダリングステートの退避と設定 (SetDefaultRenderState後に強制適用)
-        // =========================================================
+            // =========================================================
+            // レンダリングステートの退避と設定 (SetDefaultRenderState後に強制適用)
+            // =========================================================
 
-        // トポロジーをStripからListへ変更
-        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+            // トポロジーをStripからListへ変更
+            context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        // ★キャッシュされたステートを使用（毎フレーム生成を廃止）
-        InitCachedStates(device);
-        
-        if (m_cachedBlendState) {
-            float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-            context->OMSetBlendState(m_cachedBlendState, blendFactor, 0xffffffff);
-        }
-
-        if (m_cachedRasterState) {
-            context->RSSetState(m_cachedRasterState);
-        }
-
-        if (m_cachedDepthState) {
-            context->OMSetDepthStencilState(m_cachedDepthState, 0);
-        }
-
-        // シェーダーの無効化（干渉防止）
-        context->GSSetShader(nullptr, nullptr, 0);
-        context->HSSetShader(nullptr, nullptr, 0);
-        context->DSSetShader(nullptr, nullptr, 0);
-
-        // 行列計算
-        Live2D::Cubism::Framework::CubismMatrix44 matrix;
-        matrix.LoadIdentity();
-
-        float modelCanvasH = _model->GetModel()->GetCanvasHeight();
-        if (modelCanvasH == 0) modelCanvasH = 2000.0f;
-
-        float aspect = vp.Width / vp.Height;
-        
-        // 画面に収まるようにスケール調整 (Base Fit)
-        float scale = 2.0f / modelCanvasH; 
-        matrix.Scale(scale / aspect, scale);
-
-        // Apply Actor Transform (Position & Scale)
-        if (auto owner = actorRef.Target()) {
-            Vector3 pos = owner->transform.GetPosition();
-            Vector3 scl = owner->transform.GetScale();
+            // ★キャッシュされたステートを使用（毎フレーム生成を廃止）
+            InitCachedStates(device);
             
-            // Translate first or after? 
-            // In CubismMatrix, operations are multiplied.
-            // We want to move the fitted model.
-            matrix.Translate(pos.x, pos.y);
-            matrix.Scale(scl.x, scl.y);
+            if (m_cachedBlendState) {
+                float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+                context->OMSetBlendState(m_cachedBlendState, blendFactor, 0xffffffff);
+            }
+
+            if (m_cachedRasterState) {
+                context->RSSetState(m_cachedRasterState);
+            }
+
+            if (m_cachedDepthState) {
+                context->OMSetDepthStencilState(m_cachedDepthState, 0);
+            }
+
+            // シェーダーの無効化（干渉防止）
+            context->GSSetShader(nullptr, nullptr, 0);
+            context->HSSetShader(nullptr, nullptr, 0);
+            context->DSSetShader(nullptr, nullptr, 0);
+
+            // 行列計算
+            Live2D::Cubism::Framework::CubismMatrix44 matrix;
+            matrix.LoadIdentity();
+
+            float modelCanvasH = _model->GetModel()->GetCanvasHeight();
+            if (modelCanvasH == 0) modelCanvasH = 2000.0f;
+
+            float aspect = vp.Width / vp.Height;
+            
+            // 画面に収まるようにスケール調整 (Base Fit)
+            float scale = 2.0f / modelCanvasH; 
+            matrix.Scale(scale / aspect, scale);
+
+            // Apply Actor Transform (Position & Scale)
+            if (auto owner = actorRef.Target()) {
+                Vector3 pos = owner->transform.GetPosition();
+                Vector3 scl = owner->transform.GetScale();
+                
+                // Translate first or after? 
+                // In CubismMatrix, operations are multiplied.
+                // We want to move the fitted model.
+                matrix.Translate(pos.x, pos.y);
+                matrix.Scale(scl.x, scl.y);
+            }
+
+            OutputDebugStringA("Live2DComponent::Draw - Before Model Draw\n");
+            _model->Draw(device, context, matrix);
+            OutputDebugStringA("Live2DComponent::Draw - After Model Draw\n");
         }
 
-        _model->Draw(device, context, matrix);
-    }
+        Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
+        OutputDebugStringA("Live2DComponent::Draw - After EndFrame\n");
 
-    Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
+    } catch (const std::exception& e) {
+        OutputDebugStringA("Live2DComponent::Draw - Exception caught: ");
+        OutputDebugStringA(e.what());
+        OutputDebugStringA("\n");
+    } catch (...) {
+        OutputDebugStringA("Live2DComponent::Draw - Unknown Exception caught!\n");
+    }
 
     // =========================================================
     // 【重要】レンダリングステートのリセット (後片付け)

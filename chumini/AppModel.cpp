@@ -441,5 +441,8 @@ void AppModel::Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Cs
     projection.MultiplyByMatrix(const_cast<Csm::CubismMatrix44*>(&matrix));
 
     _myRenderer->SetMvpMatrix(&projection);
+
+    OutputDebugStringA("AppModel::Draw - Calling _myRenderer->DrawModel()\n");
     _myRenderer->DrawModel();
+    OutputDebugStringA("AppModel::Draw - Finished _myRenderer->DrawModel()\n");
 }
