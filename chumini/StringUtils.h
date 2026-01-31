@@ -11,7 +11,7 @@ namespace util {
     // ============================================================
 
     /// <summary>
-    /// UTF-8文字列 → wstring (UTF-16) に変換
+    /// UTF-8 → wstring (UTF-16) に変換
     /// </summary>
     inline std::wstring Utf8ToWstring(const std::string& str) {
         if (str.empty()) return L"";
@@ -23,7 +23,7 @@ namespace util {
     }
 
     /// <summary>
-    /// wstring (UTF-16) → UTF-8文字列に変換
+    /// wstring (UTF-16) → UTF-8に変換
     /// </summary>
     inline std::string WstringToUtf8(const std::wstring& wstr) {
         if (wstr.empty()) return "";
@@ -35,8 +35,8 @@ namespace util {
     }
 
     /// <summary>
-    /// UTF-8文字列 → Shift-JIS に変換
-    /// Windows APIに日本語パスを渡す際に必要
+    /// UTF-8 → Shift-JIS に変換
+    /// Windowsapiに日本語パスを渡す際につかう
     /// </summary>
     inline std::string Utf8ToShiftJis(const std::string& utf8Str) {
         std::wstring wstr = Utf8ToWstring(utf8Str);
@@ -74,7 +74,6 @@ namespace util {
 
     /// <summary>
     /// UTF-8かどうかを判定して自動変換
-    /// 譜面ファイル読み込み等、エンコード不明な場合に使用
     /// </summary>
     inline std::wstring AutoDetectToWstring(const std::string& str) {
         if (str.empty()) return L"";
