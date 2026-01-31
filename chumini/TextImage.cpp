@@ -210,6 +210,36 @@ bool TextImage::SetText(const std::wstring& newText) {
     rt->DrawText(newText.c_str(), (UINT32)newText.size(), format.Get(),
         D2D1::RectF(0, 0, (FLOAT)width, (FLOAT)height), brush.Get());
     HRESULT hr = rt->EndDraw();
+    
+    // ★ D2DERR_RECREATE_TARGET の場合、レンダーターゲットを再作成
+    if (hr == D2DERR_RECREATE_TARGET) {
+        sf::debug::Debug::LogError("TextImage: D2DERR_RECREATE_TARGET - Recreating render target");
+        
+        // レンダーターゲットを再作成
+        rt.Reset();
+        brush.Reset();
+        
+        Microsoft::WRL::ComPtr<IDXGISurface> surface;
+        if (tex && SUCCEEDED(tex.As(&surface)) && d2dFactory) {
+            D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+                D2D1_RENDER_TARGET_TYPE_DEFAULT,
+                D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+                96.f, 96.f);
+            
+            if (SUCCEEDED(d2dFactory->CreateDxgiSurfaceRenderTarget(surface.Get(), &props, rt.GetAddressOf()))) {
+                // ブラシも再作成 (デフォルト白色)
+                rt->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), brush.GetAddressOf());
+                
+                // 再描画
+                rt->BeginDraw();
+                rt->Clear(D2D1::ColorF(0, 0));
+                rt->DrawText(newText.c_str(), (UINT32)newText.size(), format.Get(),
+                    D2D1::RectF(0, 0, (FLOAT)width, (FLOAT)height), brush.Get());
+                hr = rt->EndDraw();
+            }
+        }
+    }
+    
     if (FAILED(hr)) {
         sf::debug::Debug::LogError("TextImage: SetText EndDraw failed. HRESULT: " + std::to_string(hr));
         return false;
@@ -218,14 +248,32 @@ bool TextImage::SetText(const std::wstring& newText) {
 }
 
 void TextImage::Draw() {
+    // ★ SRV（シェーダーリソースビュー）の有効性チェック
+    // シーン遷移時にテクスチャが未作成の場合、描画をスキップ
+    if (!srv) {
+        return;
+    }
+
     auto* dx11 = sf::dx::DirectX11::Instance();
     if (!dx11) return;
+
+    auto device = dx11->GetMainDevice().GetDevice();
     auto context = dx11->GetMainDevice().GetContext();
 
+    // ★ コンテキストの有効性チェック
+    if (!context || !device) {
+        return;
+    }
+
     // Lazy create premultiplied blend state
+    // ★ 静的変数を使わず、毎回デバイスからブレンドステートを取得/作成するように変更
+    // （デバイスリセット時の問題を回避）
     static Microsoft::WRL::ComPtr<ID3D11BlendState> s_premulBlendState;
-    static std::once_flag s_blendStateFlag;
-    std::call_once(s_blendStateFlag, [&]() {
+    static ID3D11Device* s_lastDevice = nullptr;
+
+    // デバイスが変わったらブレンドステートを再作成
+    if (s_lastDevice != device || !s_premulBlendState) {
+        s_premulBlendState.Reset();
         D3D11_BLEND_DESC desc = {};
         desc.AlphaToCoverageEnable = FALSE;
         desc.IndependentBlendEnable = FALSE;
@@ -238,8 +286,11 @@ void TextImage::Draw() {
         desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
         desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
-        dx11->GetMainDevice().GetDevice()->CreateBlendState(&desc, s_premulBlendState.GetAddressOf());
-    });
+        HRESULT hr = device->CreateBlendState(&desc, s_premulBlendState.GetAddressOf());
+        if (SUCCEEDED(hr)) {
+            s_lastDevice = device;
+        }
+    }
 
     // Save old state
     Microsoft::WRL::ComPtr<ID3D11BlendState> oldState;

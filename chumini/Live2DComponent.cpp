@@ -177,6 +177,11 @@ void Live2DComponent::Draw() {
 
     // 4. トポロジーを基本のTriangleListに戻す
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    // ★5. ブレンドステート・深度ステンシル・ラスタライザをデフォルトに戻す（TextImage干渉防止）
+    context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
+    context->OMSetDepthStencilState(nullptr, 0);
+    context->RSSetState(nullptr);
 }
 
 Live2DComponent::~Live2DComponent() {
