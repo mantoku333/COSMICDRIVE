@@ -310,7 +310,7 @@ namespace app::test {
             titleOutline[i]->Create(
                 device,
                 L"SONG SELECT",     
-                L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",   
+                L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",   
                 120.0f,         
                 D2D1::ColorF(D2D1::ColorF::White),
                 1024, 240
@@ -327,7 +327,7 @@ namespace app::test {
         titleText->Create(
             device,
             L"SONG SELECT",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             120.0f,
             D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // ★色は「白」
             1024, 240
@@ -339,7 +339,7 @@ namespace app::test {
         songTitleText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             120.0f,
             D2D1::ColorF(D2D1::ColorF::White),
             1800, 200);
@@ -353,7 +353,7 @@ namespace app::test {
         artistText->Create(
             device,
             L"", // 初期値
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
@@ -368,7 +368,7 @@ namespace app::test {
         bpmText->Create(
             device,
             L"", // 初期値
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
@@ -383,7 +383,7 @@ namespace app::test {
         difficultyText->Create(
             device,
             L"", 
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             40.0f, 
             D2D1::ColorF(D2D1::ColorF::White), 
             512, 128
@@ -399,7 +399,7 @@ namespace app::test {
         genreText->Create(
             device,
             L"", 
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             100.0f, // 少し大きめ
             D2D1::ColorF(D2D1::ColorF::Yellow), // 目立つ色
             1024, 200
@@ -412,7 +412,7 @@ namespace app::test {
         prevGenreText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             50.0f, // フォントサイズダウン (70 -> 50)
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
@@ -425,7 +425,7 @@ namespace app::test {
         nextGenreText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             50.0f, // フォントサイズダウン (70 -> 50)
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
@@ -439,7 +439,7 @@ namespace app::test {
         highScoreText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             40.0f,
             D2D1::ColorF(D2D1::ColorF::White),
             1536, 128  // 横幅を1024から1536に拡大
@@ -452,7 +452,7 @@ namespace app::test {
         rankMark->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::Yellow),
             256, 256
@@ -466,7 +466,7 @@ namespace app::test {
         playerRatingText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             50.0f,
             D2D1::ColorF(D2D1::ColorF::Cyan),
             1024, 128
@@ -499,7 +499,7 @@ namespace app::test {
         ratingDetailLabelText->Create(
             device,
             L"RATING",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             60.0f,
             D2D1::ColorF(D2D1::ColorF::Cyan),
             512, 128
@@ -513,7 +513,7 @@ namespace app::test {
         ratingDetailTotalText->Create(
             device,
             L"",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             100.0f, // 大きく
             D2D1::ColorF(D2D1::ColorF::Cyan),
             1024, 200
@@ -527,7 +527,7 @@ namespace app::test {
         ratingDetailTitle->Create(
             device,
             L"Top 10 Charts",
-            L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+            L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             60.0f,
             D2D1::ColorF(D2D1::ColorF::Yellow),
             1024, 128
@@ -542,7 +542,7 @@ namespace app::test {
             line->Create(
                 device,
                 L"",
-                L"851\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8",
+                L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
                 40.0f,
                 D2D1::ColorF(D2D1::ColorF::White),
                 2048, 128

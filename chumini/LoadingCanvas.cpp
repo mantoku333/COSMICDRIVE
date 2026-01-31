@@ -25,7 +25,7 @@ namespace app::test {
         loadingText->Create(
             context,
             L"NOW LOADING...",
-            L"851\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8",
+            L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
             150.0f,
             D2D1::ColorF(D2D1::ColorF::White),
             2000, 128
@@ -34,14 +34,14 @@ namespace app::test {
 
         // 2. 曲タイトル (画面中央などでっかく)
         songTitleText = AddUI<sf::ui::TextImage>();
-        songTitleText->transform.SetScale(Vector3(6.5f, 2.5f, 1.0f));
+        songTitleText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         songTitleText->Create(
             context,
             L"", // 初期値は空
-            L"851\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8",
-            150.0f,
-            D2D1::ColorF(D2D1::ColorF::DeepSkyBlue),
-            2048, 200
+            L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+            120.0f,
+            D2D1::ColorF(D2D1::ColorF::White),
+            1800, 200
         );
         songTitleText->transform.SetPosition(Vector3(0, -200, 0));
 
@@ -50,14 +50,14 @@ namespace app::test {
 
         // 3. アーティスト (その下)
         artistText = AddUI<sf::ui::TextImage>();
-        artistText->transform.SetScale(Vector3(4.0f, 1.5f, 1.0f));
+        artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
             context,
             L"",
-            L"851\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8",
-            100.0f,
+            L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
+            80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray),
-            2048, 100
+            1024, 200
         );
         artistText->transform.SetPosition(Vector3(0, -350, 0));
         // ★修正: 最初は隠しておく！
