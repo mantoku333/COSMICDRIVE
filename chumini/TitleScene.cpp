@@ -60,6 +60,7 @@ namespace app::test {
     // =================================================================
     void TitleScene::Init()
     {
+        loadProgress = 0.0f;
         sf::debug::Debug::Log("TitleScene: Init開始");
 
         // 1. UI管理用アクターの生成とコンポーネント追加
@@ -73,6 +74,8 @@ namespace app::test {
             uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
         }
         
+        loadProgress = 0.2f;
+
         // 2. Live2D表示用アクター
         {
             auto live2dActor = Instantiate();
@@ -80,6 +83,8 @@ namespace app::test {
             if (l2dComp.Get()) {
                 // Load Model using Config
                 l2dComp->LoadModel(Config::MODEL_DIR, Config::MODEL_FILE);
+
+                loadProgress = 0.5f;
 
                 // Set Half Size
                 live2dActor.Target()->transform.SetScale({ 0.7f, 1.f, 1.0f });
@@ -95,11 +100,14 @@ namespace app::test {
             // [Hack] Reverted g_cube approach
         }
 
+        loadProgress = 0.6f;
+
         DirectWrite();
 
         bgmPlayer->SetPath("Assets/Sound/BGM.wav");
         bgmPlayer->Play();
 
+        loadProgress = 0.7f;
 
         // 2. Effekseerの初期化
         auto* dx11 = sf::dx::DirectX11::Instance();
@@ -116,6 +124,8 @@ namespace app::test {
                 // ファイル読み込み (icon.efk)
                 // キー名は "Icon" とします
                 effectManager->LoadEffekseer("Icon", u"Assets/Effects/TTT.efk");
+
+                loadProgress = 0.8f;
 
                 effectManager->LoadEffekseer("Test", u"Assets/Effects/meteo.efk");
 
@@ -134,6 +144,8 @@ namespace app::test {
         isButtonPressed = false;
 
         updateCommand.Bind(std::bind(&TitleScene::Update, this, std::placeholders::_1));
+
+        loadProgress = 1.0f;
     }
 
     // =================================================================

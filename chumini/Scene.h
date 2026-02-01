@@ -1,5 +1,6 @@
 #pragma once
 #include <mutex>
+#include <atomic>
 #include "Actor.h"
 #include "Ref.h"
 #include "list"
@@ -11,6 +12,8 @@ namespace sf
 	public:
 		IScene();
 		virtual ~IScene();
+
+        std::atomic<float> loadProgress{ 0.0f };
 
 	public:
 		void Load();

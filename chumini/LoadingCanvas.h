@@ -12,6 +12,12 @@ namespace app::test {
     public:
         void Begin() override;
         void Update(const sf::command::ICommand&);
+        void Draw() override;
+
+    private:
+        void DrawLoadingGauge();
+
+    public:
 
         // シーンから指示を受け取る関数
         void SetTargetScene(sf::SafePtr<sf::IScene> scene);
@@ -34,7 +40,7 @@ namespace app::test {
         float timer = 0.0f;
         bool isLoadCompleted = false;
 
-		const float MIN_LOADING_TIME = 1.0f; // 最低表示時間
+		float MIN_LOADING_TIME = 0.5f; // 最低表示時間 (可変)
 
         LoadingType currentType = LoadingType::Common;
     };
