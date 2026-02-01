@@ -1,4 +1,5 @@
 #include "DWriteContext.h"
+#include "DirectX11.h"
 #include <d2d1helper.h>
 #include <dwrite.h>
 #include "Debug.h"
@@ -168,17 +169,26 @@ bool DWriteContext::NeedsRecreate()
 
 bool DWriteContext::TryAutoRecreate()
 {
-    if (!sCachedSwapChain) {
-        sf::debug::Debug::LogError("[DWrite] TryAutoRecreate: No cached SwapChain");
+    // ★Always fetch the latest SwapChain from the engine core
+    // This fixes the "zombie" issue where cached pointer becomes invalid
+    auto* dx = sf::dx::DirectX11::Instance();
+    if (!dx) {
+         sf::debug::Debug::LogError("[DWrite] TryAutoRecreate: DirectX11 Instance is null");
+         return false;
+    }
+
+    IDXGISwapChain* liveSwapChain = dx->GetMainDevice().GetSwapChain();
+    if (!liveSwapChain) {
+        sf::debug::Debug::LogError("[DWrite] TryAutoRecreate: Live SwapChain is null");
         return false;
     }
     
-    sf::debug::Debug::Log("[DWrite] TryAutoRecreate: Starting auto-recovery");
+    sf::debug::Debug::Log("[DWrite] TryAutoRecreate: Fetching live SwapChain from DirectX11...");
     
-    bool result = RecreateFromSwapChain(sCachedSwapChain);
+    bool result = RecreateFromSwapChain(liveSwapChain);
     if (result) {
         sNeedsRecreate = false;
-        sf::debug::Debug::LogSafety("[DWrite] TryAutoRecreate: Auto-recovery Succeeded");
+        sf::debug::Debug::LogSafety("[DWrite] TryAutoRecreate: Auto-recovery Succeeded with live SwapChain");
     } else {
         sf::debug::Debug::LogError("[DWrite] TryAutoRecreate: Auto-recovery Failed");
     }

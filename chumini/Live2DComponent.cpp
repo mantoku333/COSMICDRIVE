@@ -2,6 +2,7 @@
 #include "Live2DManager.h"
 #include "DirectX11.h"
 #include "Actor.h"
+#include "Scene.h" // IScene定義用
 
 using namespace app::test;
 using namespace sf;
@@ -12,8 +13,21 @@ void Live2DComponent::Begin() {
 }
 
 void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileName) {
+    OutputDebugStringA("Live2DComponent::LoadModel - Start\n");
+
     // 確実に初期化しておく
     Live2DManager::GetInstance()->Initialize();
+
+    // ★GPU同期: 前のLive2Dリソースを使用中のGPUコマンドを完了させる
+    // これにより古いリソース解放と新しいリソース作成の競合を防止
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    if (dx11) {
+        auto context = dx11->GetMainDevice().GetContext();
+        if (context) {
+            context->Flush();
+            OutputDebugStringA("Live2DComponent::LoadModel - GPU Flushed before init\n");
+        }
+    }
 
     if (_model) {
         delete _model;
@@ -21,23 +35,37 @@ void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileN
     }
 
     _model = new AppModel();
-    auto* dx11 = sf::dx::DirectX11::Instance();
+    // Device取得はdx11->GetMainDevice().GetDevice()で再取得
     auto device = dx11->GetMainDevice().GetDevice();
+
+    if (!device) {
+        OutputDebugStringA("Live2DComponent::LoadModel - [ERROR] Device is null!\n");
+        return;
+    }
 
     // ★重要: レンダラーの静的初期化をモデルロードの前に行う (s_deviceの設定)
     // ★修正: 静的フラグで重複初期化を防止（シーン遷移時のクラッシュ防止）
     static ID3D11Device* s_initializedDevice = nullptr;
     if (s_initializedDevice != device) {
+        OutputDebugStringA("Live2DComponent::LoadModel - Initializing Static SDK Resources...\n");
         Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
         Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device);
         s_initializedDevice = device;
+        OutputDebugStringA("Live2DComponent::LoadModel - Static SDK Resources Initialized.\n");
+    } else {
+        OutputDebugStringA("Live2DComponent::LoadModel - Static SDK Resources already initialized for this device.\n");
     }
 
+    OutputDebugStringA("Live2DComponent::LoadModel - Calling _model->LoadAssets...\n");
     _model->LoadAssets(device, dir, fileName);
+    OutputDebugStringA("Live2DComponent::LoadModel - _model->LoadAssets finished.\n");
 
     auto renderer = _model->GetMyRenderer();
     if (renderer) {
         renderer->Initialize(_model->GetModel());
+        OutputDebugStringA("Live2DComponent::LoadModel - Renderer Initialized.\n");
+    } else {
+        OutputDebugStringA("Live2DComponent::LoadModel - [WARNING] Renderer is null after LoadAssets.\n");
     }
 }
 
@@ -66,6 +94,22 @@ void Live2DComponent::SetDragging(float x, float y) {
 }
 
 void Live2DComponent::Draw() {
+    // ★スレッドセーフ: Draw中はデストラクタを待機させる
+    std::lock_guard<std::mutex> lock(m_drawMutex);
+    
+    // ★シーン遷移クラッシュ防止: 破棄済みなら描画スキップ
+    if (m_isDestroyed) {
+        OutputDebugStringA("Live2DComponent::Draw - SKIPPED (destroyed)\n");
+        return;
+    }
+
+    // ★シーン遷移クラッシュ防止: シーンがDeActivate状態なら描画スキップ
+    auto owner = actorRef.Target();
+    if (!owner || !owner->GetScene().IsActivate()) {
+        OutputDebugStringA("Live2DComponent::Draw - SKIPPED (scene deactivated)\n");
+        return;
+    }
+
     if (!_model) return;
 
     auto* dx11 = sf::dx::DirectX11::Instance();
@@ -201,9 +245,32 @@ void Live2DComponent::Draw() {
     context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     context->OMSetDepthStencilState(nullptr, 0);
     context->RSSetState(nullptr);
+
+    // ★6. GPU同期: Intel GPUドライバのクラッシュ防止
+    // GPUコマンドを完了させてから次の処理に進む
+    context->Flush();
 }
 
 Live2DComponent::~Live2DComponent() {
+    // ★スレッドセーフ: Draw完了を待ってからリソース解放
+    std::lock_guard<std::mutex> lock(m_drawMutex);
+    
+    // ★破棄フラグを最初にセット（Draw呼び出しを防止）
+    m_isDestroyed = true;
+    OutputDebugStringA("Live2DComponent::~Live2DComponent - DESTRUCTOR CALLED\n");
+
+    // ★GPUコマンドフラッシュ: Intel GPUドライバのクラッシュ防止
+    // リソース解放前にGPUが描画コマンドを完了するのを待つ
+    auto* dx11 = sf::dx::DirectX11::Instance();
+    if (dx11) {
+        auto context = dx11->GetMainDevice().GetContext();
+        if (context) {
+            // GPU描画コマンドをフラッシュ
+            context->Flush();
+            OutputDebugStringA("Live2DComponent::~Live2DComponent - GPU Flushed\n");
+        }
+    }
+
     ReleaseCachedStates();
     if (_model) {
         delete _model;
@@ -255,4 +322,3 @@ void Live2DComponent::ReleaseCachedStates() {
     if (m_cachedDepthState) { m_cachedDepthState->Release(); m_cachedDepthState = nullptr; }
     m_statesInitialized = false;
 }
-

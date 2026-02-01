@@ -74,6 +74,14 @@ void sf::dx::DirectX11::SetRenderingDoubleBuffer3D()
 
 void sf::dx::DirectX11::SetRenderingDoubleBuffer2D()
 {
+	// シェーダーのクリア (D2Dとの競合を防ぐ)
+	auto* context = mainDevice.GetContext();
+	if (context) {
+		context->GSSetShader(nullptr, nullptr, 0);
+		context->HSSetShader(nullptr, nullptr, 0);
+		context->DSSetShader(nullptr, nullptr, 0);
+	}
+
 	//rb2d.NextBuffer();
 	rb2d.ClearBuffer(mainDevice);
 	rb2d.SetRBuffer(mainDevice, nullptr);

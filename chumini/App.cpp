@@ -1,4 +1,5 @@
 #include "App.h"
+#include "DWriteContext.h"
 #include "DirectX11.h"
 #include "ResidentScene.h"
 #include "Config.h"
@@ -113,9 +114,12 @@ void app::Application::Init()
 	//JobSystemの初期化
 	sf::jobsystem::JobSystem::Create(std::thread::hardware_concurrency() - 1);
 
-	//DirectXの初期化
 	sf::dx::DirectX11::Init();
 	sf::dx::DirectX11::Instance()->Create(gameWindow.hwnd);
+
+    // ★Explicitly Init DWriteContext here to ensure it has a valid SwapChain from the start
+    // This prevents "Wait for first failure" behavior
+    sf::ui::DWriteContext::InitFromSwapChain(sf::dx::DirectX11::Instance()->GetMainDevice().GetSwapChain());
 
 #ifdef USEGUI
 	//GUIの初期化

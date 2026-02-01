@@ -68,9 +68,14 @@ AppModel::~AppModel() {
         _physics = nullptr;
     }
 
-    // _myRenderer's destructor is protected, and it's managed by the framework/model usually?
-    // Or we should just leave it for now as previously decided to avoid compilation errors.
-    // if (_myRenderer) { delete _myRenderer; }
+    // ★重要: テクスチャ解放前にレンダラーのテクスチャバインドを解除
+    // 注意: レンダラー自体の削除は基底クラスCubismUserModelが行うため、ここではバインド解除のみ
+    if (_myRenderer) {
+        for (int i = 0; i < (int)_loadedTextures.size(); i++) {
+            _myRenderer->BindTexture(i, nullptr);
+        }
+        _myRenderer = nullptr; // 基底クラスが削除するので、ここではこれ以上の操作はしない
+    }
 
     for (auto* tex : _loadedTextures) {
         delete tex;
@@ -79,7 +84,13 @@ AppModel::~AppModel() {
 }
 
 // MATCH HEADER SIGNATURE: const std::string& dir, const std::string& fileName
+// MATCH HEADER SIGNATURE: const std::string& dir, const std::string& fileName
 void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const std::string& fileName) {
+    if (!device) {
+        OutputDebugStringA("AppModel::LoadAssets - [ERROR] Device is NULL!\n");
+        return;
+    }
+
     _modelHomeDir = dir;
     std::string model3JsonPath = _modelHomeDir + "/" + fileName;
 
@@ -105,6 +116,11 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
 
     // Create Renderer
     CubismRenderer* renderer = CubismRenderer::Create();
+    if (!renderer) {
+        OutputDebugStringA("AppModel::LoadAssets - [ERROR] Failed to create CubismRenderer!\n");
+        return;
+    }
+
     renderer->Initialize(GetModel());
     _myRenderer = static_cast<CubismRenderer_D3D11*>(renderer); // Cast to D3D11 specific renderer
 
