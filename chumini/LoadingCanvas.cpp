@@ -251,6 +251,11 @@ namespace app::test {
             context->Draw(1, 0);
         }
 
+        // Restore State (CRITICAL: Fix for "broken" rendering)
+        // GSを無効化し、トポロジを戻さないと次の描画(UI等)がおかしくなる
+        context->GSSetShader(nullptr, nullptr, 0);
+        context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
         // Restore Standard Shader
         dx11->ps2d.SetGPU(dx11->GetMainDevice());
     }
