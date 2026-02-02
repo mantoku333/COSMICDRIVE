@@ -15,10 +15,10 @@
 constexpr float judgeRange = 1.5f;
 
 /// 判定ウィンドウ（秒）
-/// Perfect: ±0.08秒、Great: ±0.3秒、Good: ±0.5秒
-constexpr float JUDGE_PERFECT = 0.08f;
-constexpr float JUDGE_GREAT = 0.3f;
-constexpr float JUDGE_GOOD = 0.5f;
+/// Perfect: ±0.050秒、Great: ±0.080秒、Good: ±0.120秒
+constexpr float JUDGE_PERFECT = 0.050f;
+constexpr float JUDGE_GREAT = 0.080f;
+constexpr float JUDGE_GOOD = 0.120f;
 
 /// 判定ウィンドウのエイリアス（cpp側で使用）
 inline constexpr float J_WIN_PERFECT = JUDGE_PERFECT;

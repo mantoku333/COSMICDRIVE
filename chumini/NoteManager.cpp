@@ -55,11 +55,6 @@ namespace app::test {
     static constexpr double K_OFFSET_SEC = 0.15;
     static constexpr float  INPUT_OFFSET_SEC = 0.0f;
 
-    static constexpr float J_WIN_PERFECT = 0.050f;
-    static constexpr float J_WIN_GREAT = J_WIN_PERFECT + 0.030f;
-    static constexpr float J_WIN_GOOD = J_WIN_GREAT + 0.030f;
-    static constexpr float J_POS_TOL_MULT = 2.0f;
-
     // ============================================================
     // テンポマップ構築
     // BPM変化イベントを時間順にソートし、
