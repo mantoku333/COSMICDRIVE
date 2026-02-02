@@ -2,6 +2,7 @@
 #include "GUI.h"
 
 std::vector<sf::Mesh*> sf::Mesh::meshes;
+std::mutex sf::Mesh::meshesMtx;
 
 sf::Mesh::~Mesh()
 {
@@ -10,6 +11,7 @@ sf::Mesh::~Mesh()
 
 void sf::Mesh::Activate()
 {
+	std::lock_guard<std::mutex> lock(meshesMtx);
 	auto it = std::find(meshes.begin(), meshes.end(), this);
 	if (it == meshes.end())
 	{
@@ -19,12 +21,14 @@ void sf::Mesh::Activate()
 
 void sf::Mesh::DeActivate()
 {
+	std::lock_guard<std::mutex> lock(meshesMtx);
 	auto it = std::remove(meshes.begin(), meshes.end(), this);
 	meshes.erase(it, meshes.end());
 }
 
 void sf::Mesh::DrawAll()
 {
+	std::lock_guard<std::mutex> lock(meshesMtx);
 	for (auto& i : meshes) {
 
 		try
@@ -40,6 +44,7 @@ void sf::Mesh::DrawAll()
 
 void sf::Mesh::DrawShadowAll()
 {
+	std::lock_guard<std::mutex> lock(meshesMtx);
 	for (auto& i : meshes) {
 		if (i->material.shadow)
 		{
@@ -62,7 +67,6 @@ DirectX::XMMATRIX sf::Mesh::WorldMatrix() const
 
 void sf::Mesh::Draw()
 {
-
 	sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
 
 	//ワールド変換行列を取得
@@ -98,6 +102,7 @@ void sf::Mesh::Draw()
 
 void sf::Mesh::ClearAllRegistered()
 {
+	std::lock_guard<std::mutex> lock(meshesMtx);
 	// リストに残っているポインタを全て忘れさせる
 	meshes.clear();
 }
