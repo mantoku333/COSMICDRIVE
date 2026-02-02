@@ -145,6 +145,8 @@ void ConfigCanvas::RebuildLayout()
 	AddBoolItem(L"FAST/SLOW", &gGameConfig.enableFastSlow);
 	AddBoolItem(L"Log Output", &gGameConfig.enableLog);
 	AddBoolItem(L"Command Log", &gGameConfig.enableCommandLog);
+	AddBoolItem(L"Input Latency", &gGameConfig.enableInputLatencyLog);
+	AddBoolItem(L"Sound Latency", &gGameConfig.enableSoundLatencyLog);
 
 	// ----------------------
 	// Control

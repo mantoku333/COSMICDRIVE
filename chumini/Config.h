@@ -29,6 +29,8 @@ namespace app::test{
         bool enableLog = true; // ログ出力のオンオフ（リリース時はfalse推奨）
         bool enableCommandLog = true; // コマンドログ出力のオンオフ
         bool enableDebugCamera = false; // デバッグカメラの有効化
+        bool enableInputLatencyLog = false; // 入力レイテンシ(MsgDelay)ログ
+        bool enableSoundLatencyLog = false; // 音声レイテンシ(InputToSound)ログ
     };
 
     struct SaveData {

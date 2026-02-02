@@ -101,6 +101,7 @@ void app::Application::Init()
 
 	//入力の初期化
 	SInput::Init();
+	SInput::Instance().InitRawInput(gameWindow.hwnd);
 
 	// Load Config
 	app::test::LoadConfig();
@@ -481,12 +482,33 @@ LRESULT app::Application::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 		break;
 
 	case WM_KEYDOWN:			//Key Down
-		SInput::Instance().SetKeyDown(static_cast<int>(wp));
+		{
+			SInput::Instance().SetKeyDown(static_cast<int>(wp));
+			
+			// Latency Check
+			if (app::test::gGameConfig.enableInputLatencyLog) {
+				LARGE_INTEGER rawQPC = SInput::Instance().GetLastRawInputQPC();
+				LARGE_INTEGER msgQPC; QueryPerformanceCounter(&msgQPC);
+				LARGE_INTEGER freq; QueryPerformanceFrequency(&freq);
+
+				double diffMicro = (double)(msgQPC.QuadPart - rawQPC.QuadPart) * 1000000.0 / freq.QuadPart;
+
+				// Format: "Key: [wp] Diff: [diff] us"
+				char buf[256];
+				sprintf_s(buf, "Key:%lld MsgDelay:%.1f us", wp, diffMicro);
+				sf::debug::Debug::Log(buf);
+			}
+		}
 		break;
 
 	case WM_KEYUP:				//Key Up
 		SInput::Instance().SetKeyUp(static_cast<int>(wp));
 		break;
+
+	case WM_INPUT:
+		SInput::Instance().ProcessRawInput(lp);
+		break;
+
 	case WM_LBUTTONDOWN:
 		SInput::Instance().SetMouseDown(0);
 		break;

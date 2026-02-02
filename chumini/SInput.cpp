@@ -1,4 +1,5 @@
 ﻿#include "SInput.h"
+#include <vector>
 
 KeyBoard::KeyBoard()
 {
@@ -260,7 +261,74 @@ void SInput::UnInit()
 
 SInput& SInput::Instance()
 {
+	if (instance == nullptr) {
+		instance = new SInput();
+	}
 	return *instance;
+}
+
+void SInput::InitRawInput(HWND hwnd)
+{
+	// Raw Input デバイスの登録 (キーボード)
+	RAWINPUTDEVICE Rid[1];
+
+	Rid[0].usUsagePage = 0x01; // Generic Desktop Controls
+	Rid[0].usUsage = 0x06;     // Keyboard
+	Rid[0].dwFlags = 0;        // デフォルト (フォーカス時のみ)
+	Rid[0].hwndTarget = hwnd;
+
+	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE)
+	{
+		// 登録失敗時のログ出力などをここに追加できます
+		OutputDebugStringA("RawInput Init Failed\n");
+	}
+}
+
+void SInput::ProcessRawInput(LPARAM lParam)
+{
+	UINT dwSize = 0;
+
+	// バッファサイズの取得
+	GetRawInputData((HRAWINPUT)lParam, RID_INPUT, NULL, &dwSize, sizeof(RAWINPUTHEADER));
+
+	if (dwSize == 0) return;
+
+	// バッファの確保 (スタックで十分なサイズならスタック確保でも良いが、可変長なので動的確保推奨)
+	// ここでは単純化のため、大きめのバッファをスタックに確保するか、vectorを使う
+	// 標準的なキーボード入力ならそこまで大きくならないが、安全のため動的確保
+	std::vector<BYTE> lpb(dwSize);
+
+	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb.data(), &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
+	{
+		return;
+	}
+
+	RAWINPUT* raw = (RAWINPUT*)lpb.data();
+
+	if (raw->header.dwType == RIM_TYPEKEYBOARD)
+	{
+		USHORT vKey = raw->data.keyboard.VKey;
+		USHORT flags = raw->data.keyboard.Flags;
+		// 拡張キーのフラグ処理などは必要に応じて追加
+
+		// Windows メッセージの VK コードと整合性を取る
+		if (vKey == 255) return; // 無効なキー
+
+		// RAWINPUTHEADERにはdwTimeがない場合があるため、メッセージ受信時刻を使用
+		lastRawTime = GetMessageTime();
+		QueryPerformanceCounter(&lastRawQPC);
+
+		bool isDown = !(flags & RI_KEY_BREAK);
+
+		if (isDown)
+		{
+			SetKeyDown(vKey);
+		}
+		else
+		{
+			SetKeyUp(vKey);
+		}
+	}
 }
 
 void SInput::Update()

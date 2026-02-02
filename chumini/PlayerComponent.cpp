@@ -257,7 +257,23 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                 if (result == JudgeResult::Skip)
                     sound->Play(app::test::SoundComponent::Sfx::EmptyTap);
                 else
+                {
                     sound->Play(app::test::SoundComponent::Sfx::Tap);
+                    
+                    if (app::test::gGameConfig.enableSoundLatencyLog) {
+                        // Audio Latency Check
+                        LARGE_INTEGER rawQPC = SInput::Instance().GetLastRawInputQPC();
+                        LARGE_INTEGER nowQPC; QueryPerformanceCounter(&nowQPC);
+                        LARGE_INTEGER freq; QueryPerformanceFrequency(&freq);
+
+                        double diffMicro = (double)(nowQPC.QuadPart - rawQPC.QuadPart) * 1000000.0 / freq.QuadPart;
+                        // convert to ms for easier reading? us is fine.
+
+                        char buf[256];
+                        sprintf_s(buf, "TapSound Played. InputToSound: %.1f us (%.2f ms)", diffMicro, diffMicro / 1000.0);
+                        sf::debug::Debug::Log(buf);
+                    }
+                }
             }
 
             auto* canvas = managerActor->GetComponent<app::test::IngameCanvas>();

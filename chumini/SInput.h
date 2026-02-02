@@ -247,6 +247,16 @@ public:
 
 	static SInput& Instance();
 
+	// Raw Input 初期化
+	void InitRawInput(HWND hwnd);
+	// Raw Input メッセージ処理
+	void ProcessRawInput(LPARAM lParam);
+
+	DWORD GetLastRawInputTime() const { return lastRawTime; }
+	LARGE_INTEGER GetLastRawInputQPC() const { return lastRawQPC; }
+
 private:
 	static SInput* instance;
+	DWORD lastRawTime = 0;
+	LARGE_INTEGER lastRawQPC = {};
 };
