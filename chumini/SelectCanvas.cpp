@@ -477,7 +477,7 @@ namespace app::test {
         // 切り捨て: 100倍して整数部分を取り、100で割る
         float truncatedRating = std::floor(playerRating * 100.0f) / 100.0f;
         wchar_t ratingBuf[64];
-        swprintf_s(ratingBuf, L"Rating: %.2f [R or Click]", truncatedRating);
+        swprintf_s(ratingBuf, L"Rating: %.2f", truncatedRating);
         playerRatingText->SetText(ratingBuf);
 
         // ★追加: レート詳細表示UI（初期は非表示）

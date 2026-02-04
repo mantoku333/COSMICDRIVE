@@ -13,6 +13,7 @@
 void app::test::ResultScene::Init()
 {
     // 1. Live2D Actor
+    /*
     auto l2dActor = Instantiate();
     live2DManager = l2dActor.Target()->AddComponent<Live2DComponent>();
 
@@ -24,6 +25,7 @@ void app::test::ResultScene::Init()
         l2dActor.Target()->transform.SetPosition({ 0.5f, -0.4f, 0.0f }); 
         l2dActor.Target()->transform.SetScale({ 0.75f, 0.75f, 0.75f }); 
     }
+    */
 
     // 2. UI Actor
 	uiManagerActor = Instantiate();
@@ -52,6 +54,7 @@ void app::test::ResultScene::OnActivated()
     }
 
     // Motion Selection based on Rank (S >= 800,000)
+    /*
     if (live2DManager.Get()) {
         // CyberCat only has "Idle" motion (GlitchNoise), so we play it regardless of score for now.
         // If specific motions are added later, restore the conditional branching.
@@ -60,6 +63,7 @@ void app::test::ResultScene::OnActivated()
         // ★Loop Glitch Animation
         live2DManager->StartGlitchMotion("GlitchNoise", 0);
     }
+    */
 }
 
 void app::test::ResultScene::Update(const sf::command::ICommand& command)
@@ -68,13 +72,17 @@ void app::test::ResultScene::Update(const sf::command::ICommand& command)
     sf::Scene<ResultScene>::Update(command);
     
     // Manual Update for Live2D as unrelated component
+    /*
     if (live2DManager.Get()) {
         live2DManager->Update();
     }
+    */
 }
 
 void app::test::ResultScene::DrawOverlay() {
     if (live2DManager.Get()) {
+    /*
         live2DManager->Draw();
+    */
     }
 }

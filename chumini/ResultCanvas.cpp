@@ -192,7 +192,7 @@ namespace app::test {
 		for (int i = 0; i < 4; ++i) {
 			rankOutline[i] = AddUI<sf::ui::TextImage>();
 			// 少しズラし、Z軸を奥(0.1f)にする
-			rankOutline[i]->transform.SetPosition(Vector3(450 + offsets[i].x, 100 + offsets[i].y, 0.1f));
+			rankOutline[i]->transform.SetPosition(Vector3(450 + offsets[i].x, -50 + offsets[i].y, 0.1f));
 			rankOutline[i]->transform.SetScale(Vector3(13, 13, 0)); // 巨大サイズ
 			rankOutline[i]->Create(
 				context,
@@ -206,7 +206,7 @@ namespace app::test {
 
 		// --- メイン文字 (手前に配置) ---
 		rankText = AddUI<sf::ui::TextImage>();
-		rankText->transform.SetPosition(Vector3(450, 100, 0));
+		rankText->transform.SetPosition(Vector3(450, -50, 0));
 		rankText->transform.SetScale(Vector3(13, 13, 0));
 		rankText->Create(
 			context,
