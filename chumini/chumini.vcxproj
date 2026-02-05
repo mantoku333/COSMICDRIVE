@@ -177,6 +177,7 @@
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="ChangeMotionComponent.cpp" />
     <ClCompile Include="ChedParser.cpp" />
+    <ClCompile Include="ChartLoader.cpp" />
     <ClCompile Include="Collider.cpp" />
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Component.cpp" />
@@ -336,6 +337,7 @@
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="ChangeMotionComponent.h" />
     <ClInclude Include="ChedParser.h" />
+    <ClInclude Include="ChartLoader.h" />
     <ClInclude Include="Collider.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="Component.h" />

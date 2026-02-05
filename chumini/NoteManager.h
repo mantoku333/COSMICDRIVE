@@ -6,6 +6,7 @@
 #include "App.h"
 #include "SceneChangeComponent.h"
 #include "TempoService.h"
+#include "ChartLoader.h"
 
 // ============================================================
 // 判定関連の定数
@@ -239,6 +240,9 @@ namespace app::test {
 
         /// テンポ管理サービス
         TempoService tempoService;
+
+        /// 譜面読み込みサービス
+        ChartLoader chartLoader;
 
         // --------------------------------------------
         // 内部メソッド

@@ -105,122 +105,21 @@ namespace app::test {
                 chartPath = selectedSong.chartPath;
         }
 
-        noteSequence.clear();
-        tempoMap.clear();
-        bool sawAnyTempoMeta = false;
-        noteOffset = 0.0;
-
         // ------------------------------------------
-        // 譜面ファイル読み込み
+        // 譜面ファイル読み込み（ChartLoaderに委譲）
         // ------------------------------------------
-        {
-            ChedParser parser;
-            std::wstring wChartPath = Utf8ToWstring(chartPath);
-            if (parser.Load(wChartPath)) {
-                sf::debug::Debug::Log("Chart Loaded: " + chartPath);
-            } else {
-                sf::debug::Debug::Log("Chart Load Failed: " + chartPath);
-            }
+        ChartLoadResult chartResult = chartLoader.Load(
+            chartPath, 
+            K_OFFSET_SEC, 
+            gGameConfig.offsetSec
+        );
+        
+        noteSequence = std::move(chartResult.notes);
+        tempoMap = std::move(chartResult.tempoMap);
+        noteOffset = chartResult.noteOffset;
+        maxTotalCombo = chartResult.maxTotalCombo;
+        songEndIndex = chartResult.songEndIndex;
 
-            noteSequence.clear();
-            tempoMap.clear();
-            sawAnyTempoMeta = false;
-            noteOffset = 0.0;
-
-            // テンポイベント取得
-            for (const auto& te : parser.tempos) {
-                TempoEvent e;
-                e.atBeat = te.absBeat;
-                e.bpm = te.bpm;
-                e.spb = 60.0 / e.bpm;
-                e.atSec = 0.0;
-                tempoMap.push_back(e);
-            }
-            sawAnyTempoMeta = !tempoMap.empty();
-
-            // ホールドノーツのペアリング用マップ
-            std::map<int, size_t> pendingHolds;
-
-            for (const auto& cn : parser.notes) {
-                NoteData nd;
-                nd.lane = std::clamp(cn.lane, 0, 5);
-                nd.mbt.measure = cn.measure;
-
-                double beatInMeasure = cn.beat;
-                nd.mbt.beat = static_cast<int>(std::floor(beatInMeasure));
-                nd.mbt.tick16 = static_cast<int>(std::round((beatInMeasure - nd.mbt.beat) * 16.0));
-                nd.mbt.beat = std::clamp(nd.mbt.beat, 0, K_BEATS_PER_MEASURE - 1);
-                nd.mbt.tick16 = std::clamp(nd.mbt.tick16, 0, 15);
-
-                nd.type = cn.type;
-                nd.absBeat = cn.absBeat;
-                nd.judged = false;
-                nd.result = JudgeResult::None;
-                nd.pairIndex = -1;
-                nd.duration = 0.0f;
-
-                // ホールドノーツ処理
-                if (cn.isHold) {
-                    int key = (cn.lane << 8) | cn.holdId;
-                    if (pendingHolds.count(key)) {
-                        size_t startIdx = pendingHolds[key];
-                        noteSequence[startIdx].type = NoteType::HoldStart;
-                        noteSequence[startIdx].pairIndex = (int)noteSequence.size();
-                        nd.type = NoteType::HoldEnd;
-                        nd.pairIndex = (int)startIdx;
-                        pendingHolds.erase(key);
-                    } else {
-                        nd.type = NoteType::HoldStart;
-                        pendingHolds[key] = noteSequence.size();
-                    }
-                }
-
-                noteSequence.push_back(nd);
-            }
-        }
-
-        if (!sawAnyTempoMeta)
-            tempoMap.push_back({ 0.0, K_DEFAULT_BPM, 60.0 / K_DEFAULT_BPM, 0.0 });
-        tempoService.BuildTempoMap(tempoMap);
-
-        // ヒット時間計算
-        for (auto& nd : noteSequence)
-            nd.hittime = static_cast<float>(tempoService.BeatToSeconds(nd.absBeat, tempoMap) + K_OFFSET_SEC + noteOffset + gGameConfig.offsetSec);
-
-        // ------------------------------------------
-        // 時間順ソート
-        // ------------------------------------------
-        std::stable_sort(noteSequence.begin(), noteSequence.end(),
-            [](const NoteData& a, const NoteData& b) {
-                return a.hittime < b.hittime;
-            });
-
-        // ソート後のペアリング再構築
-        std::vector<int> pendingStartIdx(6, -1);
-        for (int i = 0; i < (int)noteSequence.size(); ++i) {
-            noteSequence[i].pairIndex = -1;
-
-            if (noteSequence[i].type == NoteType::HoldStart) {
-                pendingStartIdx[noteSequence[i].lane] = i;
-            }
-            else if (noteSequence[i].type == NoteType::HoldEnd) {
-                int startIdx = pendingStartIdx[noteSequence[i].lane];
-                if (startIdx != -1) {
-                    noteSequence[startIdx].pairIndex = i;
-                    noteSequence[i].pairIndex = startIdx;
-                    pendingStartIdx[noteSequence[i].lane] = -1;
-                }
-            }
-        }
-
-        // ホールド長さ計算
-        for (auto& nd : noteSequence) {
-            if (nd.type == NoteType::HoldStart && nd.pairIndex != -1) {
-                if (nd.pairIndex < (int)noteSequence.size()) {
-                    nd.duration = noteSequence[nd.pairIndex].hittime - nd.hittime;
-                }
-            }
-        }
 
         // ------------------------------------------
         // レーンパラメータ
@@ -320,30 +219,7 @@ namespace app::test {
             sf::debug::Debug::LogError("InitInstancing Failed");
         }
 
-        // ------------------------------------------
-        // 最大コンボ数計算
-        // ------------------------------------------
-        maxTotalCombo = 0;
-        for (const auto& nd : noteSequence) {
-            if (nd.type == NoteType::SongEnd) continue;
-
-            if (nd.type == NoteType::Tap || nd.type == NoteType::Skill || nd.type == NoteType::HoldStart) {
-                maxTotalCombo++;
-            }
-
-            if (nd.type == NoteType::HoldStart && nd.pairIndex != -1 && nd.pairIndex < (int)noteSequence.size()) {
-                const auto& endNote = noteSequence[nd.pairIndex];
-                double startBeat = nd.absBeat;
-                double endBeat = endNote.absBeat;
-                double nextBeat = startBeat + 0.5;
-
-                while (nextBeat < endBeat) {
-                    maxTotalCombo++;
-                    nextBeat += 0.5;
-                }
-                maxTotalCombo++;
-            }
-        }
+        // 最大コンボ数はChartLoaderで計算済み
     }
 
     // ============================================================
