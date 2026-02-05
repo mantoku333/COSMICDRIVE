@@ -278,10 +278,11 @@ namespace app::test {
 
                     if (noteSequence[idx].type == NoteType::Skill) {
                         float diff = std::abs((songTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime);
-                        if (diff <= J_WIN_GOOD) {
+                        if (diff <= K_JUDGE_GOOD) {
                             noteSequence[idx].judged = true;
                             noteSequence[idx].result = JudgeResult::Perfect;
                             JudgeStatsService::AddResult(JudgeResult::Perfect);
+                            UpdateCombo(JudgeResult::Perfect);
 
                             if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
                                 scene->TriggerSkillEffect();
@@ -310,22 +311,7 @@ namespace app::test {
     // HoldStartは判定緩和（ホールドは始まりが重要）
     // ============================================================
     JudgeResult NoteManager::JudgeNote(NoteType type, float noteTime, float inputTime) {
-        // 入力オフセットを適用
-        inputTime += INPUT_OFFSET_SEC;
-        float diff = std::abs(noteTime - inputTime);
-
-        // HoldStartは判定ウィンドウを広げる（ホールドは開始が重要）
-        if (type == NoteType::HoldStart) {
-            if (diff <= J_WIN_PERFECT * 2.0f) return JudgeResult::Perfect;
-            if (diff <= J_WIN_GREAT * 1.5f)   return JudgeResult::Great;
-            if (diff <= J_WIN_GOOD * 1.5f)    return JudgeResult::Good;
-        } else {
-            // 通常ノーツの判定
-            if (diff <= J_WIN_PERFECT) return JudgeResult::Perfect;
-            if (diff <= J_WIN_GREAT)   return JudgeResult::Great;
-            if (diff <= J_WIN_GOOD)    return JudgeResult::Good;
-        }
-        return JudgeResult::Miss;
+        return judgeService.JudgeNote(type, noteTime, inputTime + INPUT_OFFSET_SEC);
     }
 
     // ============================================================
@@ -338,139 +324,141 @@ namespace app::test {
     // ============================================================
 
     JudgeResult NoteManager::JudgeLane(int lane, float inputTime) {
-        if (lane < 0 || lane >= 6) {
+        if (lane < 0 || lane >= (int)laneOrder.size()) {
             return JudgeResult::Skip;
         }
 
         auto& order = laneOrder[lane];
         size_t& head = laneHeads[lane];
+        
+        std::vector<JudgeCandidate> candidates;
+        candidates.reserve(K_LOOKAHEAD_NOTES);
+        
         size_t currentIdx = head;
-        int lookAheadCount = 0;
-        const int MAX_LOOKAHEAD = 5;
+        int count = 0;
+        const int MAX_SCAN = K_LOOKAHEAD_NOTES;
 
-        while (currentIdx < order.size() && lookAheadCount < MAX_LOOKAHEAD) {
-            if (noteSequence[order[currentIdx]].judged) {
-                if (currentIdx == head) ++head;
-                ++currentIdx;
-                continue;
+        while(currentIdx < order.size() && count < MAX_SCAN) {
+             int idx = order[currentIdx];
+             
+             if (noteSequence[idx].judged || noteSequence[idx].type == NoteType::SongEnd) {
+                 if (currentIdx == head) ++head;
+                 ++currentIdx;
+                 continue;
+             }
+             
+             if (idx >= (int)nextIndex) {
+                 break;
+             }
+            
+             auto* act = noteActors[idx].Target();
+             if (!act) {
+                 if (currentIdx == head) ++head;
+                 ++currentIdx;
+                 continue;
+             }
+             
+             if (noteSequence[idx].type == NoteType::HoldEnd || 
+                 noteSequence[idx].type == NoteType::Skill) {
+                     if (currentIdx == head) ++head;
+                     ++currentIdx;
+                     continue;
+             }
+             
+             float noteZ = act->transform.GetPosition().z;
+             
+             if (noteSequence[idx].type == NoteType::HoldStart) {
+                 float slopeRad = rotX * 3.14159265f / 180.0f;
+                 float halfLenZ = act->transform.GetScale().z * std::cos(slopeRad) * 0.5f;
+                 noteZ -= halfLenZ;
+             }
+             
+             JudgeCandidate c;
+             c.noteIndex = idx;
+             c.type = noteSequence[idx].type;
+             c.hittime = noteSequence[idx].hittime;
+             c.zPosition = noteZ;
+             candidates.push_back(c);
+             
+             ++count;
+             ++currentIdx;
+        }
+
+        if (candidates.empty()) return JudgeResult::Skip;
+
+        float adjustedInputTime = inputTime + INPUT_OFFSET_SEC;
+        float currentJudgeZ = -laneH * 0.5f + laneH * barRatio;
+
+        JugdeAction action = judgeService.JudgeCandidates(
+            adjustedInputTime, 
+            candidates, 
+            currentJudgeZ
+        );
+
+        if (action.result == JudgeResult::Skip) {
+            return JudgeResult::Skip;
+        }
+        
+        int idx = action.noteIndex;
+        auto& note = noteSequence[idx];
+        
+        JudgeResult res = action.result;
+        note.judged = true;
+        note.result = res;
+        JudgeStatsService::AddResult(res);
+        UpdateCombo(res);
+
+        if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
+            if (note.type == NoteType::Skill) {
+                if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
+                    scene->TriggerSkillEffect();
+                }
             }
 
-            int idx = order[currentIdx];
-
-            if (noteSequence[idx].type == NoteType::SongEnd) {
-                if (currentIdx == head) ++head;
-                ++currentIdx;
-                continue;
+            if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                float hitY = -265.0f;
+                float uiLaneWidth = 300.0f;
+                float sideOffset = 250.0f;
+                float hitX = 0.0f;
+                if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
+                else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
+                else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
+                float scale = (uiLaneWidth / 100.0f) * 1.5f;
+                canvas->SpawnHitEffect(hitX, hitY, scale, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
             }
+        }
 
-            if (idx >= (int)nextIndex) {
-                return JudgeResult::Skip;
+        if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
+            if (note.type == NoteType::HoldStart && note.pairIndex != -1) {
+                activeHolds[lane] = note.pairIndex;
+                activeHoldNextBeats[lane] = note.absBeat + 0.5;
             }
+        }
 
+        if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
+            float diff = (inputTime + INPUT_OFFSET_SEC) - note.hittime;
+            int type = (diff < 0) ? 1 : 2;
+            if (diff < 0) JudgeStatsService::AddFast();
+            else JudgeStatsService::AddSlow();
+
+            if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
+                canvas->ShowFastSlow(type);
+            }
+        }
+
+        // アクター破棄
+        bool shouldDestroy = true;
+        if (note.type == NoteType::HoldStart) shouldDestroy = false;
+        
+        if (shouldDestroy) {
             auto* act = noteActors[idx].Target();
-            if (!act) {
-                if (currentIdx == head) ++head;
-                ++currentIdx;
-                continue;
-            }
-
-            float noteZ = act->transform.GetPosition().z;
-
-            if (noteSequence[idx].type == NoteType::HoldEnd ||
-                noteSequence[idx].type == NoteType::Skill) {
-                if (currentIdx == head) ++head;
-                ++currentIdx;
-                continue;
-            }
-
-            if (noteSequence[idx].type == NoteType::HoldStart) {
-                float slopeRad = rotX * 3.14159265f / 180.0f;
-                float halfLenZ = act->transform.GetScale().z * std::cos(slopeRad) * 0.5f;
-                noteZ -= halfLenZ;
-            }
-
-            JudgeResult res = JudgeNote(noteSequence[idx].type, noteSequence[idx].hittime, inputTime);
-
-            if (res == JudgeResult::Miss) {
-                float diff = inputTime - noteSequence[idx].hittime;
-
-                if (diff > J_WIN_GOOD) {
-                    ++currentIdx;
-                    continue;
-                }
-                else if (diff < -J_WIN_GOOD) {
-                    return JudgeResult::Skip;
-                }
-
-                float diffZ = std::abs(noteZ - judgeZ);
-                if (diffZ > judgeRange * J_POS_TOL_MULT) {
-                    if (diff < 0) return JudgeResult::Skip;
-                    else {
-                        ++currentIdx;
-                        continue;
-                    }
-                }
-            }
-
-            // 判定適用
-            noteSequence[idx].judged = true;
-            noteSequence[idx].result = res;
-            JudgeStatsService::AddResult(res);
-
-            if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
-                if (noteSequence[idx].type == NoteType::Skill) {
-                    if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
-                        scene->TriggerSkillEffect();
-                    }
-                }
-
-                if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                    float hitY = -265.0f;
-                    float uiLaneWidth = 300.0f;
-                    float sideOffset = 250.0f;
-                    float hitX = 0.0f;
-                    if (lane <= 3) hitX = (lane - 1.5f) * uiLaneWidth;
-                    else if (lane == 4) hitX = (-1.5f * uiLaneWidth) - sideOffset;
-                    else if (lane == 5) hitX = (1.5f * uiLaneWidth) + sideOffset;
-                    float scale = (uiLaneWidth / 100.0f) * 1.5f;
-                    canvas->SpawnHitEffect(hitX, hitY, scale, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
-                }
-            }
-
-            // ホールド登録
-            if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
-                if (noteSequence[idx].type == NoteType::HoldStart && noteSequence[idx].pairIndex != -1) {
-                    activeHolds[lane] = noteSequence[idx].pairIndex;
-                    activeHoldNextBeats[lane] = noteSequence[idx].absBeat + 0.5;
-                }
-            }
-
-            // FAST/SLOW表示
-            if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
-                float diff = (inputTime + INPUT_OFFSET_SEC) - noteSequence[idx].hittime;
-                int type = (diff < 0) ? 1 : 2;
-                if (diff < 0) JudgeStatsService::AddFast();
-                else JudgeStatsService::AddSlow();
-
-                if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
-                    canvas->ShowFastSlow(type);
-                }
-            }
-
-            // アクター破棄
-            bool shouldDestroy = true;
-            if (noteSequence[idx].type == NoteType::HoldStart) shouldDestroy = false;
-            if (shouldDestroy) {
+            if (act) {
                 act->DeActivate();
                 act->Destroy();
             }
-
-            return res;
-
-            ++lookAheadCount;
         }
 
-        return JudgeResult::Skip;
+        return res;
     }
 
     void NoteManager::JudgeBatch(const std::vector<int>& pressedLanes, float inputTime) {
@@ -490,6 +478,7 @@ namespace app::test {
             note.judged = true;
             note.result = JudgeResult::Perfect;
             JudgeStatsService::AddResult(JudgeResult::Perfect);
+            UpdateCombo(JudgeResult::Perfect);
         }
 
         if (!sceneChanger.isNull()) {
@@ -513,7 +502,7 @@ namespace app::test {
         if (songEndIndex >= 0 && songEndIndex < (int)noteSequence.size()) {
             auto& songEnd = noteSequence[songEndIndex];
             if (!songEnd.judged && songEndIndex < (int)nextIndex) {
-                if (songTime > songEnd.hittime + J_WIN_GOOD) {
+                if (songTime > songEnd.hittime + K_JUDGE_GOOD) {
                     if (!sceneChanger.isNull()) {
                         sf::Mesh::ClearAllRegistered();
                         ShowCursor(TRUE);
@@ -540,10 +529,11 @@ namespace app::test {
 
                 if (noteSequence[idx].type == NoteType::SongEnd) { ++head; continue; }
 
-                if (songTime > noteSequence[idx].hittime + J_WIN_GOOD) {
+                if (songTime > noteSequence[idx].hittime + K_JUDGE_GOOD) {
                     noteSequence[idx].judged = true;
                     noteSequence[idx].result = JudgeResult::Miss;
                     JudgeStatsService::AddResult(JudgeResult::Miss);
+                    UpdateCombo(JudgeResult::Miss);
 
                     if (noteSequence[idx].type == NoteType::HoldStart) {
                         if (noteSequence[idx].pairIndex != -1) {
@@ -684,11 +674,12 @@ namespace app::test {
             }
 
             // 終端判定
-            if (songTime >= endNote.hittime - J_WIN_PERFECT) {
+            if (songTime >= endNote.hittime - K_JUDGE_PERFECT) {
                 JudgeResult res = JudgeResult::Perfect;
                 endNote.judged = true;
                 endNote.result = res;
                 JudgeStatsService::AddResult(res);
+                UpdateCombo(res);
 
                 if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
                     sound->Play(GetHitSfxPath(endNote.type));
@@ -727,10 +718,11 @@ namespace app::test {
                         if (nextNote.type == NoteType::HoldStart) {
                             float diff = std::abs(nextNote.hittime - songTime);
 
-                            if (diff <= J_WIN_GOOD) {
+                            if (diff <= K_JUDGE_GOOD) {
                                 nextNote.judged = true;
                                 nextNote.result = JudgeResult::Perfect;
                                 JudgeStatsService::AddResult(JudgeResult::Perfect);
+                                UpdateCombo(JudgeResult::Perfect);
 
                                 if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
                                     sound->Play(GetHitSfxPath(NoteType::Tap));

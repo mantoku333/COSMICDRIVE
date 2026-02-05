@@ -7,33 +7,8 @@
 #include "SceneChangeComponent.h"
 #include "TempoService.h"
 #include "ChartLoader.h"
-
-// ============================================================
-// 判定関連の定数
-// ============================================================
-
-/// 判定範囲（Z座標の許容距離）
-/// ノーツが判定ラインに近いかどうかを判定する際に使用
-constexpr float judgeRange = 1.5f;
-
-/// 判定ウィンドウ（秒）
-/// Perfect: ±0.050秒、Great: ±0.080秒、Good: ±0.120秒
-constexpr float JUDGE_PERFECT = 0.050f;
-constexpr float JUDGE_GREAT = 0.080f;
-constexpr float JUDGE_GOOD = 0.120f;
-
-/// 判定ウィンドウのエイリアス（cpp側で使用）
-inline constexpr float J_WIN_PERFECT = JUDGE_PERFECT;
-inline constexpr float J_WIN_GREAT = JUDGE_GREAT;
-inline constexpr float J_WIN_GOOD = JUDGE_GOOD;
-
-/// 同時押し・トリル対応のパラメータ
-/// J_LOOKAHEAD_NOTES: 先読みするノーツ数（同時押し時に複数候補から選択）
-/// J_ASSIGN_EARLY_BIAS: 早押しへの微小ペナルティ（早い側を優先）
-/// J_POS_TOL_MULT: 位置判定の許容倍率
-inline constexpr int   J_LOOKAHEAD_NOTES = 5;
-inline constexpr float J_ASSIGN_EARLY_BIAS = 0.005f;
-inline constexpr float J_POS_TOL_MULT = 2.0f;
+#include "JudgeService.h"
+#include "JudgeConstants.h"
 
 namespace app::test {
 
@@ -243,6 +218,9 @@ namespace app::test {
 
         /// 譜面読み込みサービス
         ChartLoader chartLoader;
+
+        /// 判定ロジックサービス
+        JudgeService judgeService;
 
         // --------------------------------------------
         // 内部メソッド
