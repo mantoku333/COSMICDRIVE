@@ -5,6 +5,7 @@
 #include <string>
 #include "App.h"
 #include "SceneChangeComponent.h"
+#include "TempoService.h"
 
 // ============================================================
 // 判定関連の定数
@@ -35,16 +36,7 @@ inline constexpr float J_POS_TOL_MULT = 2.0f;
 
 namespace app::test {
 
-    // ============================================================
-    // BPM変化対応用の構造体
-    // 曲中でBPMが変化する場合、各変化点の情報を保持
-    // ============================================================
-    struct TempoEvent {
-        double atBeat = 0.0;  ///< この変化が起きる拍数
-        double bpm = 120.0;   ///< 新しいテンポ（BPM）
-        double spb = 0.5;     ///< Seconds Per Beat（1拍あたりの秒数）
-        double atSec = 0.0;   ///< この変化が起きる秒数（計算で求める）
-    };
+    // TempoEvent は TempoService.h にて定義済み
 
     // ============================================================
     // NoteManager - ノーツ管理クラス
@@ -244,6 +236,9 @@ namespace app::test {
         /// マウススラッシュ用（スキルノーツ判定）
         POINT lastCursorPos = { 0, 0 };
         float mouseSpeed = 0.0f;
+
+        /// テンポ管理サービス
+        TempoService tempoService;
 
         // --------------------------------------------
         // 内部メソッド

@@ -274,6 +274,7 @@
     <ClCompile Include="MoveComponent.cpp" />
     <ClCompile Include="NoteComponent.cpp" />
     <ClCompile Include="NoteManager.cpp" />
+    <ClCompile Include="TempoService.cpp" />
     <ClCompile Include="OffScreenRTV.cpp" />
     <ClCompile Include="OnScreenRTV.cpp" />
     <ClCompile Include="PixelShader.cpp" />
@@ -451,6 +452,7 @@
     <ClInclude Include="NoteComponent.h" />
     <ClInclude Include="NoteData.h" />
     <ClInclude Include="NoteManager.h" />
+    <ClInclude Include="TempoService.h" />
     <ClInclude Include="OffScreenRTV.h" />
     <ClInclude Include="OnScreenRTV.h" />
     <ClInclude Include="PixelShader.h" />
