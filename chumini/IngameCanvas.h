@@ -40,7 +40,7 @@ namespace app
 
 			void UpdateJacketImage();
 
-			NoteManager* noteManager = nullptr;
+			sf::SafePtr<NoteManager> noteManager;
 			void DestroyEffect(sf::ui::Image* effect);
 
 			// 依存性注入（Dependency Injection）

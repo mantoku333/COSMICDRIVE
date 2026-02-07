@@ -22,7 +22,7 @@ namespace app::test {
         float elapsed = 0.f;
 
     private:
-        NoteManager* noteManager = nullptr;
+        sf::SafePtr<NoteManager> noteManager;
 
         sf::command::Command<> updateCommand;
 

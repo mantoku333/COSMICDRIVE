@@ -403,13 +403,6 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 		}
 	}
 	else if (state == State::Playing) {
-		// "START" 表示を一定時間で消す処理が必要ならCanvas側でタイマーを持つか、
-		// ここで少し待ってから非表示にする指示を送る。
-		// 今回は簡易的に、少し時間が経ったら消すようにCanvasへ再送してもいいが、
-		// UpdateCountdownDisplayのロジック的に 0以下なら非表示になるので、
-		// START表示を残したければ別途タイマーが必要。
-		// ここではシンプルに、Playingに入ったら少しの間(例えば1秒)STARTを出し続ける処理を入れるか、
-		// あるいはCanvas側がStart表示状態を持続させるか。
 		
 		if (startDisplayTimer > 0.0f) {
 			startDisplayTimer -= sf::Time::DeltaTime();

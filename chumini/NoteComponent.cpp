@@ -94,7 +94,7 @@ namespace app::test {
         if (!isActive) return;
 
         // マネージャがいなければ時間を知れないので動かない
-        if (!noteManager) return;
+        if (noteManager.isNull()) return;
 
         auto actor = actorRef.Target();
         if (!actor) return;

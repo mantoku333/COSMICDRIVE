@@ -315,7 +315,7 @@ namespace app::test {
 	}
 
     void IngameCanvas::UpdateScoreDisplay() {
-        if (!scoreText || !rankText || !noteManager) return;
+        if (!scoreText || !rankText || noteManager.isNull()) return;
 
         int maxCombo = noteManager->GetMaxTotalCombo();
         if (maxCombo <= 0) maxCombo = 1; // Safety
@@ -648,7 +648,7 @@ namespace app::test {
     }
 
     void IngameCanvas::DrawScoreGauge() {
-        if (!noteManager) return;
+        if (noteManager.isNull()) return;
         int maxCombo = noteManager->GetMaxTotalCombo();
         if (maxCombo <= 0) maxCombo = 1;
 
