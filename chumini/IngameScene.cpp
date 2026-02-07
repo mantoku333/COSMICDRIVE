@@ -14,7 +14,6 @@
 #include "SongInfo.h"
 #include "ScoreManager.h"
 #include "SoundResource.h"
-#include "JudgeStatsService.h"
 #include "GUI.h"
 #include "SInput.h"
 
@@ -29,6 +28,11 @@ namespace {
     using sf::util::Utf8ToShiftJis;
 }
 
+app::test::IngameScene::~IngameScene()
+{
+    // シーン破棄時、セッションをフォールバックにコピー（ResultSceneがアクセス可能に）
+    SetCurrentSession(nullptr);
+}
 
 void app::test::IngameScene::Init()
 {

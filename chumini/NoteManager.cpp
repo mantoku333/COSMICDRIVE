@@ -17,7 +17,7 @@
 #include <numeric>
 #include <cmath>
 #include <map>
-#include "JudgeStatsService.h"
+#include "GameSession.h"
 #include "ChedParser.h"
 #include "ResultScene.h"
 #include "IngameCanvas.h"
@@ -88,7 +88,7 @@ namespace app::test {
         }
 
         isPlaying = false;
-        JudgeStatsService::Reset();
+        GetCurrentSession().Reset();
 
         GetCursorPos(&lastCursorPos);
         mouseSpeed = 0.0f;
@@ -281,7 +281,7 @@ namespace app::test {
                         if (diff <= K_JUDGE_GOOD) {
                             noteSequence[idx].judged = true;
                             noteSequence[idx].result = JudgeResult::Perfect;
-                            JudgeStatsService::AddResult(JudgeResult::Perfect);
+                            GetCurrentSession().AddResult(JudgeResult::Perfect);
                             UpdateCombo(JudgeResult::Perfect);
 
                             if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
@@ -405,7 +405,7 @@ namespace app::test {
         JudgeResult res = action.result;
         note.judged = true;
         note.result = res;
-        JudgeStatsService::AddResult(res);
+        GetCurrentSession().AddResult(res);
         UpdateCombo(res);
 
         if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
@@ -438,8 +438,8 @@ namespace app::test {
         if (res != JudgeResult::Miss && res != JudgeResult::Skip) {
             float diff = (inputTime + INPUT_OFFSET_SEC) - note.hittime;
             int type = (diff < 0) ? 1 : 2;
-            if (diff < 0) JudgeStatsService::AddFast();
-            else JudgeStatsService::AddSlow();
+            if (diff < 0) GetCurrentSession().AddFast();
+            else GetCurrentSession().AddSlow();
 
             if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
                 canvas->ShowFastSlow(type);
@@ -477,7 +477,7 @@ namespace app::test {
 
             note.judged = true;
             note.result = JudgeResult::Perfect;
-            JudgeStatsService::AddResult(JudgeResult::Perfect);
+            GetCurrentSession().AddResult(JudgeResult::Perfect);
             UpdateCombo(JudgeResult::Perfect);
         }
 
@@ -532,7 +532,7 @@ namespace app::test {
                 if (songTime > noteSequence[idx].hittime + K_JUDGE_GOOD) {
                     noteSequence[idx].judged = true;
                     noteSequence[idx].result = JudgeResult::Miss;
-                    JudgeStatsService::AddResult(JudgeResult::Miss);
+                    GetCurrentSession().AddResult(JudgeResult::Miss);
                     UpdateCombo(JudgeResult::Miss);
 
                     if (noteSequence[idx].type == NoteType::HoldStart) {
@@ -663,7 +663,7 @@ namespace app::test {
             double curBeat = SecondsToBeat(songTime);
             while (curBeat >= activeHoldNextBeats[lane] && activeHoldNextBeats[lane] < endNote.absBeat) {
                 JudgeResult res = JudgeResult::Perfect;
-                JudgeStatsService::AddResult(res);
+                GetCurrentSession().AddResult(res);
                 UpdateCombo(res);
                 activeHoldNextBeats[lane] += 0.5;
             }
@@ -673,7 +673,7 @@ namespace app::test {
                 JudgeResult res = JudgeResult::Perfect;
                 endNote.judged = true;
                 endNote.result = res;
-                JudgeStatsService::AddResult(res);
+                GetCurrentSession().AddResult(res);
                 UpdateCombo(res);
 
                 if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {
@@ -716,7 +716,7 @@ namespace app::test {
                             if (diff <= K_JUDGE_GOOD) {
                                 nextNote.judged = true;
                                 nextNote.result = JudgeResult::Perfect;
-                                JudgeStatsService::AddResult(JudgeResult::Perfect);
+                                GetCurrentSession().AddResult(JudgeResult::Perfect);
                                 UpdateCombo(JudgeResult::Perfect);
 
                                 if (auto* sound = actorRef.Target()->GetComponent<SoundComponent>()) {

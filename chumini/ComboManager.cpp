@@ -1,5 +1,5 @@
 #include "ComboManager.h"
-#include "JudgeStatsService.h"
+#include "GameSession.h"
 
 namespace app::test {
 
@@ -24,7 +24,7 @@ namespace app::test {
 
     void ComboManager::AddCombo(int amount) {
         currentCombo += amount;
-        JudgeStatsService::AddCombo(amount);
+        GetCurrentSession().AddCombo(amount);
     }
 
     int ComboManager::GetCurrentCombo() const {

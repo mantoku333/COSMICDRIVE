@@ -4,7 +4,7 @@
 #include "Time.h"
 #include "NoteManager.h"
 #include "IngameScene.h"
-#include "JudgeStatsService.h"
+#include "GameSession.h"
 #include <algorithm>
 #include "DirectX11.h"
 #include "StringUtils.h"  // 文字コード変換ユーティリティ
@@ -219,11 +219,11 @@ namespace app::test {
 
 
 
-		int combo = JudgeStatsService::GetCount(JudgeResult::Perfect) + JudgeStatsService::GetCount(JudgeResult::Great) + JudgeStatsService::GetCount(JudgeResult::Good); // 簡易計算 or JudgeStatsService::GetCombo() if available
+		int combo = GetCurrentSession().GetCount(JudgeResult::Perfect) + GetCurrentSession().GetCount(JudgeResult::Great) + GetCurrentSession().GetCount(JudgeResult::Good); // 簡易計算 or GetCurrentSession().GetCombo() if available
 
 		// ... (コンボ制御はあとで)
-		// JudgeStatsService::GetCombo() があればそれを使う
-		combo = JudgeStatsService::GetCombo();
+		// GetCurrentSession().GetCombo() があればそれを使う
+		combo = GetCurrentSession().GetCombo();
 
 		// コンボ変動時の初期化/脈動判定
 		if (lastCombo == -1) {
@@ -258,7 +258,7 @@ namespace app::test {
 		UpdateJudgeCountDisplay();
 
 		// Updateでの判定結果更新
-		JudgeResult currentJudge = JudgeStatsService::GetLastResult();
+		JudgeResult currentJudge = GetCurrentSession().GetLastResult();
 		if (currentJudge != lastJudgeResult) {
 			SetJudgeImage(currentJudge);
 			lastJudgeResult = currentJudge;
@@ -267,10 +267,10 @@ namespace app::test {
 		// 判定脈動ロジック
 		// カウントダウン中は適用しない
 		if (!isCountdownActive) {
-			int currentTotalJudges = JudgeStatsService::GetCount(JudgeResult::Perfect)
-				+ JudgeStatsService::GetCount(JudgeResult::Great)
-				+ JudgeStatsService::GetCount(JudgeResult::Good)
-				+ JudgeStatsService::GetCount(JudgeResult::Miss);
+			int currentTotalJudges = GetCurrentSession().GetCount(JudgeResult::Perfect)
+				+ GetCurrentSession().GetCount(JudgeResult::Great)
+				+ GetCurrentSession().GetCount(JudgeResult::Good)
+				+ GetCurrentSession().GetCount(JudgeResult::Miss);
 
 			if (lastTotalJudges == -1) {
 				lastTotalJudges = currentTotalJudges;
@@ -322,9 +322,9 @@ namespace app::test {
         if (maxCombo <= 0) maxCombo = 1; // Safety
 
         // Current weighted sum
-        int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
-        int great = JudgeStatsService::GetCount(JudgeResult::Great);
-        int good = JudgeStatsService::GetCount(JudgeResult::Good);
+        int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
+        int great = GetCurrentSession().GetCount(JudgeResult::Great);
+        int good = GetCurrentSession().GetCount(JudgeResult::Good);
         // Miss doesn't add score
 
         // Calculation: (CurrentSum / MaxPossibleSum) * 1000000
@@ -390,10 +390,10 @@ namespace app::test {
 
 	void IngameCanvas::UpdateJudgeCountDisplay()
 	{
-		int p = JudgeStatsService::GetCount(JudgeResult::Perfect);
-		int gr = JudgeStatsService::GetCount(JudgeResult::Great);
-		int go = JudgeStatsService::GetCount(JudgeResult::Good);
-		int m = JudgeStatsService::GetCount(JudgeResult::Miss);
+		int p = GetCurrentSession().GetCount(JudgeResult::Perfect);
+		int gr = GetCurrentSession().GetCount(JudgeResult::Great);
+		int go = GetCurrentSession().GetCount(JudgeResult::Good);
+		int m = GetCurrentSession().GetCount(JudgeResult::Miss);
 
 		wchar_t buf[64];
 		
@@ -656,10 +656,10 @@ namespace app::test {
         int maxCombo = noteManager->GetMaxTotalCombo();
         if (maxCombo <= 0) maxCombo = 1;
 
-        int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
-        int great = JudgeStatsService::GetCount(JudgeResult::Great);
-        int good = JudgeStatsService::GetCount(JudgeResult::Good);
-        int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
+        int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
+        int great = GetCurrentSession().GetCount(JudgeResult::Great);
+        int good = GetCurrentSession().GetCount(JudgeResult::Good);
+        int miss = GetCurrentSession().GetCount(JudgeResult::Miss);
 
         // Simple Score based progress
         double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;

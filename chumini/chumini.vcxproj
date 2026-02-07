@@ -222,7 +222,6 @@
     <ClCompile Include="JobSystem.cpp" />
     <ClCompile Include="ComboManager.cpp" />
     <ClCompile Include="JudgeService.cpp" />
-    <ClCompile Include="JudgeStatsService.cpp" />
     <ClCompile Include="Live2DComponent.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismCdiJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismDefaultParameterId.cpp" />
@@ -393,7 +392,6 @@
     <ClInclude Include="ComboManager.h" />
     <ClInclude Include="JudgeConstants.h" />
     <ClInclude Include="JudgeService.h" />
-    <ClInclude Include="JudgeStatsService.h" />
     <ClInclude Include="Live2DComponent.h" />
     <ClInclude Include="Live2DManager.h" />
     <ClInclude Include="Live2D\Framework\src\CubismCdiJson.hpp" />

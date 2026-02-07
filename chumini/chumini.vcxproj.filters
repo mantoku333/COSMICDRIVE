@@ -375,9 +375,6 @@
     <ClCompile Include="TextImage.cpp">
       <Filter>App\UItext</Filter>
     </ClCompile>
-    <ClCompile Include="JudgeStatsService.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
     <ClCompile Include="ScoreManager.cpp">
       <Filter>App</Filter>
     </ClCompile>
@@ -884,9 +881,6 @@
     </ClInclude>
     <ClInclude Include="TextImage.h">
       <Filter>App\UItext</Filter>
-    </ClInclude>
-    <ClInclude Include="JudgeStatsService.h">
-      <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="ChedParser.h">
       <Filter>App</Filter>

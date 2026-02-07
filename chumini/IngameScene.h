@@ -25,10 +25,13 @@ namespace app
 		{
 		public:
 
-			void Init()override;
+		void Init()override;
 			void Update(const sf::command::ICommand& command);
 
 			void OnActivated() override;
+
+			/// デストラクタ - セッションをフォールバックにコピー
+			~IngameScene();
 
             void Draw() override;
 

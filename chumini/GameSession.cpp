@@ -111,11 +111,15 @@ namespace app::test {
 
     // 現在のアクティブなセッションポインタ
     static GameSession* g_currentSessionPtr = nullptr;
-    // フォールバック用のデフォルトセッション
+    // フォールバック用のデフォルトセッション（シーン遷移後も残る）
     static GameSession g_fallbackSession;
 
     void SetCurrentSession(GameSession* session)
     {
+        if (session == nullptr && g_currentSessionPtr != nullptr) {
+            // シーン終了時、現在のセッションデータをフォールバックにコピー
+            g_fallbackSession = *g_currentSessionPtr;
+        }
         g_currentSessionPtr = session;
     }
 

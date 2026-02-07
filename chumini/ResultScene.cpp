@@ -1,8 +1,7 @@
 #include "ResultScene.h"
 #include "ResultCanvas.h"
 #include "IngameCanvas.h"
-#include "JudgeStatsService.h"
-#include "JudgeStatsService.h"
+#include "GameSession.h"
 #include "Actor.h"
 #include "Live2DComponent.h"
 #include "SceneChangeComponent.h" 
@@ -41,10 +40,10 @@ void app::test::ResultScene::OnActivated()
     // OnActivated runs when the scene actually appears after gameplay.
 
     // Score Calculation
-    int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
-    int great = JudgeStatsService::GetCount(JudgeResult::Great);
-    int good = JudgeStatsService::GetCount(JudgeResult::Good);
-    int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
+    int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
+    int great = GetCurrentSession().GetCount(JudgeResult::Great);
+    int good = GetCurrentSession().GetCount(JudgeResult::Good);
+    int miss = GetCurrentSession().GetCount(JudgeResult::Miss);
     
     int totalNotes = perfect + great + good + miss;
     int score = 0;

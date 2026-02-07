@@ -1,5 +1,5 @@
 #include "ResultCanvas.h"
-#include "JudgeStatsService.h"
+#include "GameSession.h"
 #include "SelectScene.h" 
 #include "DirectX11.h"
 #include <string>
@@ -220,13 +220,13 @@ namespace app::test {
 		// =========================================================
 		// 4. スコア計算 & ランク判定ロジック
 		// =========================================================
-		int perfect = JudgeStatsService::GetCount(JudgeResult::Perfect);
-		int great = JudgeStatsService::GetCount(JudgeResult::Great);
-		int good = JudgeStatsService::GetCount(JudgeResult::Good);
-		int miss = JudgeStatsService::GetCount(JudgeResult::Miss);
-		int fast = JudgeStatsService::GetFastCount();
-		int slow = JudgeStatsService::GetSlowCount();
-		int maxCombo = JudgeStatsService::GetMaxCombo();
+		int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
+		int great = GetCurrentSession().GetCount(JudgeResult::Great);
+		int good = GetCurrentSession().GetCount(JudgeResult::Good);
+		int miss = GetCurrentSession().GetCount(JudgeResult::Miss);
+		int fast = GetCurrentSession().GetFastCount();
+		int slow = GetCurrentSession().GetSlowCount();
+		int maxCombo = GetCurrentSession().GetMaxCombo();
 
 		// 簡易スコア計算 (満点 1,000,000 点)
 		int totalNotes = perfect + great + good + miss;
@@ -286,9 +286,9 @@ namespace app::test {
 		}
 
         // --- Save Score ---
-        std::string chartPath = JudgeStatsService::GetChartPath();
-        int difficulty = JudgeStatsService::GetDifficulty();
-        std::string title = JudgeStatsService::GetTitle();
+        std::string chartPath = GetCurrentSession().GetChartPath();
+        int difficulty = GetCurrentSession().GetDifficulty();
+        std::string title = GetCurrentSession().GetTitle();
         if (!chartPath.empty()) {
             std::string rankUtf8(rankStr.begin(), rankStr.end()); // ASCII only
             app::test::ScoreManager::Instance().UpdateScore(chartPath, score, rankUtf8, difficulty, title);
