@@ -10,7 +10,6 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
-#include "IngameScene.h"
 #include "NoteData.h"
 #include "SoundComponent.h"
 #include "SongInfo.h"
@@ -97,12 +96,10 @@ namespace app::test {
         if (!owner) return;
         auto* scene = &owner->GetScene();
 
-        // 譜面パス取得
+        // 譜面パス取得（DI経由で渡されたSongInfoを使用）
         std::string chartPath = "Save/chart/Sample.chart";
-        if (auto* ingameScene = dynamic_cast<IngameScene*>(scene)) {
-            const SongInfo& selectedSong = ingameScene->GetSelectedSong();
-            if (!selectedSong.chartPath.empty())
-                chartPath = selectedSong.chartPath;
+        if (songInfoPtr && !songInfoPtr->chartPath.empty()) {
+            chartPath = songInfoPtr->chartPath;
         }
 
         // ------------------------------------------
@@ -284,8 +281,9 @@ namespace app::test {
                             GetCurrentSession().AddResult(JudgeResult::Perfect);
                             UpdateCombo(JudgeResult::Perfect);
 
-                            if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
-                                scene->TriggerSkillEffect();
+                            // スキルエフェクト発動（コールバック経由）
+                            if (onSkillTriggered) {
+                                onSkillTriggered();
                             }
 
                             if (auto* canvas = actorRef.Target()->GetComponent<IngameCanvas>()) {
@@ -410,8 +408,9 @@ namespace app::test {
 
         if (res != JudgeResult::Skip && res != JudgeResult::Miss) {
             if (note.type == NoteType::Skill) {
-                if (auto* scene = dynamic_cast<IngameScene*>(&actorRef.Target()->GetScene())) {
-                    scene->TriggerSkillEffect();
+                // スキルエフェクト発動（コールバック経由）
+                if (onSkillTriggered) {
+                    onSkillTriggered();
                 }
             }
 

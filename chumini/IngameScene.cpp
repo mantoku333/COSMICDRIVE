@@ -55,7 +55,12 @@ void app::test::IngameScene::Init()
 	// ── マネージャを生成 ──
 	{
 		managerActor = Instantiate();
-		managerActor.Target()->AddComponent<app::test::NoteManager>();
+		auto noteManager = managerActor.Target()->AddComponent<app::test::NoteManager>();
+		
+		// NoteManagerへの依存性注入（密結合解消）
+		noteManager->SetSongInfo(&selectedSong);
+		noteManager->SetSkillCallback([this]() { TriggerSkillEffect(); });
+		
 		managerActor.Target()->AddComponent<IngameCanvas>();
 		managerActor.Target()->AddComponent<app::test::SoundComponent>();
 		managerActor.Target()->AddComponent<SceneChangeComponent>();

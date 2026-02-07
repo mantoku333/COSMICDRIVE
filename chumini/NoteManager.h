@@ -11,6 +11,8 @@
 #include "JudgeConstants.h"
 #include "ComboManager.h"
 #include "NoteInstanceRenderer.h"
+#include "SongInfo.h"
+#include <functional>
 
 namespace app::test {
 
@@ -208,6 +210,22 @@ namespace app::test {
 
         /// コンボ管理サービス
         ComboManager comboManager;
+
+        /// 選択された曲情報への参照（密結合解消のためDIで渡す）
+        const SongInfo* songInfoPtr = nullptr;
+
+        /// スキルノーツ発動時のコールバック（IngameSceneのTriggerSkillEffect）
+        std::function<void()> onSkillTriggered;
+
+        // --------------------------------------------
+        // 依存性注入（Dependency Injection）
+        // --------------------------------------------
+        
+        /// 曲情報を設定（Begin前に呼び出すこと）
+        void SetSongInfo(const SongInfo* info) { songInfoPtr = info; }
+        
+        /// スキル発動コールバックを設定
+        void SetSkillCallback(std::function<void()> callback) { onSkillTriggered = std::move(callback); }
 
         // --------------------------------------------
         // 内部メソッド
