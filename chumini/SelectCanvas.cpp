@@ -109,6 +109,8 @@ namespace app::test {
         }
 
         // ★追加: ジャンル名
+        const auto& allGenres = songListService.GetAllGenres();
+        int currentGenreIndex = songListService.GetCurrentGenreIndex();
         if (!allGenres.empty()) {
             if(genreText) genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
 
@@ -139,94 +141,9 @@ namespace app::test {
 
     // ===== 楽曲初期化 =====
     void SelectCanvas::InitializeSongs() {
-        songs.clear();
-        allGenres.clear();
-        namespace fs = std::filesystem;
-
-        std::string rootPath = "Songs";
-
-        if (fs::exists(rootPath) && fs::is_directory(rootPath)) {
-            // 1. rootPath直下のフォルダを「ジャンル」として扱う
-            for (const auto& genreEntry : fs::directory_iterator(rootPath)) {
-                if (!genreEntry.is_directory()) continue;
-
-                Genre newGenre;
-                // フォルダ名をジャンル名とする
-                newGenre.name = genreEntry.path().filename().string();
-
-                // 2. そのジャンルフォルダ内を再帰的に走査して曲を探す
-                for (const auto& fileEntry : fs::recursive_directory_iterator(genreEntry.path())) {
-                    if (!fileEntry.is_regular_file()) continue;
-
-                    std::wstring ext = fileEntry.path().extension().wstring();
-                    if (ext == L".sus" || ext == L".ched") {
-                         app::test::ChedParser parser;
-                         if (parser.Load(fileEntry.path().wstring(), true)) {
-                             SongInfo info;
-                             info.title = parser.title.empty() ? "No Title" : parser.title;
-                             info.artist = parser.artist.empty() ? "No Artist" : parser.artist;
-                             info.chartPath = WstringToUtf8(fileEntry.path().wstring());
-                             
-                             fs::path parentDir = fileEntry.path().parent_path();
-                             
-                             // ジャケット
-                             if (!parser.jacketFile.empty()) {
-                                 std::wstring jacketW = Utf8ToWstring(parser.jacketFile);
-                                 fs::path fullJacketPath = parentDir / jacketW;
-                                 info.jacketPath = WstringToUtf8(fullJacketPath.wstring());
-                             } else {
-                                 info.jacketPath = "";
-                             }
-
-                             // 音声
-                             if (!parser.waveFile.empty()) {
-                                 std::wstring waveW = Utf8ToWstring(parser.waveFile);
-                                 fs::path fullWavePath = parentDir / waveW;
-                                 info.musicPath = WstringToUtf8(fullWavePath.wstring());
-                             }
-
-                             // プレビュー開始位置 (.pv check)
-                             fs::path pvPath = fileEntry.path();
-                             pvPath.replace_extension(".pv");
-                             if (fs::exists(pvPath)) {
-                                 std::ifstream ifs(pvPath);
-                                 if (ifs) {
-                                     float startTime = 0.0f;
-                                     ifs >> startTime;
-                                     info.previewStartTime = startTime;
-                                 }
-                             }
-
-                             info.bpm = std::to_string(parser.bpm);
-                             info.level = parser.level;
-                             info.difficulty = parser.difficulty;
-                             newGenre.songs.push_back(info);
-                         }
-                    }
-                }
-
-                // 曲が1つでもあればジャンルとして登録
-                if (!newGenre.songs.empty()) {
-                    allGenres.push_back(newGenre);
-                    sf::debug::Debug::Log("Genre Loaded: " + newGenre.name + " (" + std::to_string(newGenre.songs.size()) + " songs)");
-                }
-            }
-        }
-        else {
-            sf::debug::Debug::Log("Songs directory not found: " + rootPath);
-        }
-
-        // 3. 最初のジャンルを選択
-        if (allGenres.empty()) {
-            // ダミージャンル
-            Genre dummy;
-            dummy.name = "No Genre";
-            dummy.songs.push_back({ "No Music Found", "System", "", "", "", "0" });
-            allGenres.push_back(dummy);
-        }
-
-        currentGenreIndex = 0;
-        songs = allGenres[currentGenreIndex].songs;
+        // SongListServiceにスキャンを委譲
+        songListService.ScanSongs("Songs");
+        songs = songListService.GetCurrentSongs();
 
         // ----------------------------------------------------
         // ジャケットテクスチャのロード (★修正箇所)
@@ -1158,15 +1075,8 @@ namespace app::test {
 
     // ===== ジャンル変更 =====
     void SelectCanvas::ChangeGenre(int index) {
-        if (allGenres.empty()) return;
-
-        // インデックス正規化
-        int N = (int)allGenres.size();
-        currentGenreIndex = index % N;
-        if (currentGenreIndex < 0) currentGenreIndex += N;
-
-        // 曲リスト更新
-        songs = allGenres[currentGenreIndex].songs;
+        // SongListServiceにジャンル変更を委譲
+        songs = songListService.ChangeGenre(index);
         
         // 選択リセット
         targetIndex = 0;
@@ -1175,8 +1085,7 @@ namespace app::test {
         slideStartIdx = 0.0f;
         slideTimer = 0.0f;
 
-        // タイトル等更新 (SelectNext相当のことをやる)
-        // songsが切り替わったので、songs[0] を表示するように更新
+        // タイトル等更新
         if (!songs.empty()) {
             if (songTitleText) songTitleText->SetText(Utf8ToWstring(songs[0].title));
             if (artistText)    artistText->SetText(Utf8ToWstring(songs[0].artist));
@@ -1199,27 +1108,24 @@ namespace app::test {
         }
 
         // ジャンル名更新
-        if (genreText) {
+        const auto& allGenres = songListService.GetAllGenres();
+        int currentGenreIndex = songListService.GetCurrentGenreIndex();
+        int N = (int)allGenres.size();
+
+        if (genreText && !allGenres.empty()) {
             genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
         }
 
         // 前後のジャンル名更新
-        if (prevGenreText) {
+        if (prevGenreText && N > 0) {
             int prevIdx = (currentGenreIndex - 1 + N) % N;
             prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
         }
-        if (nextGenreText) {
+        if (nextGenreText && N > 0) {
             int nextIdx = (currentGenreIndex + 1) % N;
             nextGenreText->SetText(Utf8ToWstring(allGenres[nextIdx].name));
         }
 
-        // ジャケットプール再構築 & リソースロード
-        // InitializeTexturesでデフォはロード済みだが、曲ごとのジャケットはInitializeSongsでロードしていた
-        // しかしInitializeSongsを書き換えたので、ここでは「現在のsongs用のジャケットテクスチャ」を用意する必要がある
-        // 設計上、全曲分のテクスチャを持つとメモリが厳しいかもしれないが、
-        // 今回のコードではInitializeSongsで `jacketTextures` を `songs.size()` 分確保していた
-        // ジャンル切り替え時は `jacketTextures` を再生成する必要がある。
-        
         // ★修正: jacketTextures の再ロード
         jacketTextures.clear();
         jacketTextures.resize(songs.size());
@@ -1244,11 +1150,11 @@ namespace app::test {
     }
 
     void SelectCanvas::SelectNextGenre() {
-        ChangeGenre(currentGenreIndex + 1);
+        ChangeGenre(songListService.GetCurrentGenreIndex() + 1);
     }
 
     void SelectCanvas::SelectPreviousGenre() {
-        ChangeGenre(currentGenreIndex - 1);
+        ChangeGenre(songListService.GetCurrentGenreIndex() - 1);
     }
 
 } // namespace app::test

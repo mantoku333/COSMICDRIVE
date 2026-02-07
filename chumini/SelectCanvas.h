@@ -5,6 +5,7 @@
 #include "SceneChangeComponent.h"
 #include "SoundPlayer.h"
 #include "SoundResource.h"
+#include "SongListService.h"
 
 
 #include <future>
@@ -155,16 +156,8 @@ namespace app {
             InputMode selectionMode = InputMode::SongSelect; // デフォルトは曲選択
 
 
-            // =========================
-            // 内部メソッド
-            // =========================
-            struct Genre {
-                std::string name;
-                std::vector<SongInfo> songs;
-            };
-
-            std::vector<Genre> allGenres;
-            int currentGenreIndex = 0;
+            // ジャンル管理は SongListService に委譲
+            SongListService songListService;
             sf::ui::TextImage* genreText = nullptr;
             sf::ui::TextImage* prevGenreText = nullptr; // 前のジャンル
             sf::ui::TextImage* nextGenreText = nullptr; // 次のジャンル

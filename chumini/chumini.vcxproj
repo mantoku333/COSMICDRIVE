@@ -297,6 +297,7 @@
     <ClCompile Include="ScoreManager.cpp" />
     <ClCompile Include="RatingManager.cpp" />
     <ClCompile Include="SelectCanvas.cpp" />
+    <ClCompile Include="SongListService.cpp" />
     <ClCompile Include="SelectScene.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="SInput.cpp" />
@@ -489,6 +490,7 @@
     <ClInclude Include="SInput.h" />
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="SongInfo.h" />
+    <ClInclude Include="SongListService.h" />
     <ClInclude Include="SoundPlayer.h" />
     <ClInclude Include="SoundResource.h" />
     <ClInclude Include="SphereCollider.h" />
