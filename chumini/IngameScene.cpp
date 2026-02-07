@@ -61,7 +61,9 @@ void app::test::IngameScene::Init()
 		noteManager->SetSongInfo(&selectedSong);
 		noteManager->SetSkillCallback([this]() { TriggerSkillEffect(); });
 		
-		managerActor.Target()->AddComponent<IngameCanvas>();
+		auto ingameCanvas = managerActor.Target()->AddComponent<IngameCanvas>();
+		ingameCanvas->SetSongInfo(&selectedSong);  // IngameCanvasへのDI
+		
 		managerActor.Target()->AddComponent<app::test::SoundComponent>();
 		managerActor.Target()->AddComponent<SceneChangeComponent>();
 	   

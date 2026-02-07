@@ -3,7 +3,6 @@
 #include <iomanip>
 #include "Time.h"
 #include "NoteManager.h"
-#include "IngameScene.h"
 #include "GameSession.h"
 #include <algorithm>
 #include "DirectX11.h"
@@ -565,16 +564,13 @@ namespace app::test {
 		auto actor = actorRef.Target();
 		if (!actor) return;
 
-		auto& scene = actor->GetScene();
-                auto* ingameScene = dynamic_cast<IngameScene*>(&scene);
-                if (!ingameScene) return;
-
-                const SongInfo& selectedSong = ingameScene->GetSelectedSong();
+		// DI経由で渡されたSongInfoを使用
+		if (!songInfoPtr) return;
 
 		bool loadSuccess = false;
-		if (!selectedSong.jacketPath.empty()) {
+		if (!songInfoPtr->jacketPath.empty()) {
 			// 日本語パス対応: UTF-8 → Shift-JIS
-			std::string sjisPath = sf::util::Utf8ToShiftJis(selectedSong.jacketPath);
+			std::string sjisPath = sf::util::Utf8ToShiftJis(songInfoPtr->jacketPath);
 			loadSuccess = textureJacket.LoadTextureFromFile(sjisPath);
 		}
 
@@ -584,12 +580,12 @@ namespace app::test {
 
         // Update Song Info Text
         if (titleText) {
-            std::wstring wTitle = sf::util::Utf8ToWstring(selectedSong.title);
+            std::wstring wTitle = sf::util::Utf8ToWstring(songInfoPtr->title);
             titleText->SetText(wTitle.c_str());
         }
 
         if (bpmText) {
-             std::wstring wBpm = L"BPM: " + sf::util::Utf8ToWstring(selectedSong.bpm);
+             std::wstring wBpm = L"BPM: " + sf::util::Utf8ToWstring(songInfoPtr->bpm);
              bpmText->SetText(wBpm.c_str());
         }
 
@@ -597,13 +593,13 @@ namespace app::test {
             // Difficulty ID -> String or use Level?
             // Usually display LEVEL: X
             wchar_t buf[32];
-            swprintf_s(buf, L"Lv.%d", selectedSong.level);
+            swprintf_s(buf, L"Lv.%d", songInfoPtr->level);
             difficultyText->SetText(buf);
             
             // Optional: Color by Difficulty? 
             // 0:BASIC(Green), 1:ADVANCED(Orange), 2:EXPERT(Red), 3:MASTER(Purple)
             D2D1_COLOR_F difColor = D2D1::ColorF(D2D1::ColorF::White);
-            switch(selectedSong.difficulty) {
+            switch(songInfoPtr->difficulty) {
                 case 0: difColor = D2D1::ColorF(D2D1::ColorF::LimeGreen); break;
                 case 1: difColor = D2D1::ColorF(D2D1::ColorF::Orange); break;
                 case 2: difColor = D2D1::ColorF(D2D1::ColorF::Red); break;

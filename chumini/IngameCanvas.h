@@ -43,6 +43,10 @@ namespace app
 			NoteManager* noteManager = nullptr;
 			void DestroyEffect(sf::ui::Image* effect);
 
+			// 依存性注入（Dependency Injection）
+			void SetSongInfo(const SongInfo* info) { songInfoPtr = info; }
+
+
 			// 3.2.1.START の表示更新
 			void UpdateCountdownDisplay(float time, bool isStart);
 
@@ -51,6 +55,9 @@ namespace app
             void DrawScoreGauge();
 
 		private:
+			/// 選択された曲情報への参照（DI）
+			const SongInfo* songInfoPtr = nullptr;
+
 			// ... (既存のテクスチャ) ...
 			sf::Texture textureDefaultJacket;
 			sf::ui::Image* Jacket;
