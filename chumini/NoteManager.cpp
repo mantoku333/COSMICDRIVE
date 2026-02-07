@@ -117,7 +117,7 @@ namespace app::test {
         noteSequence = std::move(chartResult.notes);
         tempoMap = std::move(chartResult.tempoMap);
         noteOffset = chartResult.noteOffset;
-        maxTotalCombo = chartResult.maxTotalCombo;
+        comboManager.SetMaxTotalCombo(chartResult.maxTotalCombo);
         songEndIndex = chartResult.songEndIndex;
 
 
@@ -140,7 +140,7 @@ namespace app::test {
         // ------------------------------------------
         noteActors.clear();
         nextIndex = 0;
-        currentCombo = 0;
+        comboManager.Reset();
 
         for (size_t i = 0; i < noteSequence.size(); ++i) {
             if (noteSequence[i].type == NoteType::SongEnd) {
@@ -573,22 +573,17 @@ namespace app::test {
     // Perfect/Great/Good: +1、Miss: 0にリセット
     // ============================================================
     void NoteManager::UpdateCombo(JudgeResult result) {
-        switch (result) {
-        case JudgeResult::Perfect:
-        case JudgeResult::Great:
-        case JudgeResult::Good:
-            ++currentCombo; break;
-        case JudgeResult::Miss:
-            currentCombo = 0; break;
-        default: break;
-        }
+        comboManager.UpdateCombo(result);
     }
 
-    int NoteManager::GetCurrentCombo() const { return currentCombo; }
+    int NoteManager::GetCurrentCombo() const { return comboManager.GetCurrentCombo(); }
 
     void NoteManager::AddCombo(int amount) {
-        currentCombo += amount;
-        JudgeStatsService::AddCombo(amount);
+        comboManager.AddCombo(amount);
+    }
+
+    int NoteManager::GetMaxTotalCombo() const {
+        return comboManager.GetMaxTotalCombo();
     }
 
     // ============================================================

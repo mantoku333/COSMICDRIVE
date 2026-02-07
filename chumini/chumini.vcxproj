@@ -220,6 +220,7 @@
     <ClCompile Include="imgui\imgui_widgets.cpp" />
     <ClCompile Include="IndexBuffer.cpp" />
     <ClCompile Include="JobSystem.cpp" />
+    <ClCompile Include="ComboManager.cpp" />
     <ClCompile Include="JudgeService.cpp" />
     <ClCompile Include="JudgeStatsService.cpp" />
     <ClCompile Include="Live2DComponent.cpp" />
@@ -386,6 +387,7 @@
     <ClInclude Include="imgui\imstb_truetype.h" />
     <ClInclude Include="IndexBuffer.h" />
     <ClInclude Include="JobSystem.h" />
+    <ClInclude Include="ComboManager.h" />
     <ClInclude Include="JudgeConstants.h" />
     <ClInclude Include="JudgeService.h" />
     <ClInclude Include="JudgeStatsService.h" />

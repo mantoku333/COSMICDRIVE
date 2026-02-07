@@ -9,6 +9,7 @@
 #include "ChartLoader.h"
 #include "JudgeService.h"
 #include "JudgeConstants.h"
+#include "ComboManager.h"
 
 namespace app::test {
 
@@ -40,8 +41,7 @@ namespace app::test {
         /// ノーツが画面上部に出現してから判定ラインに到達するまでの時間（秒）
         float leadTime = 0;
         
-        /// 現在のコンボ数
-        int currentCombo = 0;
+
 
         /// ノーツ速度関連
         const float basenoteSpeed = 1.0f;  ///< 基本速度
@@ -98,7 +98,7 @@ namespace app::test {
         void AddCombo(int amount);
         
         /// 最大コンボ数（譜面から事前計算）
-        int GetMaxTotalCombo() const { return maxTotalCombo; }
+        int GetMaxTotalCombo() const;
 
         // --------------------------------------------
         // 初期化・設定
@@ -164,7 +164,6 @@ namespace app::test {
         bool isPlaying = false;      ///< ゲーム中かどうか
         float songTime = 0.f;        ///< 曲の経過時間
         size_t nextIndex = 0;        ///< 次にアクティベートするノーツのインデックス
-        int maxTotalCombo = 0;       ///< 最大コンボ数（事前計算）
         int songEndIndex = -1;       ///< SongEndノーツのインデックス（キャッシュ）
         int missCheckLane = 0;       ///< ミスチェック用レーン（分散処理用）
         double noteOffset = 0.0;     ///< 譜面のオフセット
@@ -221,6 +220,9 @@ namespace app::test {
 
         /// 判定ロジックサービス
         JudgeService judgeService;
+
+        /// コンボ管理サービス
+        ComboManager comboManager;
 
         // --------------------------------------------
         // 内部メソッド
