@@ -11,6 +11,7 @@
 #include "SongInfo.h"
 #include "Live2DComponent.h"
 #include "SoundPlayer.h"
+#include "GameSession.h"
 
 namespace app { namespace test { class BGMComponent; } }
 
@@ -66,6 +67,9 @@ namespace app
             // Trigger visual glitch for Skill Notes
             void TriggerSkillEffect();
 
+            /// ゲームセッションへの参照を取得
+            GameSession& GetGameSession() { return gameSession; }
+
 		private:
 			
 			enum class State {
@@ -113,6 +117,9 @@ namespace app
                 Vector3 moveVel;
             };
             std::vector<BgObject> bgObjects;
+
+            /// ゲームセッション（1プレイ分の判定データを保持）
+            GameSession gameSession;
 		};
 	}
 }

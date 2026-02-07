@@ -70,4 +70,9 @@ namespace app::test
     /// 将来的にはDependency Injectionに置換予定
     /// </summary>
     GameSession& GetCurrentSession();
+
+    /// <summary>
+    /// 現在のアクティブなセッションを設定（IngameSceneから呼び出し）
+    /// </summary>
+    void SetCurrentSession(GameSession* session);
 }

@@ -109,12 +109,24 @@ namespace app::test {
         return title;
     }
 
-    // グローバルGameSessionインスタンス（移行期間用）
-    static GameSession g_currentSession;
+    // 現在のアクティブなセッションポインタ
+    static GameSession* g_currentSessionPtr = nullptr;
+    // フォールバック用のデフォルトセッション
+    static GameSession g_fallbackSession;
+
+    void SetCurrentSession(GameSession* session)
+    {
+        g_currentSessionPtr = session;
+    }
 
     GameSession& GetCurrentSession()
     {
-        return g_currentSession;
+        // IngameSceneがセッションを設定していればそれを使用
+        if (g_currentSessionPtr) {
+            return *g_currentSessionPtr;
+        }
+        // フォールバック（起動時やシーン遷移中）
+        return g_fallbackSession;
     }
 
 }

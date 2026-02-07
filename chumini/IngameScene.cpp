@@ -510,6 +510,12 @@ void app::test::IngameScene::OnActivated()
     state = State::Idle;
     countdownTimer = 0.0f;
 
+    // セッションをリセット
+    gameSession.Reset();
+
+    // このシーンのセッションをグローバルに登録（他コンポーネントがアクセス可能に）
+    SetCurrentSession(&gameSession);
+
     if (selectedSong.musicPath.empty() || bgmPlayer.isNull()) {
         sf::debug::Debug::Log("[BGM] OnActivated: path empty or bgmPlayer null");
         return;
@@ -519,10 +525,10 @@ void app::test::IngameScene::OnActivated()
     std::string sjisPath = Utf8ToShiftJis(selectedSong.musicPath);
     bgmPlayer->SetPath(sjisPath);
 
-    // Set chart path and difficulty for score saving
-    JudgeStatsService::SetChartPath(selectedSong.chartPath);
-    JudgeStatsService::SetDifficulty(selectedSong.difficulty);
-    JudgeStatsService::SetTitle(selectedSong.title);
+    // Set chart path and difficulty for score saving (via gameSession)
+    gameSession.SetChartPath(selectedSong.chartPath);
+    gameSession.SetDifficulty(selectedSong.difficulty);
+    gameSession.SetTitle(selectedSong.title);
 
     //bgmPlayer->Play();
 }
