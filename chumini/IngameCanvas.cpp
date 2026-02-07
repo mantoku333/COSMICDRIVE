@@ -10,6 +10,15 @@
 
 namespace app::test {
 
+    namespace Colors {
+        constexpr DirectX::XMFLOAT4 RankSSS = { 1.0f, 1.0f, 0.9f, 1.0f }; // Platinum/Gold
+        constexpr DirectX::XMFLOAT4 RankSS = { 1.0f, 1.0f, 0.6f, 1.0f }; // Gold
+        constexpr DirectX::XMFLOAT4 RankS = { 1.0f, 0.95f, 0.4f, 1.0f }; // Gold Std
+        constexpr DirectX::XMFLOAT4 RankA = { 1.0f, 0.8f, 0.8f, 1.0f }; // Red
+        constexpr DirectX::XMFLOAT4 RankB = { 0.8f, 0.9f, 1.0f, 1.0f }; // Blue
+        constexpr DirectX::XMFLOAT4 RankC = { 0.8f, 1.0f, 0.8f, 1.0f }; // Green
+    }
+
 	void IngameCanvas::Begin()
 	{
 		sf::ui::Canvas::Begin();
@@ -311,43 +320,31 @@ namespace app::test {
 			fastSlowText->transform.SetScale(Vector3(1.5f * fsScaleRate, 0.5f * fsScaleRate, 0.0f));
 		}
 
-        UpdateScoreDisplay();
+        // Update Score Display with calculated values from Model (GameSession)
+        auto& session = GetCurrentSession();
+        UpdateScoreDisplay(session.CalculateScore(), session.GetRank());
 	}
 
-    void IngameCanvas::UpdateScoreDisplay() {
-        if (!scoreText || !rankText || noteManager.isNull()) return;
+    void IngameCanvas::UpdateScoreDisplay(int score, GameSession::Rank rank) {
+        if (!scoreText || !rankText) return;
 
-        int maxCombo = noteManager->GetMaxTotalCombo();
-        if (maxCombo <= 0) maxCombo = 1; // Safety
-
-        // Current weighted sum
-        int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
-        int great = GetCurrentSession().GetCount(JudgeResult::Great);
-        int good = GetCurrentSession().GetCount(JudgeResult::Good);
-        // Miss doesn't add score
-
-        // Calculation: (CurrentSum / MaxPossibleSum) * 1000000
-        double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;
-        // Assume MaxPossible is MaxCombo * 1.0
-        double maxPossible = (double)maxCombo;
-        
-        int score = (int)((currentSum / maxPossible) * 1000000.0);
-        if (score > 1000000) score = 1000000; // Cap?
-
-        // Rank (Synced with ResultCanvas)
-        std::wstring rankStr = L"C";
-        DirectX::XMFLOAT4 rankColor = { 0.8f, 1.0f, 0.8f, 1.0f }; // C (Green)
-
-        if (score >= 1000000) { rankStr = L"SSS"; rankColor = { 1.0f, 1.0f, 0.9f, 1.0f }; }
-        else if (score >= 900000) { rankStr = L"SS"; rankColor = { 1.0f, 1.0f, 0.6f, 1.0f }; }
-        else if (score >= 800000) { rankStr = L"S"; rankColor = { 1.0f, 0.95f, 0.4f, 1.0f }; }
-        else if (score >= 600000) { rankStr = L"A"; rankColor = { 1.0f, 0.8f, 0.8f, 1.0f }; }
-        else if (score >= 400000) { rankStr = L"B"; rankColor = { 0.8f, 0.9f, 1.0f, 1.0f }; }
-        // Else C
-
+        // Score
         wchar_t buf[32];
         swprintf_s(buf, L"%07d", score);
         scoreText->SetText(buf);
+
+        // Rank
+        std::wstring rankStr = L"C";
+        DirectX::XMFLOAT4 rankColor = Colors::RankC;
+
+        switch (rank) {
+        case GameSession::Rank::SSS: rankStr = L"SSS"; rankColor = Colors::RankSSS; break;
+        case GameSession::Rank::SS:  rankStr = L"SS";  rankColor = Colors::RankSS;  break;
+        case GameSession::Rank::S:   rankStr = L"S";   rankColor = Colors::RankS;   break;
+        case GameSession::Rank::A:   rankStr = L"A";   rankColor = Colors::RankA;   break;
+        case GameSession::Rank::B:   rankStr = L"B";   rankColor = Colors::RankB;   break;
+        default:                     rankStr = L"C";   rankColor = Colors::RankC;   break;
+        }
 
         rankText->SetText(rankStr.c_str());
         rankText->material.SetColor(rankColor);
@@ -356,7 +353,7 @@ namespace app::test {
 	void IngameCanvas::SpawnHitEffect(float x, float y, float scale, float duration, const Color& color)
 	{
 		if (!effectManager.isNull()) {
-			// 笘・せ繝励Λ繧､繝亥・逕溘・縺ｿ
+			// スプライト生成のみ
 			effectManager->SpawnSprite(x, y, scale, duration, color);
 		}
 	}
@@ -428,22 +425,22 @@ namespace app::test {
 		switch (result) {
 		case JudgeResult::Perfect:
 			judgeResultText->SetText(L"PERFECT");
-			judgeResultText->material.SetColor({ 1.0f, 0.8f, 0.0f, 1.0f }); // 驥・
+			judgeResultText->material.SetColor({ 1.0f, 0.8f, 0.0f, 1.0f }); // 金
 			break;
 
 		case JudgeResult::Great:
 			judgeResultText->SetText(L"GREAT");
-			judgeResultText->material.SetColor({ 1.0f, 0.4f, 0.7f, 1.0f }); // 繝斐Φ繧ｯ
+			judgeResultText->material.SetColor({ 1.0f, 0.4f, 0.7f, 1.0f }); // ピンク
 			break;
 
 		case JudgeResult::Good:
 			judgeResultText->SetText(L"GOOD");
-			judgeResultText->material.SetColor({ 0.2f, 1.0f, 0.2f, 1.0f }); // 邱・
+			judgeResultText->material.SetColor({ 0.2f, 1.0f, 0.2f, 1.0f }); // 緑
 			break;
 
 		case JudgeResult::Miss:
 			judgeResultText->SetText(L"MISS");
-			judgeResultText->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f }); // 轣ｰ
+			judgeResultText->material.SetColor({ 0.6f, 0.6f, 0.6f, 1.0f }); // 灰
 			break;
 
 		case JudgeResult::None:
@@ -648,19 +645,12 @@ namespace app::test {
     }
 
     void IngameCanvas::DrawScoreGauge() {
-        if (noteManager.isNull()) return;
-        int maxCombo = noteManager->GetMaxTotalCombo();
-        if (maxCombo <= 0) maxCombo = 1;
-
-        int perfect = GetCurrentSession().GetCount(JudgeResult::Perfect);
-        int great = GetCurrentSession().GetCount(JudgeResult::Great);
-        int good = GetCurrentSession().GetCount(JudgeResult::Good);
-        int miss = GetCurrentSession().GetCount(JudgeResult::Miss);
-
-        // Simple Score based progress
-        double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;
-        double maxPossible = (double)maxCombo;
-        float ratio = (float)(currentSum / maxPossible);
+        // Use GameSession for data
+        auto& session = GetCurrentSession();
+        int score = session.CalculateScore();
+        
+        // Ratio: Score / 1000000
+        float ratio = (float)score / 1000000.0f;
         if (ratio > 1.0f) ratio = 1.0f;
         if (ratio < 0.0f) ratio = 0.0f;
 
@@ -669,18 +659,18 @@ namespace app::test {
         float barHeight = 50.0f; // User requested 50
         float baseY = 350.0f; // Lowered from 400.0f to avoid overlap with Score Text
         
-        // Calculate Rank Color (Synced with ResultCanvas)
-        int score = (int)((currentSum / maxPossible) * 1000000.0);
-        if (score > 1000000) score = 1000000;
+        // Calculate Rank Color
+        DirectX::XMFLOAT4 rankColor = Colors::RankC;
+        GameSession::Rank rank = session.GetRank();
 
-        DirectX::XMFLOAT4 rankColor = { 0.8f, 1.0f, 0.8f, 1.0f }; // C (Green)
-        
-        if (score >= 1000000) { rankColor = { 1.0f, 1.0f, 0.9f, 1.0f }; } // SSS (Platinum/Gold)
-        else if (score >= 900000) { rankColor = { 1.0f, 1.0f, 0.6f, 1.0f }; } // SS (Gold)
-        else if (score >= 800000) { rankColor = { 1.0f, 0.95f, 0.4f, 1.0f }; } // S (Gold Std)
-        else if (score >= 600000) { rankColor = { 1.0f, 0.8f, 0.8f, 1.0f }; } // A (Red)
-        else if (score >= 400000) { rankColor = { 0.8f, 0.9f, 1.0f, 1.0f }; } // B (Blue)
-        // Else C (Green)
+        switch (rank) {
+        case GameSession::Rank::SSS: rankColor = Colors::RankSSS; break;
+        case GameSession::Rank::SS:  rankColor = Colors::RankSS;  break;
+        case GameSession::Rank::S:   rankColor = Colors::RankS;   break;
+        case GameSession::Rank::A:   rankColor = Colors::RankA;   break;
+        case GameSession::Rank::B:   rankColor = Colors::RankB;   break;
+        default:                     rankColor = Colors::RankC;   break;
+        }
 
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();

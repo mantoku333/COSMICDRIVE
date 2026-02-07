@@ -30,8 +30,18 @@ namespace {
 
 app::test::IngameScene::~IngameScene()
 {
-    // シーン破棄時、セッションをフォールバックにコピー（ResultSceneがアクセス可能に）
-    SetCurrentSession(nullptr);
+    // シーン破棄時、セッションをフォールバック(g_defaultSession)にコピー
+    // これによりResultSceneからも参照可能にする
+    // GetCurrentSession() はまだ this->gameSession を指しているはず
+    GameSession& current = GetCurrentSession();
+    
+    // SetCurrentSession(nullptr) を呼ぶと g_currentSessionPtr が &g_defaultSession になる
+    // その前にデータを退避したいが、g_defaultSession に直接アクセス手段がない
+    // なので、一度 nullptr にして g_defaultSession を指させ、そこに代入する
+    
+    GameSession tempCopy = current; // コピー
+    SetCurrentSession(nullptr); // g_currentSessionPtr = &g_defaultSession
+    GetCurrentSession() = tempCopy; // g_defaultSession に書き込み
 }
 
 void app::test::IngameScene::Init()
@@ -550,6 +560,10 @@ void app::test::IngameScene::StartGame()
     if (managerActor.Target()) {
         auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
         if (noteMgr) {
+            // Set Total Note Count for Score Calculation
+            int total = noteMgr->GetMaxTotalCombo();
+            gameSession.SetTotalNoteCount(total);
+
             noteMgr->StartGame();
         }
     }

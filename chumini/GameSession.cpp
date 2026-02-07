@@ -1,4 +1,5 @@
 #include "GameSession.h"
+#include <algorithm>
 
 namespace app::test {
 
@@ -79,6 +80,42 @@ namespace app::test {
         return lastResult;
     }
 
+    // ==========================================
+    // ・判定/スコア計算
+    // ==========================================
+    int GameSession::CalculateScore() const
+    {
+        if (totalNoteCount <= 0) return 0;
+
+        double currentSum = perfect * 1.0 + great * 0.8 + good * 0.5;
+        double maxPossible = (double)totalNoteCount;
+
+        int score = (int)((currentSum / maxPossible) * 1000000.0);
+        if (score > 1000000) score = 1000000;
+        
+        return score;
+    }
+
+    GameSession::Rank GameSession::GetRank() const
+    {
+        int score = CalculateScore();
+        if (score >= 1000000) return GameSession::Rank::SSS;
+        if (score >= 900000) return GameSession::Rank::SS;
+        if (score >= 800000) return GameSession::Rank::S;
+        if (score >= 600000) return GameSession::Rank::A;
+        if (score >= 400000) return GameSession::Rank::B;
+        return GameSession::Rank::C;
+    }
+
+    void GameSession::SetTotalNoteCount(int count)
+    {
+        totalNoteCount = count;
+        if (totalNoteCount <= 0) totalNoteCount = 1;
+    }
+    
+    // ==========================================
+    // ・メタデータ
+    // ==========================================
     void GameSession::SetChartPath(const std::string& path)
     {
         chartPath = path;
@@ -109,28 +146,16 @@ namespace app::test {
         return title;
     }
 
-    // 現在のアクティブなセッションポインタ
-    static GameSession* g_currentSessionPtr = nullptr;
-    // フォールバック用のデフォルトセッション（シーン遷移後も残る）
-    static GameSession g_fallbackSession;
+    // Global Accessor
+    // Global Accessor
+    static GameSession g_defaultSession;
+    static GameSession* g_currentSessionPtr = &g_defaultSession;
 
-    void SetCurrentSession(GameSession* session)
-    {
-        if (session == nullptr && g_currentSessionPtr != nullptr) {
-            // シーン終了時、現在のセッションデータをフォールバックにコピー
-            g_fallbackSession = *g_currentSessionPtr;
-        }
-        g_currentSessionPtr = session;
+    GameSession& GetCurrentSession() { 
+        return *g_currentSessionPtr; 
     }
 
-    GameSession& GetCurrentSession()
-    {
-        // IngameSceneがセッションを設定していればそれを使用
-        if (g_currentSessionPtr) {
-            return *g_currentSessionPtr;
-        }
-        // フォールバック（起動時やシーン遷移中）
-        return g_fallbackSession;
+    void SetCurrentSession(GameSession* session) { 
+        g_currentSessionPtr = session ? session : &g_defaultSession; 
     }
-
 }

@@ -13,6 +13,15 @@ namespace app::test
     class GameSession
     {
     public:
+        enum class Rank {
+            SSS, // 1,000,000+
+            SS,  // 900,000+
+            S,   // 800,000+
+            A,   // 600,000+
+            B,   // 400,000+
+            C    // Below 400,000
+        };
+
         GameSession() = default;
 
         /// <summary>
@@ -34,6 +43,13 @@ namespace app::test
         int GetMaxCombo() const;
         JudgeResult GetLastResult() const;
 
+        // ===== スコア・ランク計算 (New) =====
+        /// 現在のスコアを計算 (0 - 1,000,000)
+        int CalculateScore() const;
+        
+        /// 現在のスコアに基づくランクを取得
+        Rank GetRank() const;
+
         // ===== メタデータ =====
         void SetChartPath(const std::string& path);
         const std::string& GetChartPath() const;
@@ -43,6 +59,11 @@ namespace app::test
 
         void SetTitle(const std::string& titleStr);
         const std::string& GetTitle() const;
+
+        /// <summary>
+        /// 計算用：譜面の総ノーツ数を設定
+        /// </summary>
+        void SetTotalNoteCount(int count);
 
     private:
         // 判定カウント
@@ -61,6 +82,7 @@ namespace app::test
         // メタデータ
         std::string chartPath;
         int difficulty = 0;
+        int totalNoteCount = 1; // 0除算防止初期値
         std::string title;
     };
 

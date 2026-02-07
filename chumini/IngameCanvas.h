@@ -7,8 +7,8 @@
 #include <memory>
 // テキスト描画用
 #include "TextImage.h"
+#include "GameSession.h" // 追加
 
-// 前方宣言
 namespace app::test {
 	class NoteManager;
 }
@@ -51,7 +51,10 @@ namespace app
 			void UpdateCountdownDisplay(float time, bool isStart);
 
 			void ShowFastSlow(int type); // 1:FAST, 2:SLOW
-            void UpdateScoreDisplay();
+            
+            // Modified: Receive Score and Rank directly
+            void UpdateScoreDisplay(int score, GameSession::Rank rank);
+            
             void DrawScoreGauge();
 
 		private:

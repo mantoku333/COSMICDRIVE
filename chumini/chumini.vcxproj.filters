@@ -64,6 +64,7 @@
     <FxCompile Include="psScoreGauge.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
+    <FxCompile Include="vsNoteInstancing.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp">
@@ -526,6 +527,13 @@
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClCompile>
     <ClCompile Include="RatingManager.cpp" />
+    <ClCompile Include="ChartLoader.cpp" />
+    <ClCompile Include="ComboManager.cpp" />
+    <ClCompile Include="JudgeService.cpp" />
+    <ClCompile Include="NoteInstanceRenderer.cpp" />
+    <ClCompile Include="TempoService.cpp" />
+    <ClCompile Include="SongListService.cpp" />
+    <ClCompile Include="GameSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h">
@@ -1072,6 +1080,15 @@
     <ClInclude Include="StringUtils.h">
       <Filter>App</Filter>
     </ClInclude>
+    <ClInclude Include="ChartLoader.h" />
+    <ClInclude Include="ComboManager.h" />
+    <ClInclude Include="JudgeConstants.h" />
+    <ClInclude Include="JudgeService.h" />
+    <ClInclude Include="NoteInstanceRenderer.h" />
+    <ClInclude Include="TempoService.h" />
+    <ClInclude Include="SongListService.h" />
+    <ClInclude Include="GameSession.h" />
+    <ClInclude Include="GlobalSoundComponent.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
