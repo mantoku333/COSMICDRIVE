@@ -10,6 +10,7 @@
 #include "JudgeService.h"
 #include "JudgeConstants.h"
 #include "ComboManager.h"
+#include "NoteInstanceRenderer.h"
 
 namespace app::test {
 
@@ -147,16 +148,7 @@ namespace app::test {
             }
         }
 
-    private:
-        // --------------------------------------------
-        // 内部データ構造
-        // --------------------------------------------
-        
-        /// インスタンシング用のノーツデータ
-        struct NoteInstanceData {
-            DirectX::XMFLOAT4X4 world;  ///< ワールド変換行列
-            DirectX::XMFLOAT4   color;  ///< 色
-        };
+        // NoteInstanceData は NoteInstanceRenderer.h にて定義済み
 
         // --------------------------------------------
         // 状態管理
@@ -189,16 +181,9 @@ namespace app::test {
         float barRatio;   ///< 判定バーの位置比率
         float judgeZ;     ///< 判定ラインのZ座標
 
-        // --------------------------------------------
-        // インスタンシング用リソース
-        // --------------------------------------------
-        ID3D11Buffer* m_instanceBuffer = nullptr;
-        std::vector<NoteInstanceData> m_instanceDataCPU;
-        ID3D11VertexShader* m_vs = nullptr;
-        ID3D11InputLayout* m_layout = nullptr;
-        ID3D11Buffer* m_cubeVB = nullptr;
-        ID3D11Buffer* m_cubeIB = nullptr;
-        int m_cubeIndexCount = 0;
+        // インスタンシング描画は NoteInstanceRenderer に委譲
+        NoteInstanceRenderer noteRenderer;
+        std::vector<NoteInstanceData> m_instanceDataCPU;  ///< CPU側インスタンスデータ（収集用）
 
         // --------------------------------------------
         // その他

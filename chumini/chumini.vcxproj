@@ -276,6 +276,7 @@
     <ClCompile Include="MotionMesh.cpp" />
     <ClCompile Include="MoveComponent.cpp" />
     <ClCompile Include="NoteComponent.cpp" />
+    <ClCompile Include="NoteInstanceRenderer.cpp" />
     <ClCompile Include="NoteManager.cpp" />
     <ClCompile Include="TempoService.cpp" />
     <ClCompile Include="OffScreenRTV.cpp" />
@@ -458,6 +459,7 @@
     <ClInclude Include="MoveComponent.h" />
     <ClInclude Include="NoteComponent.h" />
     <ClInclude Include="NoteData.h" />
+    <ClInclude Include="NoteInstanceRenderer.h" />
     <ClInclude Include="NoteManager.h" />
     <ClInclude Include="TempoService.h" />
     <ClInclude Include="OffScreenRTV.h" />
