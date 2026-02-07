@@ -4,12 +4,18 @@
 
 namespace app::test
 {
+    /// <summary>
+    /// 判定統計サービス（GameSessionへの委譲ラッパー）
+    /// 
+    /// 後方互換性のために維持。
+    /// 新規コードでは GetCurrentSession() または GameSession& を直接使用することを推奨。
+    /// </summary>
     class JudgeStatsService
     {
     public:
         static void Reset();
         static void AddResult(JudgeResult result);
-        static void AddCombo(int amount); 
+        static void AddCombo(int amount);
         static void AddFast();
         static void AddSlow();
 
@@ -28,21 +34,5 @@ namespace app::test
 
         static void SetTitle(const std::string& titleStr);
         static std::string GetTitle();
-
-    private:
-        static inline int perfect = 0;
-        static inline int great = 0;
-        static inline int good = 0;
-        static inline int miss = 0;
-        static inline int fast = 0;
-        static inline int slow = 0;
-
-        static inline int combo = 0;
-        static inline int maxCombo = 0;
-        static inline JudgeResult lastResult = JudgeResult::None;
-        static inline std::string chartPath = "";
-        static inline int difficulty = 0;
-        static inline std::string title = "";
     };
 }
-

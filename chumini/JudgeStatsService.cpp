@@ -1,109 +1,80 @@
 #include "JudgeStatsService.h"
+#include "GameSession.h"
 
-using namespace app::test;
+// JudgeStatsService は GameSession への委譲ラッパーとして機能する
+// これにより既存の呼び出しコードを変更せずに GameSession に移行できる
 
-void JudgeStatsService::Reset()
-{
-    perfect = great = good = miss = 0;
-    fast = slow = 0;
-    combo = maxCombo = 0;
-    lastResult = JudgeResult::None;
-}
+namespace app::test {
 
-void JudgeStatsService::AddFast() { ++fast; }
-void JudgeStatsService::AddSlow() { ++slow; }
-
-int JudgeStatsService::GetFastCount() { return fast; }
-int JudgeStatsService::GetSlowCount() { return slow; }
-
-void JudgeStatsService::AddResult(JudgeResult result)
-{
-    switch (result)
+    void JudgeStatsService::Reset()
     {
-    case JudgeResult::Perfect:
-        ++perfect;
-        ++combo;
-        break;
-    case JudgeResult::Great:
-        ++great;
-        ++combo;
-        break;
-    case JudgeResult::Good:
-        ++good;
-        ++combo;
-        break;
-    case JudgeResult::Miss:
-        ++miss;
-        combo = 0;
-        break;
-    default:
-        break;
+        GetCurrentSession().Reset();
     }
 
-    if (combo > maxCombo)
-        maxCombo = combo;
+    void JudgeStatsService::AddFast() { GetCurrentSession().AddFast(); }
+    void JudgeStatsService::AddSlow() { GetCurrentSession().AddSlow(); }
 
-    lastResult = result;
-}
+    int JudgeStatsService::GetFastCount() { return GetCurrentSession().GetFastCount(); }
+    int JudgeStatsService::GetSlowCount() { return GetCurrentSession().GetSlowCount(); }
 
-void JudgeStatsService::AddCombo(int amount) {
-    combo += amount;
-    if (combo > maxCombo) maxCombo = combo;
-}
-
-int JudgeStatsService::GetCount(JudgeResult result)
-{
-    switch (result)
+    void JudgeStatsService::AddResult(JudgeResult result)
     {
-    case JudgeResult::Perfect: return perfect;
-    case JudgeResult::Great:   return great;
-    case JudgeResult::Good:    return good;
-    case JudgeResult::Miss:    return miss;
-    default:                   return 0;
+        GetCurrentSession().AddResult(result);
     }
-}
 
-int JudgeStatsService::GetCombo()
-{
-    return combo;
-}
+    void JudgeStatsService::AddCombo(int amount)
+    {
+        GetCurrentSession().AddCombo(amount);
+    }
 
-int JudgeStatsService::GetMaxCombo()
-{
-    return maxCombo;
-}
+    int JudgeStatsService::GetCount(JudgeResult result)
+    {
+        return GetCurrentSession().GetCount(result);
+    }
 
-JudgeResult JudgeStatsService::GetLastResult()
-{
-    return lastResult;
-}
+    int JudgeStatsService::GetCombo()
+    {
+        return GetCurrentSession().GetCombo();
+    }
 
-void JudgeStatsService::SetChartPath(const std::string& path)
-{
-    chartPath = path;
-}
+    int JudgeStatsService::GetMaxCombo()
+    {
+        return GetCurrentSession().GetMaxCombo();
+    }
 
-std::string JudgeStatsService::GetChartPath()
-{
-    return chartPath;
-}
+    JudgeResult JudgeStatsService::GetLastResult()
+    {
+        return GetCurrentSession().GetLastResult();
+    }
 
-void JudgeStatsService::SetDifficulty(int diff)
-{
-    difficulty = diff;
-}
+    void JudgeStatsService::SetChartPath(const std::string& path)
+    {
+        GetCurrentSession().SetChartPath(path);
+    }
 
-int JudgeStatsService::GetDifficulty()
-{
-    return difficulty;
-}
+    std::string JudgeStatsService::GetChartPath()
+    {
+        return GetCurrentSession().GetChartPath();
+    }
 
-void JudgeStatsService::SetTitle(const std::string& titleStr)
-{
-    title = titleStr;
-}
+    void JudgeStatsService::SetDifficulty(int diff)
+    {
+        GetCurrentSession().SetDifficulty(diff);
+    }
 
-std::string JudgeStatsService::GetTitle()
-{
-    return title;
+    int JudgeStatsService::GetDifficulty()
+    {
+        return GetCurrentSession().GetDifficulty();
+    }
+
+    void JudgeStatsService::SetTitle(const std::string& titleStr)
+    {
+        GetCurrentSession().SetTitle(titleStr);
+    }
+
+    std::string JudgeStatsService::GetTitle()
+    {
+        return GetCurrentSession().GetTitle();
+    }
+
 }

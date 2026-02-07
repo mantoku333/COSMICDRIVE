@@ -311,6 +311,7 @@
     <ClCompile Include="SwatMotionArray.cpp" />
     <ClCompile Include="IngameCanvas.cpp" />
     <ClCompile Include="IngameScene.cpp" />
+    <ClCompile Include="GameSession.cpp" />
     <ClCompile Include="SoundComponent.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextComponent.cpp" />
@@ -502,6 +503,8 @@
     <ClInclude Include="SwatMotionArray.h" />
     <ClInclude Include="IngameCanvas.h" />
     <ClInclude Include="IngameScene.h" />
+    <ClInclude Include="GameSession.h" />
+    <ClInclude Include="GlobalSoundComponent.h" />
     <ClInclude Include="SoundComponent.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="TextComponent.h" />
