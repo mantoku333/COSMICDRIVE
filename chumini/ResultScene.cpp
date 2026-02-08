@@ -1,5 +1,6 @@
 #include "ResultScene.h"
 #include "ResultCanvas.h"
+#include "SelectScene.h"
 #include "IngameCanvas.h"
 #include "GameSession.h"
 #include "Actor.h"
@@ -28,8 +29,13 @@ void app::test::ResultScene::Init()
 
     // 2. UI Actor
 	uiManagerActor = Instantiate();
-	uiManagerActor.Target()->AddComponent<ResultCanvas>();
-    uiManagerActor.Target()->AddComponent<SceneChangeComponent>(); // Add SceneChangeComponent
+	resultCanvas = uiManagerActor.Target()->AddComponent<ResultCanvas>();
+    sceneChanger = uiManagerActor.Target()->AddComponent<SceneChangeComponent>();
+
+    // MVP: CanvasにPresenterを設定
+    if (resultCanvas.Get()) {
+        resultCanvas->SetPresenter(this);
+    }
 
 	updateCommand.Bind(std::bind(&ResultScene::Update, this, std::placeholders::_1));
 }
@@ -84,4 +90,15 @@ void app::test::ResultScene::DrawOverlay() {
         live2DManager->Draw();
     */
     }
+}
+
+// =================================================================
+// MVP: シーン遷移
+// =================================================================
+void app::test::ResultScene::NavigateToSelect()
+{
+    if (sceneChanger.isNull()) return;
+    
+    sf::debug::Debug::Log("ResultScene: Selectへ遷移");
+    sceneChanger->ChangeScene(SelectScene::StandbyScene());
 }

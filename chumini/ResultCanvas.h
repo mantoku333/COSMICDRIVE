@@ -4,14 +4,19 @@
 #include "SceneChangeComponent.h"
 
 namespace app::test {
+	class ResultScene; // MVP: 前方宣言
+
 	class ResultCanvas : public sf::ui::Canvas {
 	public:
 		void Begin() override;
 		void Update(const sf::command::ICommand&);
 
+		// MVP: Presenter設定
+		void SetPresenter(ResultScene* scene) { presenter = scene; }
+
 	private:
 		sf::command::Command<> updateCommand;
-		sf::SafePtr<SceneChangeComponent> sceneChanger; //シーン遷移用
+		ResultScene* presenter = nullptr; // MVP: Presenter参照
 
 		sf::ui::TextImage* resultLabel = nullptr; // "RESULT"
 		sf::ui::TextImage* scoreText = nullptr; // スコア
