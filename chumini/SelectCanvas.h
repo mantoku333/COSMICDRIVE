@@ -144,10 +144,6 @@ namespace app {
             float slideSpeed = 12.0f;    // スライド補間速度（指数Lerp）
             float snapEps = 0.001f;   // スナップ許容誤差
 
-            // 入力制御
-            float inputCooldown = 0.0f;
-            static constexpr float INPUT_DELAY = 0.15f;
-
             // スライド補間用
             float slideStartIdx = 0.0f;     // 補間開始時の currentIndex
             float slideTimer = 0.0f;     // 経過時間
@@ -184,7 +180,7 @@ namespace app {
             void PlayPreview();
             void InitializeUI();
             void RebuildJacketPool();
-            void UpdateInput();
+            // MVP: UpdateInputはSelectSceneに移動
             void UpdateAnimation();        // currentIndex → targetIndex へ補間
             void UpdateJacketPositions();  // 位置/スケール/深度の更新
             void UpdateSelectedFrame();    // 枠は中央スロットへ
