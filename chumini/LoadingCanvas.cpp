@@ -1,7 +1,8 @@
 #include "LoadingCanvas.h"
+#include "LoadingScene.h" // Full definition for Presenter calls
 #include "Time.h"
 #include "DirectX11.h"
-#include "StringUtils.h"  // 文字コード変換ユーティリティ
+#include "StringUtils.h" 
 
 namespace app::test {
 
@@ -10,12 +11,9 @@ namespace app::test {
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto context = dx11->GetMainDevice().GetDevice();
 
-        // ロード画面の背景（黒塗りつぶしなど）が必要ならここで AddUI<Image> する
-        // 今回はシンプルにテキストだけ
-
         // 0. Jacket Image
         jacketImage = AddUI<sf::ui::Image>();
-        jacketImage->transform.SetPosition(Vector3(0, 0, 0)); // Center
+        jacketImage->transform.SetPosition(Vector3(0, 0, 0)); 
         jacketImage->transform.SetScale(Vector3(3.5f, 3.5f, 1.0f));
         jacketImage->SetVisible(false);
 
@@ -32,23 +30,21 @@ namespace app::test {
         );
         loadingText->transform.SetPosition(Vector3(600, -300, 0));
 
-        // 2. 曲タイトル
+        // 2. Song Title
         songTitleText = AddUI<sf::ui::TextImage>();
         songTitleText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         songTitleText->Create(
             context,
-            L"", // 初期値は空
+            L"", 
             L"Assets/Fonts/\u30B4\u30C1\u30AB\u30AF\u30C3\u30C8.ttf",
             120.0f,
             D2D1::ColorF(D2D1::ColorF::White),
             1800, 200
         );
-        songTitleText->transform.SetPosition(Vector3(0, -270, 0)); // Match SelectCanvas
-
-        // ★修正: 最初は隠しておく！
+        songTitleText->transform.SetPosition(Vector3(0, -270, 0)); 
         songTitleText->SetVisible(false);
 
-        // 3. アーティスト (その下)
+        // 3. Artist
         artistText = AddUI<sf::ui::TextImage>();
         artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
@@ -59,23 +55,17 @@ namespace app::test {
             D2D1::ColorF(D2D1::ColorF::LightGray),
             1024, 200
         );
-        artistText->transform.SetPosition(Vector3(0, -350, 0)); // Match SelectCanvas
-        // ★修正: 最初は隠しておく！
+        artistText->transform.SetPosition(Vector3(0, -350, 0)); 
         artistText->SetVisible(false);
 
         updateCommand.Bind(std::bind(&LoadingCanvas::Update, this, std::placeholders::_1));
     }
 
-    void LoadingCanvas::SetTargetScene(sf::SafePtr<sf::IScene> scene) {
-        this->targetScene = scene;
-    }
-
     void LoadingCanvas::SetSongInfo(const SongInfo& info) {
-
         if (currentType != LoadingType::InGame) {
             return; 
         }
-        // 受け取った情報をUIにセット
+        
         if (info.title.empty()) {
             if (songTitleText) songTitleText->SetVisible(false);
             if (artistText) artistText->SetVisible(false);
@@ -83,17 +73,15 @@ namespace app::test {
             return;
         }
 
-        // 情報がある時だけ表示をオンにする
         if (songTitleText) {
             songTitleText->SetText(sf::util::Utf8ToWstring(info.title));
-            songTitleText->SetVisible(true); // ★ここで表示
+            songTitleText->SetVisible(true);
         }
         if (artistText) {
             artistText->SetText(sf::util::Utf8ToWstring(info.artist));
-            artistText->SetVisible(true); // ★ここで表示
+            artistText->SetVisible(true);
         }
 
-        // Jacket Image
         if (jacketImage && !info.jacketPath.empty()) {
             std::string sjisPath = sf::util::Utf8ToShiftJis(info.jacketPath);
             if (jacketTexture.LoadTextureFromFile(sjisPath)) {
@@ -106,51 +94,23 @@ namespace app::test {
     void LoadingCanvas::SetLoadingType(LoadingType type) {
         this->currentType = type;
 
-        // Commonなら強制非表示
         if (currentType == LoadingType::Common) {
             if (songTitleText) songTitleText->SetVisible(false);
             if (artistText) artistText->SetVisible(false);
             if (jacketImage) jacketImage->SetVisible(false);
-            
-            // Commonは 0.5秒
-            MIN_LOADING_TIME = 0.5f;
-        } else {
-            // InGameは 1.0秒
-            MIN_LOADING_TIME = 1.0f;
         }
     }
 
     void LoadingCanvas::Update(const sf::command::ICommand&) {
-        // 1. タイマーは常に進める
-        timer += sf::Time::DeltaTime();
+        // Animation
+        animationTimer += sf::Time::DeltaTime();
 
-        // 点滅演出
         if (loadingText) {
-            float alpha = 0.5f + 0.5f * std::sin(timer * 10.0f);
+            float alpha = 0.5f + 0.5f * std::sin(animationTimer * 10.0f);
             loadingText->material.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
         }
-
-        if (targetScene.isNull()) return;
-
-        // 2. 裏で常にロードチェックを行う（n秒経ってなくてもやる！）
-        if (!isLoadCompleted) {
-            if (targetScene->StandbyThisScene()) {
-                isLoadCompleted = true; // ロード終わった！
-                sf::debug::Debug::Log("Load Complete (Standby...)");
-            }
-        }
-
-        // 3. 「ロード完了」かつ「3秒経過」の両方を満たしたら遷移
-        if (isLoadCompleted && timer >= MIN_LOADING_TIME) {
-
-            sf::debug::Debug::Log("Transitioning");
-            targetScene->Activate();
-
-            if (auto owner = actorRef.Target()) {
-                owner->GetScene().DeActivate();
-            }
-        }
-
+        
+        // Logic (Transition) removed from here.
     }
 
     void LoadingCanvas::Draw() {
@@ -159,33 +119,27 @@ namespace app::test {
     }
 
     void LoadingCanvas::DrawLoadingGauge() {
-        // ロード進行度を取得
         float ratio = 0.0f;
-        if (!targetScene.isNull()) {
-            ratio = targetScene->loadProgress;
-        }
+        float logicTimer = 0.0f; // For shader effect
         
-        // 完了時は強制1.0
-        if (isLoadCompleted) ratio = 1.0f;
+        if (presenter) {
+            ratio = presenter->GetProgress();
+            logicTimer = presenter->GetTimer();
+        }
         
         // Clamp
         if (ratio < 0.0f) ratio = 0.0f;
         if (ratio > 1.0f) ratio = 1.0f;
 
         // Visual Layout
-        float barWidth = 800.0f; // Slightly smaller to fit on right
+        float barWidth = 800.0f; 
         float barHeight = 20.0f;
-        float baseY = -400.0f; // Bottom
-        
-        // Right Side Placement
-        // Screen Width ~1920. Center is 0. Right Edge is ~960.
-        // Let's place it at X = 400 (Center of bar)
+        float baseY = -400.0f; 
         float centerX = 400.0f; 
 
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto context = dx11->GetMainDevice().GetContext();
 
-        // Shader Setup (ScoreGauge流用)
         dx11->gsScoreGauge.SetGPU(dx11->GetMainDevice());
         dx11->psScoreGauge.SetGPU(dx11->GetMainDevice());
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -195,7 +149,6 @@ namespace app::test {
             float scaleX = barWidth * 0.5f;
             float scaleY = barHeight * 0.5f;
             
-            // 下地は常に全幅
             DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scaleX, scaleY, 1.0f);
             DirectX::XMMATRIX T = DirectX::XMMatrixTranslation(centerX, baseY, 0.0f); 
 
@@ -204,11 +157,10 @@ namespace app::test {
             wb.rot = DirectX::XMMatrixIdentity();
             dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
 
-            // Material
             mtl material;
-            material.diffuseColor = { 0.2f, 0.2f, 0.2f, 0.8f }; // Dark Grey
+            material.diffuseColor = { 0.2f, 0.2f, 0.2f, 0.8f }; 
             float aspect = barWidth / barHeight;
-            material.emissionColor = { aspect, 0, 0, 0 }; // x=aspect for rounded corners
+            material.emissionColor = { aspect, 0, 0, 0 }; 
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
             dx11->vsNone.SetGPU(dx11->GetMainDevice());
@@ -221,10 +173,7 @@ namespace app::test {
             float scaleX = currentWidth * 0.5f;
             float scaleY = barHeight * 0.5f;
 
-            // Bar Left Edge = CenterX - HalfTotalWidth
             float leftEdge = centerX - barWidth * 0.5f;
-            
-            // Current Content Center = LeftEdge + HalfCurrentWidth
             float fgCenterX = leftEdge + currentWidth * 0.5f;
 
             DirectX::XMMATRIX S = DirectX::XMMatrixScaling(scaleX, scaleY, 1.0f);
@@ -235,29 +184,22 @@ namespace app::test {
             wb.rot = DirectX::XMMatrixIdentity();
             dx11->wBuffer.SetGPU(wb, dx11->GetMainDevice());
 
-            // Material
             mtl material;
-            material.diffuseColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Base color (can be ignored by rainbow logic)
+            material.diffuseColor = { 1.0f, 1.0f, 1.0f, 1.0f }; 
             
             float aspect = currentWidth / barHeight;
-            // 短すぎると見た目が崩れる場合の補正（Shader依存だが一応）
             if (aspect < 1.0f) aspect = 1.0f; 
 
-            // Enable Rainbow: y=1.0f, Time: z=timer
-            material.emissionColor = { aspect, 1.0f, timer, 0 }; 
+            // Use logicTimer for rainbow effect
+            material.emissionColor = { aspect, 1.0f, logicTimer, 0 }; 
             
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
             context->Draw(1, 0);
         }
 
-        // Restore State (CRITICAL: Fix for "broken" rendering)
-        // GSを無効化し、トポロジを戻さないと次の描画(UI等)がおかしくなる
         context->GSSetShader(nullptr, nullptr, 0);
         context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-        // Restore Standard Shader
         dx11->ps2d.SetGPU(dx11->GetMainDevice());
     }
-
 }
