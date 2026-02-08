@@ -16,11 +16,15 @@ namespace app {
     namespace test {
         struct SongInfo;
         struct Genre;
+        class SelectScene;  // MVP: Presenter前方宣言
 
         class SelectCanvas : public sf::ui::Canvas {
         public:
             void Begin() override;
             void Update(const sf::command::ICommand&);
+
+            // MVP: Presenter設定
+            void SetPresenter(SelectScene* scene) { presenter = scene; }
 
             // 入力系
             void SelectNext();
@@ -35,6 +39,9 @@ namespace app {
             sf::ui::TextImage* songTitleText = nullptr; // 現在選択中の曲タイトル表示用
 
         private:
+            // MVP: Presenter参照
+            SelectScene* presenter = nullptr;
+
             sf::command::Command<>  updateCommand;
             sf::SafePtr<SceneChangeComponent> sceneChanger;
 

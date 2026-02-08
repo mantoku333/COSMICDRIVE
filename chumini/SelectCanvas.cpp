@@ -1,4 +1,5 @@
 #include "SelectCanvas.h"
+#include "SelectScene.h"  // MVP: Presenter
 #include "Time.h"
 #include <algorithm>
 #include <cmath>
@@ -1010,28 +1011,21 @@ namespace app::test {
     }
 
     void SelectCanvas::CancelSelection() {
-        if (sceneChanger.isNull()) return;
-
-        sf::debug::Debug::Log("タイトルに遷移");
-
-        sceneChanger->ChangeScene(TitleScene::StandbyScene());
+        // MVP: Presenterにシーン遷移を委譲
+        if (presenter) {
+            presenter->NavigateToTitle();
+        }
     }
 
     void SelectCanvas::ConfirmSelection() {
         if (songs.empty()) return;
-        if (sceneChanger.isNull()) return;
 
         const SongInfo& selected = songs[targetIndex];
 
-        auto next = IngameScene::StandbyScene();
-        if (next) {
-            next->SetSelectedSong(selected);
+        // MVP: Presenterにシーン遷移を委譲
+        if (presenter) {
+            presenter->NavigateToGame(selected);
         }
-
-        LoadingScene::SetLoadingType(LoadingType::InGame);
-        LoadingScene::SetNextSongInfo(selected);
-
-        sceneChanger->ChangeScene(next);
     }
 
     const SongInfo& SelectCanvas::GetSelectedSong() const {
