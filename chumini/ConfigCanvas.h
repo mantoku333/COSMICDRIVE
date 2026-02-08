@@ -10,16 +10,27 @@ namespace app
 {
 	namespace test
 	{
+		class ConfigScene; // 前方宣言
+
 		class ConfigCanvas : public sf::ui::Canvas
 		{
 		public:
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
-            // End removed as base class does not have it.
+
+			// MVP: Presenter設定
+			void SetPresenter(ConfigScene* scene) { presenter = scene; }
+
+			// MVP: Presenterからの操作
+			int GetItemCount() const { return (int)items.size(); }
+			void UpdateSelection(int index);
+			void ExecuteLeft(int index);
+			void ExecuteRight(int index);
+			void ExecuteItem(int index); // Confirm動作
 
 		private:
 			sf::command::Command<> updateCommand;
-			sf::SafePtr<SceneChangeComponent> sceneChanger;
+			ConfigScene* presenter = nullptr;
 
 			// Global UI
 			sf::ui::TextImage* backButton = nullptr;
@@ -47,20 +58,11 @@ namespace app
 				std::function<void()> onUpdateView;
 
 				bool IsHovered(sf::ui::TextImage* btn, const Vector2& mousePos);
-				void Update(float currentY, const Vector2& mousePos, bool isClicked);
+				void Update(float currentY, const Vector2& mousePos, bool isClicked, bool isSelected);
 				void SetVisible(bool visible);
 			};
 			std::vector<std::shared_ptr<ConfigItem>> items;
-
-			// State
-			enum class State {
-				Normal,
-				WaitingForKey
-			};
-			State state = State::Normal;
-			int waitingLaneIndex = -1;
-
-			void HandleInput(const sf::command::ICommand& command);
+			
 			void UpdateScroll();
 			void RebuildLayout();
 
@@ -71,7 +73,6 @@ namespace app
 			void AddKeyItem(int laneIndex, const wchar_t* label);
 
 			void OnButtonPressed();
-			void DetectKeyInput();
 
 			Vector2 GetMousePosition();
 			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
