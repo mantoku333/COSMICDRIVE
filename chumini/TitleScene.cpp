@@ -5,6 +5,9 @@
 #include "EffectManager.h"
 #include "Live2DComponent.h"
 #include "BGMComponent.h"
+#include "SelectScene.h"
+#include "ConfigScene.h"
+#include "LoadingScene.h"
 
 // 追加インクルード
 #include "DirectX11.h"   // デバイス取得用
@@ -66,12 +69,17 @@ namespace app::test {
         // 1. UI管理用アクターの生成とコンポーネント追加
         {
             uiManagerActor = Instantiate();
-            uiManagerActor.Target()->AddComponent<TitleCanvas>();
-            uiManagerActor.Target()->AddComponent<SceneChangeComponent>();
-            uiManagerActor.Target()->AddComponent<EffectManager>(); // EffectManager追加
+            titleCanvas = uiManagerActor.Target()->AddComponent<TitleCanvas>();
+            sceneChanger = uiManagerActor.Target()->AddComponent<SceneChangeComponent>();
+            uiManagerActor.Target()->AddComponent<EffectManager>();
             bgmPlayer = uiManagerActor.Target()->AddComponent<app::test::BGMComponent>();
 
             uiManagerActor.Target()->transform.SetPosition({ 0.0f, 0.0f, 0.0f });
+            
+            // MVP: CanvasにPresenter（このScene）を設定
+            if (titleCanvas.Get()) {
+                titleCanvas->SetPresenter(this);
+            }
         }
         
         loadProgress = 0.2f;
@@ -140,8 +148,7 @@ namespace app::test {
         if (context) context->Release();
 
         // 初期パラメーター設定
-        selectedButton = 0;
-        isButtonPressed = false;
+        selectedButton = TitleButton::Play;
 
         updateCommand.Bind(std::bind(&TitleScene::Update, this, std::placeholders::_1));
 
@@ -331,5 +338,70 @@ namespace app::test {
         }
 
         ImGui::End();
+    }
+
+    // =================================================================
+    // MVP: 入力ハンドラ（Canvasから呼ばれる）
+    // =================================================================
+    
+    void TitleScene::OnNavigateLeft() {
+        int idx = static_cast<int>(selectedButton);
+        idx = (idx - 1 + 3) % 3;  // 0:Config, 1:Play, 2:Exit の3つ
+        selectedButton = static_cast<TitleButton>(idx);
+        sf::debug::Debug::Log("TitleScene: OnNavigateLeft -> " + std::to_string(idx));
+    }
+    
+    void TitleScene::OnNavigateRight() {
+        int idx = static_cast<int>(selectedButton);
+        idx = (idx + 1) % 3;
+        selectedButton = static_cast<TitleButton>(idx);
+        sf::debug::Debug::Log("TitleScene: OnNavigateRight -> " + std::to_string(idx));
+    }
+    
+    void TitleScene::OnSelectButton(TitleButton button) {
+        selectedButton = button;
+    }
+    
+    void TitleScene::OnConfirm() {
+        sf::debug::Debug::Log("TitleScene: OnConfirm called");
+        ExecuteButtonAction();
+    }
+
+    // =================================================================
+    // MVP: 内部メソッド
+    // =================================================================
+    
+    void TitleScene::ExecuteButtonAction() {
+        switch (selectedButton) {
+        case TitleButton::Config:
+            NavigateToConfig();
+            break;
+        case TitleButton::Play:
+            NavigateToSelect();
+            break;
+        case TitleButton::Exit:
+            ExitApplication();
+            break;
+        }
+    }
+    
+    void TitleScene::NavigateToSelect() {
+        if (!sceneChanger.isNull()) {
+            LoadingScene::SetLoadingType(LoadingType::Common);
+            sceneChanger->ChangeScene(SelectScene::StandbyScene());
+        }
+    }
+    
+    void TitleScene::NavigateToConfig() {
+        if (!sceneChanger.isNull()) {
+            LoadingScene::SetLoadingType(LoadingType::Common);
+            sceneChanger->ChangeScene(ConfigScene::StandbyScene());
+        }
+    }
+    
+    void TitleScene::ExitApplication() {
+        if (auto* mainApp = app::Application::GetMain()) {
+            mainApp->Exit();
+        }
     }
 }

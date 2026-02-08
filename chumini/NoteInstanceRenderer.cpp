@@ -5,21 +5,57 @@
 #include <algorithm>
 
 namespace app::test {
+    
+    // ============================================================
+    // Pimpl 実装クラス
+    // DirectXリソース管理の詳細を隠蔽
+    // ============================================================
+    class NoteInstanceRenderer::Impl {
+    public:
+        Impl() = default;
+        ~Impl() { Release(); }
 
-    NoteInstanceRenderer::NoteInstanceRenderer() = default;
+        void Init();
+        void UpdateBuffer(const std::vector<NoteInstanceData>& instances);
+        void Draw(size_t instanceCount);
+        void Release();
 
-    NoteInstanceRenderer::~NoteInstanceRenderer() {
-        Release();
+    private:
+        static constexpr size_t MAX_INSTANCES = 2048;
+
+        ID3D11Buffer* m_instanceBuffer = nullptr;
+        ID3D11VertexShader* m_vs = nullptr;
+        ID3D11InputLayout* m_layout = nullptr;
+        ID3D11Buffer* m_cubeVB = nullptr;
+        ID3D11Buffer* m_cubeIB = nullptr;
+        int m_cubeIndexCount = 0;
+    };
+
+    // ============================================================
+    // 外向インターフェース実装 (Pimplへの委譲)
+    // ============================================================
+    
+    NoteInstanceRenderer::NoteInstanceRenderer() : m_impl(std::make_unique<Impl>()) {}
+    NoteInstanceRenderer::~NoteInstanceRenderer() = default;
+
+    NoteInstanceRenderer::NoteInstanceRenderer(NoteInstanceRenderer&&) noexcept = default;
+    NoteInstanceRenderer& NoteInstanceRenderer::operator=(NoteInstanceRenderer&&) noexcept = default;
+
+    void NoteInstanceRenderer::Init() { m_impl->Init(); }
+    void NoteInstanceRenderer::UpdateBuffer(const std::vector<NoteInstanceData>& instances) { m_impl->UpdateBuffer(instances); }
+    void NoteInstanceRenderer::Draw(size_t instanceCount) { m_impl->Draw(instanceCount); }
+    void NoteInstanceRenderer::UpdateAndDraw(const std::vector<NoteInstanceData>& instances) {
+        if(instances.empty()) return;
+        m_impl->UpdateBuffer(instances);
+        m_impl->Draw(instances.size());
     }
+    void NoteInstanceRenderer::Release() { m_impl->Release(); }
 
     // ============================================================
-    // インスタンシング初期化
-    // タップノーツを一括描画するためのリソースを準備
-    // 1. インスタンスバッファ（動的、最大2048ノーツ）
-    // 2. キューブメッシュ（頂点・インデックス）
-    // 3. シェーダーと入力レイアウト
+    // Impl 実装（DirectX詳細）
     // ============================================================
-    void NoteInstanceRenderer::Init()
+
+    void NoteInstanceRenderer::Impl::Init()
     {
         sf::dx::DirectX11* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();
@@ -112,12 +148,10 @@ namespace app::test {
             return;
         }
 
-        // ファイルサイズを取得
         fseek(fp, 0, SEEK_END);
         long fileSize = ftell(fp);
         fseek(fp, 0, SEEK_SET);
 
-        // メモリに読み込み
         char* pShaderData = new char[fileSize];
         fread(pShaderData, fileSize, 1, fp);
         fclose(fp);
@@ -129,7 +163,6 @@ namespace app::test {
             return;
         }
 
-        // 入力レイアウト
         D3D11_INPUT_ELEMENT_DESC layoutDesc[] =
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -147,11 +180,7 @@ namespace app::test {
         delete[] pShaderData;
     }
 
-    // ============================================================
-    // インスタンスバッファ更新
-    // 可視なタップノーツのワールド行列を収集し、GPUに転送
-    // ============================================================
-    void NoteInstanceRenderer::UpdateBuffer(const std::vector<NoteInstanceData>& instances)
+    void NoteInstanceRenderer::Impl::UpdateBuffer(const std::vector<NoteInstanceData>& instances)
     {
         if (instances.empty()) return;
         if (!m_instanceBuffer) return;
@@ -169,12 +198,7 @@ namespace app::test {
         }
     }
 
-    // ============================================================
-    // インスタンス描画
-    // 収集したノーツデータを一括描画
-    // DrawIndexedInstancedで全ノーツを1回のDrawCallで描画
-    // ============================================================
-    void NoteInstanceRenderer::Draw(size_t instanceCount)
+    void NoteInstanceRenderer::Impl::Draw(size_t instanceCount)
     {
         try {
             if (instanceCount == 0) return;
@@ -185,19 +209,16 @@ namespace app::test {
 
             auto context = dx11->GetMainDevice().GetContext();
 
-            // デバイス/コンテキストの有効性チェック（Intel GPUクラッシュ防止）
             if (!context) {
                 sf::debug::Debug::LogError("DrawInstanced: Context is null, skipping draw.");
                 return;
             }
 
-            // シェーダー設定
             context->VSSetShader(m_vs, nullptr, 0);
             context->IASetInputLayout(m_layout);
             dx11->ps3d.SetGPU(dx11->GetMainDevice());
             dx11->gsNone.SetGPU(dx11->GetMainDevice());
 
-            // 頂点バッファ設定（キューブ + インスタンス）
             UINT strides[2] = { sizeof(float) * 12, sizeof(NoteInstanceData) };
             UINT offsets[2] = { 0, 0 };
             ID3D11Buffer* buffers[2] = { m_cubeVB, m_instanceBuffer };
@@ -206,27 +227,18 @@ namespace app::test {
             context->IASetIndexBuffer(m_cubeIB, DXGI_FORMAT_R32_UINT, 0);
             context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            // マテリアル設定
             mtl material;
             material.diffuseColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             material.textureEnable = { 0.0f, 0.0f, 0.0f, 0.0f };
             dx11->mtlBuffer.SetGPU(material, dx11->GetMainDevice());
 
-            // インスタンス描画（1 DrawCallで全ノーツ）
             context->DrawIndexedInstanced(m_cubeIndexCount, (UINT)instanceCount, 0, 0, 0);
         } catch (...) {
             sf::debug::Debug::LogError("DrawInstanced Exception");
         }
     }
 
-    void NoteInstanceRenderer::UpdateAndDraw(const std::vector<NoteInstanceData>& instances)
-    {
-        if (instances.empty()) return;
-        UpdateBuffer(instances);
-        Draw(instances.size());
-    }
-
-    void NoteInstanceRenderer::Release()
+    void NoteInstanceRenderer::Impl::Release()
     {
         if (m_instanceBuffer) { m_instanceBuffer->Release(); m_instanceBuffer = nullptr; }
         if (m_vs)             { m_vs->Release();             m_vs = nullptr; }
@@ -235,4 +247,4 @@ namespace app::test {
         if (m_cubeIB)         { m_cubeIB->Release();         m_cubeIB = nullptr; }
     }
 
-}
+} // namespace app::test

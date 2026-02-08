@@ -6,7 +6,6 @@
 #include "Config.h"
 #include "DirectX11.h"
 #include <cstdio>
-#pragma comment(lib, "d3dcompiler.lib")
 #include <fstream>
 #include <sstream>
 #include <algorithm>

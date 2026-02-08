@@ -1,10 +1,6 @@
 #include "TitleCanvas.h"
+#include "TitleScene.h"  // MVP: Presenter参照
 #include "AppModel.h"
-#include "SceneChangeComponent.h"
-#include "SelectScene.h"
-#include "EditScene.h"
-#include "LoadingScene.h"
-#include "ConfigScene.h"
 #include "Rendering/D3D11/CubismRenderer_D3D11.hpp"
 
 // 必要なインクルード
@@ -131,12 +127,7 @@ void TitleCanvas::Begin()
 	}
 	*/
 
-	if (auto actor = actorRef.Target()) {
-		auto* changer = actor->GetComponent<SceneChangeComponent>();
-		if (changer) {
-			sceneChanger = changer;
-		}
-	}
+	// SceneChangeComponentへの参照は削除（MVP: TitleSceneで管理）
 
 	// ---------------------------------------------------------
 	// 名前・学校名の表示
@@ -223,17 +214,7 @@ void TitleCanvas::Begin()
 
 	// ... (Backing code omitted/unchanged) ...
 
-// ... inside HandleInput ...
-
-	// --- キーボード操作 ---
-	// 0: CONFIG, 1: PLAY, 2: EXIT
-	
-	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
-		selectedButton = (selectedButton - 1 + 3) % 3;
-	}
-	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
-		selectedButton = (selectedButton + 1) % 3;
-	}
+	// ※ Begin内の入力処理は削除（Scene側で管理）
 
 	// ---------------------------------------------------------
 	// 4. Backing Image (Using Assets/Texture/BACK.png)
@@ -258,11 +239,8 @@ void TitleCanvas::Begin()
 
 
 	// ---------------------------------------------------------
-	// 初期設定
+	// 初期設定（MVP: 状態はScene側で管理）
 	// ---------------------------------------------------------
-	selectedButton = 1; // 初期選択はPLAY (1)
-	UpdateButtonSelection();
-
 	updateCommand.Bind(std::bind(&TitleCanvas::Update, this, std::placeholders::_1));
 }
 
@@ -271,11 +249,28 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 	animationTimer += sf::Time::DeltaTime();
 	float dt = sf::Time::DeltaTime();
 
-	// ★追加: Live2Dモデルの更新
+	// Live2Dモデルの更新
 	if (_hiyoriModel) {
 		_hiyoriModel->Update();
-		OutputDebugStringA("Model Updated\n");
 	}
+	
+	// ジャケットスクロールアニメーション
+	UpdateJacketScrolling(dt);
+	
+	// MVP: 入力検出→Presenterに委譲
+	DetectInputAndNotify(command);
+	
+	// MVP: Presenterの状態を参照して表示更新
+	if (presenter) {
+		UpdateButtonHighlight(presenter->GetSelectedButton());
+	}
+}
+
+// =================================================================
+// ジャケットスクロールアニメーション
+// =================================================================
+void TitleCanvas::UpdateJacketScrolling(float dt)
+{
 	if (totalWidth <= 0.0f) return;
 
 	// 境界線（画面端より少し外側）
@@ -284,78 +279,73 @@ void TitleCanvas::Update(const sf::command::ICommand& command)
 	// --- 上段：左から右へ (L -> R) ---
 	for (auto& sj : scrollingJacketsTop) {
 		sj.posX += jacketSpeedTop * dt;
-		// 右に突き抜けたら左へ
 		if (sj.posX > wrapLimit) {
 			sj.posX -= totalWidth;
 		}
-		// Y=0.0の位置に表示 (元のレイアウトに復帰)
 		sj.uiImage->transform.SetPosition(Vector3(sj.posX, 0.0f, 10.0f));
 		sj.uiImage->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
 	}
 
 	// --- 下段：右から左へ (R -> L) ---
 	for (auto& sj : scrollingJacketsBottom) {
-		sj.posX += jacketSpeedBottom * dt; // 負の値なので左へ進む
-
+		sj.posX += jacketSpeedBottom * dt;
 		if (sj.posX < -wrapLimit) {
 			sj.posX += totalWidth;
 		}
-
-		// Y=-250の位置に表示
 		sj.uiImage->transform.SetPosition(Vector3(sj.posX, -250.0f, 10.0f));
 		sj.uiImage->material.SetColor({ 0.7f, 0.7f, 0.7f, 1.0f });
 	}
-
-	HandleInput(command);
-	UpdateButtonSelection();
 }
 
-void TitleCanvas::HandleInput(const sf::command::ICommand& command)
+// =================================================================
+// MVP: 入力検出→Presenterに委譲
+// =================================================================
+void TitleCanvas::DetectInputAndNotify(const sf::command::ICommand& command)
 {
+	if (!presenter) return;
+	
 	// --- マウス操作 ---
 	Vector2 mousePos = GetMousePosition();
 	bool isExitHovered = IsButtonHovered(mousePos, exitButton);
 	bool isPlayHovered = IsButtonHovered(mousePos, playButton);
 	bool isConfigHovered = IsButtonHovered(mousePos, configButton);
 
-	// マウスが乗ったら選択状態を切り替える (0: CONFIG, 1: PLAY, 2: EXIT)
+	// マウスが乗ったらPresenterに通知
 	if (isConfigHovered) {
-		selectedButton = 0;
+		presenter->OnSelectButton(TitleButton::Config);
 	}
 	else if (isPlayHovered) {
-		selectedButton = 1;
+		presenter->OnSelectButton(TitleButton::Play);
 	}
 	else if (isExitHovered) {
-		selectedButton = 2;
+		presenter->OnSelectButton(TitleButton::Exit);
 	}
 
 	// 左クリックで決定
 	if (SInput::Instance().GetMouseDown(0)) {
 		if (isExitHovered || isPlayHovered || isConfigHovered) {
-			OnButtonPressed();
+			presenter->OnConfirm();
 		}
 	}
 
 	// --- キーボード操作 ---
-	const int BUTTON_COUNT = 3;
-
-	// 左右キーまたはADキーで選択切り替え
-	// Left/A -> 戻る (Index--)
 	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
-		selectedButton = (selectedButton - 1 + BUTTON_COUNT) % BUTTON_COUNT;
+		presenter->OnNavigateLeft();
 	}
-	// Right/D -> 進む (Index++)
 	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
-		selectedButton = (selectedButton + 1) % BUTTON_COUNT;
+		presenter->OnNavigateRight();
 	}
 
-	// スペースキーまたはエンターキーで決定
+	// スペースキーで決定
 	if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-		OnButtonPressed();
+		presenter->OnConfirm();
 	}
 }
 
-void TitleCanvas::UpdateButtonSelection()
+// =================================================================
+// MVP: ボタンハイライト表示更新
+// =================================================================
+void TitleCanvas::UpdateButtonHighlight(TitleButton selected)
 {
 	float sine = std::sin(animationTimer * 7.0f);
 	float scaleOffset = 0.1f * sine;
@@ -378,63 +368,36 @@ void TitleCanvas::UpdateButtonSelection()
 	auto colorSelected = DirectX::XMFLOAT4(1.0f, 1.0f, 0.2f, alphaAnim);
 	auto colorNormal = DirectX::XMFLOAT4(0.8f, 0.8f, 0.8f, 0.6f);
 
-	// 0: CONFIG, 1: PLAY, 2: EXIT
-	if (selectedButton == 0) {
-		// CONFIG selected
+	// MVP: TitleButton enumを使用
+	switch (selected) {
+	case TitleButton::Config:
 		playButton->transform.SetScale(scaleNormal);
 		playButton->material.SetColor(colorNormal);
-
 		configButton->transform.SetScale(scaleSelectedAnim);
 		configButton->material.SetColor(colorSelected);
-
 		exitButton->transform.SetScale(scaleNormal);
 		exitButton->material.SetColor(colorNormal);
-	}
-	else if (selectedButton == 1) {
-		// PLAY selected
+		break;
+	case TitleButton::Play:
 		playButton->transform.SetScale(scaleSelectedAnim);
 		playButton->material.SetColor(colorSelected);
-
 		configButton->transform.SetScale(scaleNormal);
 		configButton->material.SetColor(colorNormal);
-
 		exitButton->transform.SetScale(scaleNormal);
 		exitButton->material.SetColor(colorNormal);
-	}
-	else {
-		// EXIT selected
+		break;
+	case TitleButton::Exit:
 		playButton->transform.SetScale(scaleNormal);
 		playButton->material.SetColor(colorNormal);
-
 		configButton->transform.SetScale(scaleNormal);
 		configButton->material.SetColor(colorNormal);
-
 		exitButton->transform.SetScale(scaleSelectedAnim);
 		exitButton->material.SetColor(colorSelected);
+		break;
 	}
 }
 
-void TitleCanvas::OnButtonPressed()
-{
-	if (selectedButton == 0) {
-		// CONFIG
-		if (!sceneChanger.isNull()) {
-			LoadingScene::SetLoadingType(LoadingType::Common);
-			sceneChanger->ChangeScene(ConfigScene::StandbyScene());
-		}
-	}
-	else if (selectedButton == 1) {
-		// PLAY
-		ShowSongSelectScene();
-	}
-	else if (selectedButton == 2) {
-		// EXIT
-		app::Application* mainApp = app::Application::GetMain();
-		if (mainApp) {
-			mainApp->Exit();
-		}
-	}
-}
+// OnButtonPressedは削除（MVP: TitleScene::ExecuteButtonActionに移動）
 
 bool TitleCanvas::IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button)
 {
@@ -468,13 +431,8 @@ Vector2 TitleCanvas::GetMousePosition()
 	return Vector2(uiX, uiY);
 }
 
-void TitleCanvas::ShowSongSelectScene()
-{
-	if (!sceneChanger.isNull()) {
-		LoadingScene::SetLoadingType(LoadingType::Common);
-		sceneChanger->ChangeScene(SelectScene::StandbyScene());
-	}
-}
+// OnButtonPressed と ShowSongSelectScene は削除（MVP: TitleSceneに移動）
+
 
 TitleCanvas::~TitleCanvas()
 {

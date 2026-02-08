@@ -2,11 +2,8 @@
 #include "App.h"
 #include "TextImage.h"
 #include "AppModel.h"
-#include "SceneChangeComponent.h"
 #include "SongInfo.h"
 #include "Live2DManager.h"
-
-// Ensure these are included for Image and Texture members
 #include "Image.h"
 #include "Texture.h"
 
@@ -14,35 +11,61 @@ namespace app
 {
 	namespace test
 	{
+		class TitleScene;  // 前方宣言
+		enum class TitleButton;  // 前方宣言
+
+		// ============================================================
+		// TitleCanvas - タイトル画面のView（MVP）
+		// 
+		// 役割:
+		// - UI要素の生成・管理
+		// - 描画処理
+		// - 入力検出→Presenterに委譲
+		// - Presenterの状態を参照して表示更新
+		// ============================================================
 		class TitleCanvas : public sf::ui::Canvas
 		{
 		public:
 			void Begin() override;
 			void Update(const sf::command::ICommand&);
-
 			void Draw() override;
 			virtual ~TitleCanvas();
-		private:
 
+			// --------------------------------------------
+			// Presenter設定（Sceneから呼ばれる）
+			// --------------------------------------------
+			
+			/// Presenterへの参照を設定
+			void SetPresenter(TitleScene* scene) { presenter = scene; }
+
+		private:
+			// --------------------------------------------
+			// Presenter参照
+			// --------------------------------------------
+			TitleScene* presenter = nullptr;
+
+			// --------------------------------------------
+			// Live2D
+			// --------------------------------------------
 			AppModel* _hiyoriModel = nullptr;
 
+			// --------------------------------------------
+			// 更新コマンド
+			// --------------------------------------------
 			sf::command::Command<> updateCommand;
-			sf::SafePtr<SceneChangeComponent> sceneChanger;
 
-			// UI Buttons
+			// --------------------------------------------
+			// UI要素
+			// --------------------------------------------
 			sf::ui::TextImage* playButton = nullptr;
 			sf::ui::TextImage* exitButton = nullptr;
 			sf::ui::TextImage* configButton = nullptr;
 			
-			// White Backing (For Black Background behind Live2D)
-			// Changed to Image* to support texture
+			// 背景
 			sf::ui::Image* whiteBacking = nullptr; 
 			sf::Texture backTexture; 
 
-			// --- State ---
-			int selectedButton = 0; // 0: EXIT, 1: PLAY
-
-			// Background Jacket Flow
+			// ジャケットスクロール
 			struct ScrollingJacket {
 				sf::ui::Image* uiImage;
 				float posX; 
@@ -58,21 +81,34 @@ namespace app
 			const float jacketScale = 2.5f; 		 
 			const float jacketInterval = 270.0f;      
 
-			// --- Methods ---
-
-			void InitializeJacketFlow();
-			void HandleInput(const sf::command::ICommand& command);
-			void UpdateButtonSelection();
-			void OnButtonPressed();
-			void ShowSongSelectScene();
-
-			Vector2 GetMousePosition();
-			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
-
+			// --------------------------------------------
+			// 定数
+			// --------------------------------------------
 			static constexpr float screenWidth = 1920.0f;
 			static constexpr float screenHeight = 1080.0f;
-
 			float animationTimer = 0.0f;
+
+			// --------------------------------------------
+			// 内部メソッド
+			// --------------------------------------------
+			
+			/// ジャケットフロー初期化
+			void InitializeJacketFlow();
+			
+			/// 入力検出してPresenterに通知
+			void DetectInputAndNotify(const sf::command::ICommand& command);
+			
+			/// ジャケットスクロールアニメーション更新
+			void UpdateJacketScrolling(float dt);
+			
+			/// ボタンハイライト表示更新
+			void UpdateButtonHighlight(TitleButton selected);
+
+			/// マウス位置取得
+			Vector2 GetMousePosition();
+			
+			/// ボタンホバー判定
+			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
 		};
 	}
 }
