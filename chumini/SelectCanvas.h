@@ -26,13 +26,20 @@ namespace app {
             // MVP: Presenter設定
             void SetPresenter(SelectScene* scene) { presenter = scene; }
 
-            // 入力系
+            // 入力系（Canvas内部で使用、Sceneからも呼ばれる）
             void SelectNext();
             void SelectPrevious();
             void ConfirmSelection();
             void CancelSelection();
 
-            // 選択情報（実際に確定されるのは targetIndex 基準）
+            // MVP: Scene(Presenter)から呼ばれるメソッド
+            int GetSongCount() const { return (int)songs.size(); }
+            void SetTargetIndex(int index);
+            void SetGenreSelectMode(bool isGenreMode);
+            void SetShowRatingDetail(bool show);
+            void ChangeGenre(int direction);  // +1=次 / -1=前
+
+            // 選択情報
             int GetSelectedSongIndex() const { return targetIndex; }
             const SongInfo& GetSelectedSong() const;
 
@@ -169,7 +176,6 @@ namespace app {
             sf::ui::TextImage* prevGenreText = nullptr; // 前のジャンル
             sf::ui::TextImage* nextGenreText = nullptr; // 次のジャンル
 
-            void ChangeGenre(int index);
             void SelectNextGenre();
             void SelectPreviousGenre();
 

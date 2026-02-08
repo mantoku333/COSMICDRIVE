@@ -510,7 +510,8 @@ namespace app::test {
             if (ratingDetailAnimationTimer < 0.0f) ratingDetailAnimationTimer = 0.0f;
         }
 
-        UpdateInput();
+        // MVP: 入力処理はSelectSceneで行うため、ここでは呼ばない
+        // UpdateInput();
         UpdateAnimation();
         UpdateJacketPositions();
         UpdateSelectedFrame();
@@ -1037,6 +1038,85 @@ namespace app::test {
         return songs[idx];
     }
 
+    // ===== MVP: SetTargetIndex =====
+    void SelectCanvas::SetTargetIndex(int index) {
+        if (songs.empty()) return;
+        const int N = (int)songs.size();
+        targetIndex = std::clamp(index, 0, N - 1);
+        selectedIndex = targetIndex;
+        slideStartIdx = currentIndex;
+        slideTimer = 0.0f;
+
+        // UI更新
+        if (songTitleText) {
+            std::wstring title = Utf8ToWstring(songs[targetIndex].title);
+            songTitleText->SetText(title);
+        }
+        if (artistText) {
+            artistText->SetText(Utf8ToWstring(songs[targetIndex].artist));
+        }
+        if (bpmText) {
+            std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
+            bpmText->SetText(bpmStr);
+        }
+        if (difficultyText) {
+            std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
+            difficultyText->SetText(levelStr);
+        }
+        // Score & Rank更新
+        if (highScoreText && rankMark) {
+            auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
+            if (record.highScore > 0) {
+                wchar_t scoreBuf[64];
+                swprintf_s(scoreBuf, L"High Score: %d", record.highScore);
+                highScoreText->SetText(scoreBuf);
+                std::wstring rW(record.rank.begin(), record.rank.end());
+                rankMark->SetText(rW);
+            } else {
+                highScoreText->SetText(L"High Score: --------");
+                rankMark->SetText(L"-");
+            }
+        }
+        PlayPreview();
+    }
+
+    // ===== MVP: SetGenreSelectMode =====
+    void SelectCanvas::SetGenreSelectMode(bool isGenreMode) {
+        selectionMode = isGenreMode ? InputMode::GenreSelect : InputMode::SongSelect;
+    }
+
+    // ===== MVP: SetShowRatingDetail =====
+    void SelectCanvas::SetShowRatingDetail(bool show) {
+        showRatingDetail = show;
+        
+        if (show && ratingDetailTotalText) {
+            // 合計レート設定
+            float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
+            float truncated = std::floor(playerRating * 100.0f) / 100.0f;
+            wchar_t totalBuf[64];
+            swprintf_s(totalBuf, L"%.2f", truncated);
+            ratingDetailTotalText->SetText(totalBuf);
+            
+            // 詳細リスト設定
+            auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
+            ratingDetailItemCount = std::min<int>((int)topCharts.size(), (int)ratingDetailLines.size());
+            
+            for (size_t i = 0; i < ratingDetailLines.size(); ++i) {
+                if (i < topCharts.size()) {
+                    std::string title = std::get<0>(topCharts[i]);
+                    float rating = std::get<1>(topCharts[i]);
+                    float truncRating = std::floor(rating * 100.0f) / 100.0f;
+                    wchar_t lineBuf[256];
+                    std::wstring titleW = Utf8ToWstring(title);
+                    swprintf_s(lineBuf, L"%d. %s - %.2f", (int)i + 1, titleW.c_str(), truncRating);
+                    ratingDetailLines[i]->SetText(lineBuf);
+                } else {
+                    ratingDetailLines[i]->SetText(L"");
+                }
+            }
+        }
+    }
+
     // ===== プレビュー再生 =====
     void SelectCanvas::PlayPreview() {
         // 前の曲を止める
@@ -1068,9 +1148,12 @@ namespace app::test {
     }
 
     // ===== ジャンル変更 =====
-    void SelectCanvas::ChangeGenre(int index) {
-        // SongListServiceにジャンル変更を委譲
-        songs = songListService.ChangeGenre(index);
+    void SelectCanvas::ChangeGenre(int direction) {
+        // 現在のジャンル + direction で次/前のジャンルに移動
+        int currentIdx = songListService.GetCurrentGenreIndex();
+        int newIdx = currentIdx + direction;
+        // SongListServiceにジャンル変更を委譲（循環処理はSongListService内で行われる）
+        songs = songListService.ChangeGenre(newIdx);
         
         // 選択リセット
         targetIndex = 0;
