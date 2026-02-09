@@ -328,18 +328,7 @@ void TitleCanvas::DetectInputAndNotify(const sf::command::ICommand& command)
 		}
 	}
 
-	// --- キーボード操作 ---
-	if (SInput::Instance().GetKeyDown(Key::KEY_LEFT) || SInput::Instance().GetKeyDown(Key::KEY_A)) {
-		presenter->OnNavigateLeft();
-	}
-	else if (SInput::Instance().GetKeyDown(Key::KEY_RIGHT) || SInput::Instance().GetKeyDown(Key::KEY_D)) {
-		presenter->OnNavigateRight();
-	}
-
-	// スペースキーで決定
-	if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-		presenter->OnConfirm();
-	}
+	// Keyboard input moved to TitleScene::Update
 }
 
 // =================================================================

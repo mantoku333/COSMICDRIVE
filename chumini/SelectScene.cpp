@@ -5,6 +5,7 @@
 #include "IngameScene.h"
 #include "TitleScene.h"
 #include "LoadingScene.h"
+#include "Config.h"
 
 namespace app::test {
 
@@ -50,41 +51,65 @@ void SelectScene::ProcessInput()
     if (inputCooldown > 0.0f) return;
     SInput& input = SInput::Instance();
 
-    // モード切り替え (上下)
-    if (input.GetKeyDown(Key::KEY_UP) || input.GetKeyDown(Key::KEY_W)) {
-        OnModeUp();
+    if (app::test::gGameConfig.isControllerMode) {
+         // --- Controller Mode ---
+         if (input.GetKeyDown(Key::KEY_J)) {
+              if (isGenreSelectMode) OnGenrePrevious();
+              else OnSelectPrevious();
+         }
+         if (input.GetKeyDown(Key::KEY_K)) {
+              if (isGenreSelectMode) OnGenreNext();
+              else OnSelectNext();
+         }
+         if (input.GetKeyDown(Key::KEY_D)) {
+              OnConfirmSelection();
+         }
+         if (input.GetKeyDown(Key::KEY_N)) {
+              if (isGenreSelectMode) OnModeDown();
+              else OnModeUp();
+         }
+         if (input.GetKeyDown(Key::KEY_V)) {
+              OnToggleRatingDetail();
+         }
     }
-    if (input.GetKeyDown(Key::KEY_DOWN) || input.GetKeyDown(Key::KEY_S)) {
-        OnModeDown();
-    }
-
-    // 左右操作 (モード依存)
-    if (input.GetKeyDown(Key::KEY_RIGHT) || input.GetKeyDown(Key::KEY_D)) {
-        if (isGenreSelectMode) {
-            OnGenreNext();
-        } else {
-            OnSelectNext();
+    else {
+        // --- Keyboard Mode (Standard) ---
+        // モード切り替え (上下)
+        if (input.GetKeyDown(Key::KEY_UP) || input.GetKeyDown(Key::KEY_W)) {
+            OnModeUp();
         }
-    }
-    if (input.GetKeyDown(Key::KEY_LEFT) || input.GetKeyDown(Key::KEY_A)) {
-        if (isGenreSelectMode) {
-            OnGenrePrevious();
-        } else {
-            OnSelectPrevious();
+        if (input.GetKeyDown(Key::KEY_DOWN) || input.GetKeyDown(Key::KEY_S)) {
+            OnModeDown();
         }
-    }
 
-    // 決定キャンセル
-    if (input.GetKeyDown(Key::SPACE) || input.GetKeyDown(Key::KEY_Z)) {
-        OnConfirmSelection();
-    }
-    if (input.GetKeyDown(Key::ESCAPE) || input.GetKeyDown(Key::KEY_X)) {
-        OnCancelSelection();
-    }
+        // 左右操作 (モード依存)
+        if (input.GetKeyDown(Key::KEY_RIGHT) || input.GetKeyDown(Key::KEY_D)) {
+            if (isGenreSelectMode) {
+                OnGenreNext();
+            } else {
+                OnSelectNext();
+            }
+        }
+        if (input.GetKeyDown(Key::KEY_LEFT) || input.GetKeyDown(Key::KEY_A)) {
+            if (isGenreSelectMode) {
+                OnGenrePrevious();
+            } else {
+                OnSelectPrevious();
+            }
+        }
 
-    // レート詳細表示トグル
-    if (input.GetKeyDown(Key::KEY_R)) {
-        OnToggleRatingDetail();
+        // 決定キャンセル
+        if (input.GetKeyDown(Key::SPACE) || input.GetKeyDown(Key::KEY_Z)) {
+            OnConfirmSelection();
+        }
+        if (input.GetKeyDown(Key::ESCAPE) || input.GetKeyDown(Key::KEY_X)) {
+            OnCancelSelection();
+        }
+
+        // レート詳細表示トグル
+        if (input.GetKeyDown(Key::KEY_R)) {
+            OnToggleRatingDetail();
+        }
     }
 }
 

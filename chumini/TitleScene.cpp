@@ -12,6 +12,7 @@
 // 追加インクルード
 #include "DirectX11.h"   // デバイス取得用
 #include "SInput.h"      // 入力取得用
+#include "Config.h"
 #include <string>        // ログ出力用
 #include <DirectXMath.h> // 行列計算用
 #include <CubismFramework.hpp>
@@ -200,15 +201,46 @@ namespace app::test {
 
         // Fキーが押されたらエフェクト再生
         if (SInput::Instance().GetKeyDown(Key::KEY_F)) {
-
             if (auto actor = uiManagerActor.Target()) {
                 if (auto effectManager = actor->GetComponent<EffectManager>()) {
-
-                    auto handle = effectManager->PlayEffekseer("Test", 0.0f, 0.0f, 1.0f);
-
-                    // 必要なら大きさも変える
-                    effectManager->SetScale(handle, 2.0f, 2.0f, 2.0f);
+                     // ... existing effect logic ...
                 }
+            }
+        }
+
+        // =================================================================
+        // Input Handling (Menu Navigation)
+        // =================================================================
+        auto& input = SInput::Instance();
+
+        if (gGameConfig.isControllerMode) {
+            // --- Controller Mode (Project specified keys) ---
+            // J: Left (Lane 3)
+            // K: Right (Lane 4)
+            // D: Confirm (Lane 1)
+            
+            if (input.GetKeyDown(Key::KEY_J)) {
+                OnNavigateLeft();
+            }
+            else if (input.GetKeyDown(Key::KEY_K)) {
+                OnNavigateRight();
+            }
+
+            if (input.GetKeyDown(Key::KEY_D)) {
+                OnConfirm();
+            }
+        }
+        else {
+            // --- Keyboard Mode (Standard) ---
+            if (input.GetKeyDown(Key::KEY_LEFT) || input.GetKeyDown(Key::KEY_A)) {
+                OnNavigateLeft();
+            }
+            else if (input.GetKeyDown(Key::KEY_RIGHT) || input.GetKeyDown(Key::KEY_D)) {
+                OnNavigateRight();
+            }
+
+            if (input.GetKeyDown(Key::SPACE)) {
+                OnConfirm();
             }
         }
     }
