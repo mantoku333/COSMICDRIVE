@@ -5,8 +5,10 @@
 #include "GameSession.h"
 #include "Actor.h"
 #include "Live2DComponent.h"
-#include "SceneChangeComponent.h" 
+#include "SceneChangeComponent.h"
 #include "NoteData.h"
+#include "SInput.h"
+#include "Config.h"
 
 // Note: Ensure Instantiate() is available. It is a member of Scene.
 
@@ -82,6 +84,24 @@ void app::test::ResultScene::Update(const sf::command::ICommand& command)
         live2DManager->Update();
     }
     */
+
+    // Input Handling
+    auto& input = SInput::Instance();
+    bool navigate = false;
+
+    if (app::test::gGameConfig.isControllerMode) {
+        if (input.GetKeyDown(Key::KEY_T)) {
+            navigate = true;
+        }
+    } else {
+        if (input.GetKeyDown(Key::SPACE)) {
+            navigate = true;
+        }
+    }
+
+    if (navigate) {
+        NavigateToSelect();
+    }
 }
 
 void app::test::ResultScene::DrawOverlay() {

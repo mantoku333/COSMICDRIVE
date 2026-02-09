@@ -226,7 +226,7 @@ namespace app::test {
                 OnNavigateRight();
             }
 
-            if (input.GetKeyDown(Key::KEY_D)) {
+            if (input.GetKeyDown(Key::KEY_T)) {
                 OnConfirm();
             }
         }

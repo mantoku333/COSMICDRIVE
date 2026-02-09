@@ -375,13 +375,7 @@ namespace app::test {
 			guideText->material.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
 		}
 
-		// スペースキーでセレクト画面へ戻る
-		if (SInput::Instance().GetKeyDown(Key::SPACE)) {
-			// MVP: Presenterに委譲
-			if (presenter) {
-				presenter->NavigateToSelect();
-			}
-		}
+		// Input is handled in ResultScene::Update
 	}
 
 	void ResultCanvas::UpdateRankDisplay(int score) {

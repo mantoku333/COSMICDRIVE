@@ -83,6 +83,7 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     }
 
     float dx = static_cast<float>(p.x - prevMouseX);
+    float dy = static_cast<float>(p.y - prevMouseY);
     prevMouseX = p.x;
     prevMouseY = p.y;
 
@@ -93,6 +94,14 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
     const float moveThreshold = 20.0f; // 判定・移動共通の閾値(デッドゾーン)
     bool isMovingLeft = (dx < -moveThreshold);
     bool isMovingRight = (dx > moveThreshold);
+
+    // コントローラーモード: 縦移動も反応させる (AIR操作用)
+    if (app::test::gGameConfig.isControllerMode) {
+        if (std::abs(dy) > moveThreshold) {
+            isMovingLeft = true;
+            isMovingRight = true;
+        }
+    }
     
     // 判定基準を満たした場合のみプレイヤーを移動させる
     if (isMovingLeft || isMovingRight) {

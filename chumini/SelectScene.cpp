@@ -61,15 +61,18 @@ void SelectScene::ProcessInput()
               if (isGenreSelectMode) OnGenreNext();
               else OnSelectNext();
          }
-         if (input.GetKeyDown(Key::KEY_D)) {
+         if (input.GetKeyDown(Key::KEY_T)) {
               OnConfirmSelection();
          }
-         if (input.GetKeyDown(Key::KEY_N)) {
+         if (input.GetKeyDown(Key::KEY_D)) {
               if (isGenreSelectMode) OnModeDown();
               else OnModeUp();
          }
          if (input.GetKeyDown(Key::KEY_V)) {
               OnToggleRatingDetail();
+         }
+         if (input.GetKeyDown(Key::KEY_N)) {
+              OnCancelSelection();
          }
     }
     else {
