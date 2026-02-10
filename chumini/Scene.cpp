@@ -202,5 +202,10 @@ void sf::IScene::OnGUI()
 
 void sf::IScene::Destroy(const Actor* actor)
 {
-	actors.erase(std::find(actors.begin(), actors.end(), actor));
+	std::lock_guard<std::mutex> lock(actorsMtx);
+	auto it = std::find(actors.begin(), actors.end(), actor);
+	if (it != actors.end())
+	{
+		actors.erase(it);
+	}
 }
