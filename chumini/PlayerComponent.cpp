@@ -275,11 +275,10 @@ void PlayerComponent::Update(const sf::command::ICommand&) {
                         LARGE_INTEGER nowQPC; QueryPerformanceCounter(&nowQPC);
                         LARGE_INTEGER freq; QueryPerformanceFrequency(&freq);
 
-                        double diffMicro = (double)(nowQPC.QuadPart - rawQPC.QuadPart) * 1000000.0 / freq.QuadPart;
-                        // convert to ms for easier reading? us is fine.
-
+                        double diffMs = (double)(nowQPC.QuadPart - rawQPC.QuadPart) * 1000.0 / freq.QuadPart;
+                        
                         char buf[256];
-                        sprintf_s(buf, "TapSound Played. InputToSound: %.1f us (%.2f ms)", diffMicro, diffMicro / 1000.0);
+                        sprintf_s(buf, "TapSound Played. InputToSound: %.2f ms", diffMs);
                         sf::debug::Debug::Log(buf);
                     }
                 }

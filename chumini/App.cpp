@@ -491,11 +491,11 @@ LRESULT app::Application::WndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 				LARGE_INTEGER msgQPC; QueryPerformanceCounter(&msgQPC);
 				LARGE_INTEGER freq; QueryPerformanceFrequency(&freq);
 
-				double diffMicro = (double)(msgQPC.QuadPart - rawQPC.QuadPart) * 1000000.0 / freq.QuadPart;
+				double diffMs = (double)(msgQPC.QuadPart - rawQPC.QuadPart) * 1000.0 / freq.QuadPart;
 
-				// Format: "Key: [wp] Diff: [diff] us"
+				// Format: "Key: [wp] Diff: [diff] ms"
 				char buf[256];
-				sprintf_s(buf, "Key:%lld MsgDelay:%.1f us", wp, diffMicro);
+				sprintf_s(buf, "Key:%lld MsgDelay:%.2f ms", wp, diffMs);
 				sf::debug::Debug::Log(buf);
 			}
 		}

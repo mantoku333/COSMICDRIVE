@@ -279,7 +279,7 @@ void SInput::InitRawInput(HWND hwnd)
 
 	if (RegisterRawInputDevices(Rid, 1, sizeof(Rid[0])) == FALSE)
 	{
-		// 登録失敗時のログ出力などをここに追加できます
+		// 登録失敗時のログ
 		OutputDebugStringA("RawInput Init Failed\n");
 	}
 }
@@ -293,9 +293,7 @@ void SInput::ProcessRawInput(LPARAM lParam)
 
 	if (dwSize == 0) return;
 
-	// バッファの確保 (スタックで十分なサイズならスタック確保でも良いが、可変長なので動的確保推奨)
-	// ここでは単純化のため、大きめのバッファをスタックに確保するか、vectorを使う
-	// 標準的なキーボード入力ならそこまで大きくならないが、安全のため動的確保
+	// バッファの確保
 	std::vector<BYTE> lpb(dwSize);
 
 	if (GetRawInputData((HRAWINPUT)lParam, RID_INPUT, lpb.data(), &dwSize, sizeof(RAWINPUTHEADER)) != dwSize)
@@ -345,7 +343,6 @@ void Mouse::Update()
 		oldState[i] = state[i];	//1フレーム前の情報を保存
 		state[i] = keyState[i];	//今の状態を適応
 	}
-	// Move buffer to current frame value
 	wheel = wheelBuffer;
 	wheelBuffer = 0.0f;
 }

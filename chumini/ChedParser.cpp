@@ -112,7 +112,7 @@ namespace app::test {
                     cmd = line;
                 }
 
-                // ヘッダ情報の取得
+                // 各種メタデータ取り込み
                 if (cmd == L"#TITLE") { title = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#ARTIST") { artist = RemoveQuotesAndToUtf8(val); continue; }
                 if (cmd == L"#JACKET") { jacketFile = RemoveQuotesAndToUtf8(val); continue; }
@@ -141,7 +141,7 @@ namespace app::test {
                     }
                     catch (...) {}
 
-                    // ヘッダ読み込みモードなら、BPMが取れた時点で満足して帰る
+                    // フルロードする必要がない場合、BPMが取れた時点で満足して帰る
                     if (headerOnly && this->bpm > 0) {
                         return true;
                     }
@@ -212,7 +212,7 @@ namespace app::test {
                 if (b.measureStart <= measure) current = &b; else break;
             }
             return *current;
-            };
+        };
 
         // 曲頭からの秒数へ変換
         auto ToGlobalTick = [&](int measure, int index, int total) -> int {
@@ -294,8 +294,8 @@ namespace app::test {
                     n.measure = mm;
                     n.tick = (i * findBar(mm).ticksPerMeasure) / total;
                     n.absBeat = tick / (double)ticksPerBeat;
-                    n.isHold = false;  // Explicitly disable hold
-                    n.holdId = -1;     // Explicitly reset ID
+                    n.isHold = false;  
+                    n.holdId = -1;    
                     notes.push_back(n);
                 }
             }
@@ -319,10 +319,7 @@ namespace app::test {
 
                      int tick = ToGlobalTick(mm, i, total);
                      ChedNote n;
-                     
-                     // Currently mapping all to HoldStart for initial implementation
-                     // The actual logic should distinguish Start/Step/End based on ID linkage
-                     // But for raw parsing, we assume HoldStart and set isHold=true
+
                      n.type = NoteType::HoldStart; 
                      n.isHold = true;
                      n.holdId = holdId;

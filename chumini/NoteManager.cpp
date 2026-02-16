@@ -102,7 +102,7 @@ namespace app::test {
         }
 
         // ------------------------------------------
-        // 譜面ファイル読み込み（ChartLoaderに委譲）
+        // 譜面ファイル読み込み
         // ------------------------------------------
         ChartLoadResult chartResult = chartLoader.Load(
             chartPath, 
@@ -208,6 +208,7 @@ namespace app::test {
 
         updateCommand.Bind(std::bind(&NoteManager::Update, this, std::placeholders::_1));
 
+        // ノーツインスタンシング
         try {
             InitInstancing();
         }
@@ -252,7 +253,7 @@ namespace app::test {
 
         // ------------------------------------------
         // マウススラッシュ処理
-        // マウスの移動速度が閾値を超えたら
+        // マウスの移動速度が閾値を超えたらkkkkkk
         // スキルノーツを判定する
         // ------------------------------------------
         POINT currentCursorPos;
