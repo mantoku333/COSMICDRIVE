@@ -99,10 +99,18 @@ void sf::IScene::DeActivate()
 
 void sf::IScene::DestroyScenes()
 {
-	while (!deActiveScene.empty())
+	while (true)
 	{
-		const IScene* scene = deActiveScene.front();
-		deActiveScene.pop();
+		const IScene* scene = nullptr;
+		{
+			std::lock_guard<std::mutex> lock(deActiveMtx);
+			if (deActiveScene.empty()) {
+				break;
+			}
+			scene = deActiveScene.front();
+			deActiveScene.pop();
+		}
+
 		std::string name = typeid(*scene).name();
 		delete scene;
 		sf::debug::Debug::LogEngine("Scene Deactivated: " + name);

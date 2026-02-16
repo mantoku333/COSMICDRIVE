@@ -9,7 +9,7 @@ sf::window::Window::Window()
 	wc.style = CS_HREDRAW | CS_VREDRAW;
 	//wc.lpfnWndProc = WndProc;
 	wc.hIcon = LoadIcon(hInst, IDI_APPLICATION);
-	wc.hCursor = LoadCursor(hInst, IDC_ARROW);
+	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
 	wc.hbrBackground = GetSysColorBrush(COLOR_BACKGROUND);
 	wc.lpszMenuName = nullptr;
 	wc.hIconSm = LoadIcon(hInst, IDI_APPLICATION);

@@ -78,7 +78,7 @@ private:
         std::vector<unsigned char> data;
         std::string group;
         int no;
-        bool ready = false;
+        std::atomic<bool> ready{ false };
     };
     std::shared_ptr<AsyncMotionResult> _pendingAsyncResult;
 

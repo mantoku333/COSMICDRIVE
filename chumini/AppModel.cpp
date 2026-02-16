@@ -68,13 +68,14 @@ AppModel::~AppModel() {
         _physics = nullptr;
     }
 
-    // ★重要: テクスチャ解放前にレンダラーのテクスチャバインドを解除
-    // 注意: レンダラー自体の削除は基底クラスCubismUserModelが行うため、ここではバインド解除のみ
+    // Unbind all texture slots before releasing texture objects.
+    // Renderer ownership is managed by CubismUserModel (DeleteRenderer).
     if (_myRenderer) {
         for (int i = 0; i < (int)_loadedTextures.size(); i++) {
             _myRenderer->BindTexture(i, nullptr);
         }
-        _myRenderer = nullptr; // 基底クラスが削除するので、ここではこれ以上の操作はしない
+        DeleteRenderer();
+        _myRenderer = nullptr;
     }
 
     for (auto* tex : _loadedTextures) {
@@ -114,15 +115,13 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
 
     LoadModel(moc3Bytes.data(), static_cast<csmSizeInt>(moc3Bytes.size()));
 
-    // Create Renderer
-    CubismRenderer* renderer = CubismRenderer::Create();
-    if (!renderer) {
-        OutputDebugStringA("AppModel::LoadAssets - [ERROR] Failed to create CubismRenderer!\n");
+    // Create Renderer through CubismUserModel ownership
+    CreateRenderer();
+    _myRenderer = GetRenderer<CubismRenderer_D3D11>();
+    if (!_myRenderer) {
+        OutputDebugStringA("AppModel::LoadAssets - [ERROR] Failed to create CubismRenderer_D3D11!\n");
         return;
     }
-
-    renderer->Initialize(GetModel());
-    _myRenderer = static_cast<CubismRenderer_D3D11*>(renderer); // Cast to D3D11 specific renderer
 
     // Fix for "Transparent Eyes" (Double Alpha Multiply)
     // If the model looks ghostly/transparent, enable this. 
@@ -134,7 +133,7 @@ void AppModel::LoadAssets(ID3D11Device* device, const std::string& dir, const st
 
     // Initialize Motion Manager
     _motionManager = new CubismMotionManager();
-    _glitchManager = new CubismMotionManager(); // ★Init Glitch Manager
+    _glitchManager = new CubismMotionManager(); // Init glitch manager
     // _motionManager->SetUserData(this); // REMOVED: Not a member or needed for basic playback
 
     // Initialize Pose (Fixes "Four Hands" issue)
@@ -234,7 +233,7 @@ void AppModel::Update() {
     std::shared_ptr<AsyncMotionResult> resultToCheck = nullptr;
     {
         std::lock_guard<std::mutex> lock(_motionMutex);
-        if (_pendingAsyncResult && _pendingAsyncResult->ready) {
+        if (_pendingAsyncResult && _pendingAsyncResult->ready.load(std::memory_order_acquire)) {
             resultToCheck = _pendingAsyncResult;
             _pendingAsyncResult = nullptr; // Clear the pending slot
         }
@@ -249,7 +248,7 @@ void AppModel::Update() {
             CubismMotion* motion = CubismMotion::Create(resultToCheck->data.data(), static_cast<csmSizeInt>(resultToCheck->data.size()));
 
             // Force Loop to FALSE to rely on Manual Restart
-            motion->IsLoop(false);
+            motion->SetLoop(false);
 
             // Priority 3. autoDelete = true.
             _glitchManager->StartMotionPriority(motion, true, 3);
@@ -274,7 +273,7 @@ void AppModel::Update() {
     if (_glitchManager) {
         _glitchManager->UpdateMotion(_model, deltaTimeSeconds);
         
-        // ★Manual Loop Check
+        // Manual loop check
         bool finished = _glitchManager->IsFinished();
         if (_isGlitchLooping && finished) {
              // Restart
@@ -401,7 +400,7 @@ void AppModel::StartGlitchMotionNoLock(const char* group, int no) {
         
         if (!data.empty()) {
             CubismMotion* motion = CubismMotion::Create(data.data(), static_cast<csmSizeInt>(data.size()));
-            motion->IsLoop(false);
+            motion->SetLoop(false);
             _glitchManager->StartMotionPriority(motion, true, 3);
 
             _isGlitchLooping = true;
@@ -440,7 +439,7 @@ void AppModel::StartGlitchMotionNoLock(const char* group, int no) {
 
         if (!motionBytes.empty()) {
             result->data = std::move(motionBytes);
-            result->ready = true; // Mark as ready
+            result->ready.store(true, std::memory_order_release); // Mark as ready
         }
     }); 
 }
@@ -452,8 +451,8 @@ void AppModel::Draw(ID3D11Device* device, ID3D11DeviceContext* context, const Cs
     Csm::CubismMatrix44 projection;
     // projection.Scale(1.0f, 1.0f); // Default
     
-    // SDKの仕様上、MultiplyByMatrixは非constポインタを要求するため、キャストして渡す
-    // (通常、行列の乗算で右辺が変更されることはないはず)
+    // SDK API takes a non-const pointer for MultiplyByMatrix.
+    // We cast here because the source matrix is not expected to be modified.
     projection.MultiplyByMatrix(const_cast<Csm::CubismMatrix44*>(&matrix));
 
     _myRenderer->SetMvpMatrix(&projection);

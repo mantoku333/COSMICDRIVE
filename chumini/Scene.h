@@ -67,7 +67,7 @@ namespace sf
 
 		static std::list<IScene*> scenes;
 
-		bool activate = false;
+		std::atomic<bool> activate{ false };
 
 		std::list<Actor*> actors;
 		std::mutex actorsMtx;
@@ -135,7 +135,7 @@ namespace sf
 		}
 
 	private:
-		static bool standby;
+		static std::atomic<bool> standby;
 
 		static Scene* instance;
 
@@ -143,7 +143,7 @@ namespace sf
 	};
 
 	template<typename T>
-	bool Scene<T>::standby = false;
+	std::atomic<bool> Scene<T>::standby{ false };
 
 	template<typename T>
 	Scene<T>* Scene<T>::instance = nullptr;

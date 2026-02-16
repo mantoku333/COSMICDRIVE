@@ -26,10 +26,19 @@ sf::Actor::~Actor()
 
 void sf::Actor::DestroyActors()
 {
-	while (!destroyActors.empty())
+	while (true)
 	{
-		delete destroyActors.front().Target();
-		destroyActors.pop();
+		sf::ref::Ref<sf::Actor> actor = nullptr;
+		{
+			std::lock_guard<std::mutex> lock(destroyActorsMtx);
+			if (destroyActors.empty()) {
+				break;
+			}
+			actor = destroyActors.front();
+			destroyActors.pop();
+		}
+
+		delete actor.Target();
 	}
 }
 
@@ -61,6 +70,8 @@ void sf::Actor::DeActivate()
 void sf::Actor::Destroy()
 {
 	scene.Destroy(this);
-
-	destroyActors.push(this);
+	{
+		std::lock_guard<std::mutex> lock(destroyActorsMtx);
+		destroyActors.push(this);
+	}
 }
