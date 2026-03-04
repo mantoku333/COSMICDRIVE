@@ -1,7 +1,6 @@
 Binaries
 DerivedDataCache
 Intermediate
-Saved
 .vscode
 .vs
 *.VC.db
@@ -12,8 +11,9 @@ Saved
 *.suo
 *.xcodeproj
 *.xcworkspace
-/sfFrameWork/Assets/
-/sfFrameWork/log/
 .vs/
 **/ipch/
 **/*.ipch
+
+Save
+log
