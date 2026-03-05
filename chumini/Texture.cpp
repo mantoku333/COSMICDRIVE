@@ -3,7 +3,6 @@
 #include "Debug.h"
 #include "stb_image.h"
 #include <DirectXTex.h>
-#pragma comment(lib,"directxtex.lib")
 
 sf::ITexture::~ITexture()
 {
