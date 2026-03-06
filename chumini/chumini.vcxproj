@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>directxtk\include;$(IncludePath)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>directxtk\include;$(IncludePath)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>directxtk\include;$(IncludePath)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>directxtk\include;$(IncludePath)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -164,65 +164,65 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="App.cpp" />
-    <ClCompile Include="AppModel.cpp" />
-    <ClCompile Include="AutoRef.cpp" />
-    <ClCompile Include="BGMComponent.cpp" />
-    <ClCompile Include="BinaryFile.cpp" />
-    <ClCompile Include="BlendState.cpp" />
-    <ClCompile Include="BoxCollider.cpp" />
-    <ClCompile Include="Button.cpp" />
-    <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Canvas.cpp" />
-    <ClCompile Include="ChangeMotionComponent.cpp" />
-    <ClCompile Include="ChedParser.cpp" />
-    <ClCompile Include="ChartLoader.cpp" />
-    <ClCompile Include="Collider.cpp" />
-    <ClCompile Include="Command.cpp" />
-    <ClCompile Include="Component.cpp" />
-    <ClCompile Include="Config.cpp" />
-    <ClCompile Include="ConfigCanvas.cpp" />
-    <ClCompile Include="ConfigScene.cpp" />
-    <ClCompile Include="ConstBuffer.cpp" />
-    <ClCompile Include="Context.cpp" />
-    <ClCompile Include="ControlCamera.cpp" />
-    <ClCompile Include="Debug.cpp" />
-    <ClCompile Include="Depth.cpp" />
-    <ClCompile Include="Device.cpp" />
-    <ClCompile Include="DirectWrite.cpp" />
-    <ClCompile Include="DirectWriteCustomFont.cpp" />
-    <ClCompile Include="DirectX11.cpp" />
-    <ClCompile Include="DWriteContext.cpp" />
-    <ClCompile Include="DynamicScene.cpp" />
-    <ClCompile Include="Easing.cpp" />
-    <ClCompile Include="EditCanvas.cpp" />
-    <ClCompile Include="EditorComponent.cpp" />
-    <ClCompile Include="EditScene.cpp" />
-    <ClCompile Include="EffectManager.cpp" />
-    <ClCompile Include="File.cpp" />
-    <ClCompile Include="FollowCameraComponent.cpp" />
-    <ClCompile Include="Geometry.cpp" />
-    <ClCompile Include="GeometryCube.cpp" />
-    <ClCompile Include="GeometryCylinder.cpp" />
-    <ClCompile Include="GeometryFbx.cpp" />
-    <ClCompile Include="GeometryField.cpp" />
-    <ClCompile Include="GeometryShader.cpp" />
-    <ClCompile Include="GeometrySphere.cpp" />
-    <ClCompile Include="GUI.cpp" />
-    <ClCompile Include="GeometrySwat.cpp" />
-    <ClCompile Include="Image.cpp" />
+    <ClCompile Include="src\Actor.cpp" />
+    <ClCompile Include="src\App.cpp" />
+    <ClCompile Include="src\AppModel.cpp" />
+    <ClCompile Include="src\AutoRef.cpp" />
+    <ClCompile Include="src\BGMComponent.cpp" />
+    <ClCompile Include="src\BinaryFile.cpp" />
+    <ClCompile Include="src\BlendState.cpp" />
+    <ClCompile Include="src\BoxCollider.cpp" />
+    <ClCompile Include="src\Button.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\Canvas.cpp" />
+    <ClCompile Include="src\ChangeMotionComponent.cpp" />
+    <ClCompile Include="src\ChedParser.cpp" />
+    <ClCompile Include="src\ChartLoader.cpp" />
+    <ClCompile Include="src\Collider.cpp" />
+    <ClCompile Include="src\Command.cpp" />
+    <ClCompile Include="src\Component.cpp" />
+    <ClCompile Include="src\Config.cpp" />
+    <ClCompile Include="src\ConfigCanvas.cpp" />
+    <ClCompile Include="src\ConfigScene.cpp" />
+    <ClCompile Include="src\ConstBuffer.cpp" />
+    <ClCompile Include="src\Context.cpp" />
+    <ClCompile Include="src\ControlCamera.cpp" />
+    <ClCompile Include="src\Debug.cpp" />
+    <ClCompile Include="src\Depth.cpp" />
+    <ClCompile Include="src\Device.cpp" />
+    <ClCompile Include="src\DirectWrite.cpp" />
+    <ClCompile Include="src\DirectWriteCustomFont.cpp" />
+    <ClCompile Include="src\DirectX11.cpp" />
+    <ClCompile Include="src\DWriteContext.cpp" />
+    <ClCompile Include="src\DynamicScene.cpp" />
+    <ClCompile Include="src\Easing.cpp" />
+    <ClCompile Include="src\EditCanvas.cpp" />
+    <ClCompile Include="src\EditorComponent.cpp" />
+    <ClCompile Include="src\EditScene.cpp" />
+    <ClCompile Include="src\EffectManager.cpp" />
+    <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\FollowCameraComponent.cpp" />
+    <ClCompile Include="src\Geometry.cpp" />
+    <ClCompile Include="src\GeometryCube.cpp" />
+    <ClCompile Include="src\GeometryCylinder.cpp" />
+    <ClCompile Include="src\GeometryFbx.cpp" />
+    <ClCompile Include="src\GeometryField.cpp" />
+    <ClCompile Include="src\GeometryShader.cpp" />
+    <ClCompile Include="src\GeometrySphere.cpp" />
+    <ClCompile Include="src\GUI.cpp" />
+    <ClCompile Include="src\GeometrySwat.cpp" />
+    <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="IndexBuffer.cpp" />
-    <ClCompile Include="JobSystem.cpp" />
-    <ClCompile Include="ComboManager.cpp" />
-    <ClCompile Include="JudgeService.cpp" />
-    <ClCompile Include="Live2DComponent.cpp" />
+    <ClCompile Include="src\IndexBuffer.cpp" />
+    <ClCompile Include="src\JobSystem.cpp" />
+    <ClCompile Include="src\ComboManager.cpp" />
+    <ClCompile Include="src\JudgeService.cpp" />
+    <ClCompile Include="src\Live2DComponent.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismCdiJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismDefaultParameterId.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismFramework.cpp" />
@@ -263,68 +263,68 @@
     <ClCompile Include="Live2D\Framework\src\Utils\CubismDebug.cpp" />
     <ClCompile Include="Live2D\Framework\src\Utils\CubismJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\Utils\CubismString.cpp" />
-    <ClCompile Include="LoadingCanvas.cpp" />
-    <ClCompile Include="LoadingScene.cpp" />
-    <ClCompile Include="LookAtComponent.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="MainDevice.cpp" />
-    <ClCompile Include="Material.cpp" />
-    <ClCompile Include="Mesh.cpp" />
-    <ClCompile Include="Motion.cpp" />
-    <ClCompile Include="MotionData.cpp" />
-    <ClCompile Include="MotionMesh.cpp" />
-    <ClCompile Include="MoveComponent.cpp" />
-    <ClCompile Include="NoteComponent.cpp" />
-    <ClCompile Include="NoteInstanceRenderer.cpp" />
-    <ClCompile Include="NoteManager.cpp" />
-    <ClCompile Include="TempoService.cpp" />
-    <ClCompile Include="OffScreenRTV.cpp" />
-    <ClCompile Include="OnScreenRTV.cpp" />
-    <ClCompile Include="PixelShader.cpp" />
-    <ClCompile Include="PlayerComponent.cpp" />
-    <ClCompile Include="Ray.cpp" />
-    <ClCompile Include="Ref.cpp" />
-    <ClCompile Include="RenderingBuffer2D.cpp" />
-    <ClCompile Include="RenderingBuffer3D.cpp" />
-    <ClCompile Include="ResidentScene.cpp" />
-    <ClCompile Include="ResultCanvas.cpp" />
-    <ClCompile Include="ResultScene.cpp" />
-    <ClCompile Include="RTV.cpp" />
-    <ClCompile Include="Sampler.cpp" />
-    <ClCompile Include="Scene.cpp" />
-    <ClCompile Include="SceneChangeComponent.cpp" />
-    <ClCompile Include="ScoreManager.cpp" />
-    <ClCompile Include="RatingManager.cpp" />
-    <ClCompile Include="SelectCanvas.cpp" />
-    <ClCompile Include="SongListService.cpp" />
-    <ClCompile Include="SelectScene.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SInput.cpp" />
-    <ClCompile Include="SkyBox.cpp" />
-    <ClCompile Include="SoundPlayer.cpp" />
-    <ClCompile Include="SoundResource.cpp" />
-    <ClCompile Include="SphereCollider.cpp" />
-    <ClCompile Include="stb.cpp" />
-    <ClCompile Include="Subset.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="SwatMotionArray.cpp" />
-    <ClCompile Include="IngameCanvas.cpp" />
-    <ClCompile Include="IngameScene.cpp" />
-    <ClCompile Include="GameSession.cpp" />
-    <ClCompile Include="SoundComponent.cpp" />
-    <ClCompile Include="Text.cpp" />
-    <ClCompile Include="TextComponent.cpp" />
-    <ClCompile Include="TextFile.cpp" />
-    <ClCompile Include="TextImage.cpp" />
-    <ClCompile Include="Texture.cpp" />
-    <ClCompile Include="Time.cpp" />
-    <ClCompile Include="TitleCanvas.cpp" />
-    <ClCompile Include="TitleScene.cpp" />
-    <ClCompile Include="Transform.cpp" />
-    <ClCompile Include="UI.cpp" />
-    <ClCompile Include="Vector3.cpp" />
-    <ClCompile Include="VertexShader.cpp" />
-    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="src\LoadingCanvas.cpp" />
+    <ClCompile Include="src\LoadingScene.cpp" />
+    <ClCompile Include="src\LookAtComponent.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MainDevice.cpp" />
+    <ClCompile Include="src\Material.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Motion.cpp" />
+    <ClCompile Include="src\MotionData.cpp" />
+    <ClCompile Include="src\MotionMesh.cpp" />
+    <ClCompile Include="src\MoveComponent.cpp" />
+    <ClCompile Include="src\NoteComponent.cpp" />
+    <ClCompile Include="src\NoteInstanceRenderer.cpp" />
+    <ClCompile Include="src\NoteManager.cpp" />
+    <ClCompile Include="src\TempoService.cpp" />
+    <ClCompile Include="src\OffScreenRTV.cpp" />
+    <ClCompile Include="src\OnScreenRTV.cpp" />
+    <ClCompile Include="src\PixelShader.cpp" />
+    <ClCompile Include="src\PlayerComponent.cpp" />
+    <ClCompile Include="src\Ray.cpp" />
+    <ClCompile Include="src\Ref.cpp" />
+    <ClCompile Include="src\RenderingBuffer2D.cpp" />
+    <ClCompile Include="src\RenderingBuffer3D.cpp" />
+    <ClCompile Include="src\ResidentScene.cpp" />
+    <ClCompile Include="src\ResultCanvas.cpp" />
+    <ClCompile Include="src\ResultScene.cpp" />
+    <ClCompile Include="src\RTV.cpp" />
+    <ClCompile Include="src\Sampler.cpp" />
+    <ClCompile Include="src\Scene.cpp" />
+    <ClCompile Include="src\SceneChangeComponent.cpp" />
+    <ClCompile Include="src\ScoreManager.cpp" />
+    <ClCompile Include="src\RatingManager.cpp" />
+    <ClCompile Include="src\SelectCanvas.cpp" />
+    <ClCompile Include="src\SongListService.cpp" />
+    <ClCompile Include="src\SelectScene.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\SInput.cpp" />
+    <ClCompile Include="src\SkyBox.cpp" />
+    <ClCompile Include="src\SoundPlayer.cpp" />
+    <ClCompile Include="src\SoundResource.cpp" />
+    <ClCompile Include="src\SphereCollider.cpp" />
+    <ClCompile Include="src\stb.cpp" />
+    <ClCompile Include="src\Subset.cpp" />
+    <ClCompile Include="src\SwapChain.cpp" />
+    <ClCompile Include="src\SwatMotionArray.cpp" />
+    <ClCompile Include="src\IngameCanvas.cpp" />
+    <ClCompile Include="src\IngameScene.cpp" />
+    <ClCompile Include="src\GameSession.cpp" />
+    <ClCompile Include="src\SoundComponent.cpp" />
+    <ClCompile Include="src\Text.cpp" />
+    <ClCompile Include="src\TextComponent.cpp" />
+    <ClCompile Include="src\TextFile.cpp" />
+    <ClCompile Include="src\TextImage.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\Time.cpp" />
+    <ClCompile Include="src\TitleCanvas.cpp" />
+    <ClCompile Include="src\TitleScene.cpp" />
+    <ClCompile Include="src\Transform.cpp" />
+    <ClCompile Include="src\UI.cpp" />
+    <ClCompile Include="src\Vector3.cpp" />
+    <ClCompile Include="src\VertexShader.cpp" />
+    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
