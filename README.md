@@ -74,11 +74,3 @@ NEWchumini/
    └─ imgui/
 ```
 
-## 🙏 権利関係のあれこれ
-
-ナイト・オブ・ナイツ
-ビートまりお
-http://cool-create.cc/
-
-
-
