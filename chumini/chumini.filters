@@ -285,91 +285,91 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Actor.h">
+    <ClInclude Include="src\sf\Actor.h">
       <Filter>sf\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="src\App.h">
+    <ClInclude Include="src\app\App.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\AutoRef.h">
+    <ClInclude Include="src\sf\AutoRef.h">
       <Filter>sf\Ref\AutoRef</Filter>
     </ClInclude>
-    <ClInclude Include="src\BinaryFile.h">
+    <ClInclude Include="src\sf\BinaryFile.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\BlendState.h">
+    <ClInclude Include="src\sf\BlendState.h">
       <Filter>sf\DirectX11\BlendState</Filter>
     </ClInclude>
-    <ClInclude Include="src\BoxCollider.h">
+    <ClInclude Include="src\sf\BoxCollider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\Button.h">
+    <ClInclude Include="src\sf\Button.h">
       <Filter>sf\Button</Filter>
     </ClInclude>
-    <ClInclude Include="src\Camera.h">
+    <ClInclude Include="src\sf\Camera.h">
       <Filter>sf\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="src\Canvas.h">
+    <ClInclude Include="src\sf\Canvas.h">
       <Filter>sf\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\Collider.h">
+    <ClInclude Include="src\sf\Collider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\Command.h">
+    <ClInclude Include="src\sf\Command.h">
       <Filter>sf\Command</Filter>
     </ClInclude>
-    <ClInclude Include="src\Component.h">
+    <ClInclude Include="src\sf\Component.h">
       <Filter>sf\Component</Filter>
     </ClInclude>
-    <ClInclude Include="src\D3D.h">
+    <ClInclude Include="src\sf\D3D.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
-    <ClInclude Include="src\ConstBuffer.h">
+    <ClInclude Include="src\sf\ConstBuffer.h">
       <Filter>sf\DirectX11\ConstBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Context.h">
+    <ClInclude Include="src\sf\Context.h">
       <Filter>sf\DirectX11\Context</Filter>
     </ClInclude>
-    <ClInclude Include="src\Depth.h">
+    <ClInclude Include="src\sf\Depth.h">
       <Filter>sf\DirectX11\Depth</Filter>
     </ClInclude>
-    <ClInclude Include="src\ControlCamera.h">
+    <ClInclude Include="src\app\ControlCamera.h">
       <Filter>App\ControlCamera</Filter>
     </ClInclude>
-    <ClInclude Include="src\Debug.h">
+    <ClInclude Include="src\sf\Debug.h">
       <Filter>sf\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="src\Device.h">
+    <ClInclude Include="src\sf\Device.h">
       <Filter>sf\DirectX11\Device</Filter>
     </ClInclude>
-    <ClInclude Include="src\Geometry.h">
+    <ClInclude Include="src\sf\Geometry.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryCube.h">
+    <ClInclude Include="src\sf\GeometryCube.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryCylinder.h">
+    <ClInclude Include="src\sf\GeometryCylinder.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryFbx.h">
+    <ClInclude Include="src\sf\GeometryFbx.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryField.h">
+    <ClInclude Include="src\sf\GeometryField.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryShader.h">
+    <ClInclude Include="src\sf\GeometryShader.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometrySphere.h">
+    <ClInclude Include="src\sf\GeometrySphere.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\DirectX11.h">
+    <ClInclude Include="src\sf\DirectX11.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
-    <ClInclude Include="src\File.h">
+    <ClInclude Include="src\sf\File.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileBase.h">
+    <ClInclude Include="src\sf\FileBase.h">
       <Filter>sf\File</Filter>
     </ClInclude>
     <ClInclude Include="src\Easing.h">
@@ -399,136 +399,136 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>sf\GUI\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI.h">
+    <ClInclude Include="src\sf\GUI.h">
       <Filter>sf\GUI</Filter>
     </ClInclude>
-    <ClInclude Include="src\Image.h">
+    <ClInclude Include="src\sf\Image.h">
       <Filter>sf\Image</Filter>
     </ClInclude>
-    <ClInclude Include="src\IndexBuffer.h">
+    <ClInclude Include="src\sf\IndexBuffer.h">
       <Filter>sf\IndexBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\JobSystem.h">
+    <ClInclude Include="src\sf\JobSystem.h">
       <Filter>sf\JobSystem</Filter>
     </ClInclude>
-    <ClInclude Include="src\MainDevice.h">
+    <ClInclude Include="src\sf\MainDevice.h">
       <Filter>sf\DirectX11\MainDevice</Filter>
     </ClInclude>
-    <ClInclude Include="src\Material.h">
+    <ClInclude Include="src\sf\Material.h">
       <Filter>sf\Material</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
+    <ClInclude Include="src\sf\Mesh.h">
       <Filter>sf\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="src\Motion.h">
+    <ClInclude Include="src\sf\Motion.h">
       <Filter>sf\Motion</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionArray.h">
+    <ClInclude Include="src\sf\MotionArray.h">
       <Filter>sf\MotionArray</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionData.h">
+    <ClInclude Include="src\sf\MotionData.h">
       <Filter>sf\MotionData</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionMesh.h">
+    <ClInclude Include="src\sf\MotionMesh.h">
       <Filter>sf\MotionMesh</Filter>
     </ClInclude>
-    <ClInclude Include="src\OffScreenRTV.h">
+    <ClInclude Include="src\sf\OffScreenRTV.h">
       <Filter>sf\DirectX11\RTV\OffScreenRTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\OnScreenRTV.h">
+    <ClInclude Include="src\sf\OnScreenRTV.h">
       <Filter>sf\DirectX11\RTV\OnScreenRTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\PixelShader.h">
+    <ClInclude Include="src\sf\PixelShader.h">
       <Filter>sf\DirectX11\PixelShader</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ray.h">
+    <ClInclude Include="src\sf\Ray.h">
       <Filter>sf\Ray</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ref.h">
+    <ClInclude Include="src\sf\Ref.h">
       <Filter>sf\Ref</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer.h">
+    <ClInclude Include="src\sf\RenderingBuffer.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer2D.h">
+    <ClInclude Include="src\sf\RenderingBuffer2D.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer3D.h">
+    <ClInclude Include="src\sf\RenderingBuffer3D.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResidentScene.h">
+    <ClInclude Include="src\app\ResidentScene.h">
       <Filter>App\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\RTV.h">
+    <ClInclude Include="src\sf\RTV.h">
       <Filter>sf\DirectX11\RTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sampler.h">
+    <ClInclude Include="src\sf\Sampler.h">
       <Filter>sf\DirectX11\Sampler</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene.h">
+    <ClInclude Include="src\sf\Scene.h">
       <Filter>sf\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\sf\Shader.h">
       <Filter>sf\DirectX11\Shader</Filter>
     </ClInclude>
     <ClInclude Include="src\SInput.h">
       <Filter>sf\Input</Filter>
     </ClInclude>
-    <ClInclude Include="src\SkyBox.h">
+    <ClInclude Include="src\app\SkyBox.h">
       <Filter>sf\SkyBox</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundPlayer.h">
+    <ClInclude Include="src\sf\SoundPlayer.h">
       <Filter>sf\SoundPlayer</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundResource.h">
+    <ClInclude Include="src\sf\SoundResource.h">
       <Filter>sf\SoundResource</Filter>
     </ClInclude>
-    <ClInclude Include="src\SphereCollider.h">
+    <ClInclude Include="src\sf\SphereCollider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\Subset.h">
+    <ClInclude Include="src\sf\Subset.h">
       <Filter>sf\Subset</Filter>
     </ClInclude>
-    <ClInclude Include="src\SwapChain.h">
+    <ClInclude Include="src\sf\SwapChain.h">
       <Filter>sf\DirectX11\SwapChain</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextFile.h">
+    <ClInclude Include="src\sf\TextFile.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\Texture.h">
+    <ClInclude Include="src\sf\Texture.h">
       <Filter>sf\DirectX11\Texture</Filter>
     </ClInclude>
-    <ClInclude Include="src\Time.h">
+    <ClInclude Include="src\sf\Time.h">
       <Filter>sf\Time</Filter>
     </ClInclude>
-    <ClInclude Include="src\Transform.h">
+    <ClInclude Include="src\sf\Transform.h">
       <Filter>sf\Transform</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI.h">
+    <ClInclude Include="src\sf\UI.h">
       <Filter>sf\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vector3.h">
+    <ClInclude Include="src\sf\Vector3.h">
       <Filter>sf\Vector3</Filter>
     </ClInclude>
-    <ClInclude Include="src\VertexBuffer.h">
+    <ClInclude Include="src\sf\VertexBuffer.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
-    <ClInclude Include="src\VertexShader.h">
+    <ClInclude Include="src\sf\VertexShader.h">
       <Filter>sf\DirectX11\VertexShader</Filter>
     </ClInclude>
-    <ClInclude Include="src\Window.h">
+    <ClInclude Include="src\sf\Window.h">
       <Filter>sf\Window</Filter>
     </ClInclude>
-    <ClInclude Include="src\Delegate.h">
+    <ClInclude Include="src\sf\Delegate.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\SafePtr.h">
+    <ClInclude Include="src\sf\SafePtr.h">
       <Filter>sf</Filter>
     </ClInclude>
     <ClInclude Include="src\sf.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\Singleton.h">
+    <ClInclude Include="src\sf\Singleton.h">
       <Filter>sf</Filter>
     </ClInclude>
     <ClInclude Include="src\stb_image.h">
@@ -537,19 +537,19 @@
     <ClInclude Include="src\stb_truetype.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChangeMotionComponent.h">
+    <ClInclude Include="src\app\ChangeMotionComponent.h">
       <Filter>Tutorial\Test\ChangeMotionComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\DynamicScene.h">
+    <ClInclude Include="src\app\DynamicScene.h">
       <Filter>App\Scene\DynamicScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometrySwat.h">
+    <ClInclude Include="src\app\GeometrySwat.h">
       <Filter>Tutorial\Test\GeometrySwat</Filter>
     </ClInclude>
-    <ClInclude Include="src\MoveComponent.h">
+    <ClInclude Include="src\app\MoveComponent.h">
       <Filter>App\Component\MoveComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\SwatMotionArray.h">
+    <ClInclude Include="src\app\SwatMotionArray.h">
       <Filter>Tutorial\Test\SwatMotionArray</Filter>
     </ClInclude>
     <ClInclude Include="TestCanvas.h">
@@ -558,49 +558,49 @@
     <ClInclude Include="TestScene.h">
       <Filter>App\Scene\TestScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundComponent.h">
+    <ClInclude Include="src\app\SoundComponent.h">
       <Filter>App\Component\SoundComponent</Filter>
     </ClInclude>
     <ClInclude Include="SceneManagerComponent.h">
       <Filter>Tutorial\SceneManagerComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\PlayerComponent.h">
+    <ClInclude Include="src\app\PlayerComponent.h">
       <Filter>App\Component\PlayerComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\FollowCameraComponent.h">
+    <ClInclude Include="src\app\FollowCameraComponent.h">
       <Filter>App\Component\FollowCameraComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\LookAtComponent.h">
+    <ClInclude Include="src\app\LookAtComponent.h">
       <Filter>App\Component</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteComponent.h">
+    <ClInclude Include="src\app\NoteComponent.h">
       <Filter>App\Component\NoteComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteData.h">
+    <ClInclude Include="src\app\NoteData.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteManager.h">
+    <ClInclude Include="src\app\NoteManager.h">
       <Filter>App\Component\NoteManagerComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\TitleScene.h">
+    <ClInclude Include="src\app\TitleScene.h">
       <Filter>App\Scene\TitleScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResultScene.h">
+    <ClInclude Include="src\app\ResultScene.h">
       <Filter>App\Scene\ResultScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResultCanvas.h">
+    <ClInclude Include="src\app\ResultCanvas.h">
       <Filter>App\Scene\ResultScene\ResultCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\TitleCanvas.h">
+    <ClInclude Include="src\app\TitleCanvas.h">
       <Filter>App\Scene\TitleScene\TitleCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneChangeComponent.h">
+    <ClInclude Include="src\app\SceneChangeComponent.h">
       <Filter>App\Component\SceneChangeComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\SelectScene.h">
+    <ClInclude Include="src\app\SelectScene.h">
       <Filter>App\Scene\TitleScene\SelectScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\SelectCanvas.h">
+    <ClInclude Include="src\app\SelectCanvas.h">
       <Filter>App\Scene\TitleScene\SelectScene\SelectCanvas</Filter>
     </ClInclude>
   </ItemGroup>
@@ -859,66 +859,66 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Constant.hlsli">
+    <None Include="src\shader\Constant.hlsli">
       <Filter>App\Shader</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\gs2d.hlsl">
+    <FxCompile Include="src\shader\gs2d.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsCube.hlsl">
+    <FxCompile Include="src\shader\gsCube.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDebugLine.hlsl">
+    <FxCompile Include="src\shader\gsDebugLine.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingX.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingX.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingY.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingY.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsHPBar.hlsl">
+    <FxCompile Include="src\shader\gsHPBar.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsOnScreen.hlsl">
+    <FxCompile Include="src\shader\gsOnScreen.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsSkyBox.hlsl">
+    <FxCompile Include="src\shader\gsSkyBox.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\ps2d.hlsl">
+    <FxCompile Include="src\shader\ps2d.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\ps3d.hlsl">
+    <FxCompile Include="src\shader\ps3d.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psBlur.hlsl">
+    <FxCompile Include="src\shader\psBlur.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psDebugLine.hlsl">
+    <FxCompile Include="src\shader\psDebugLine.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psOnScreen.hlsl">
+    <FxCompile Include="src\shader\psOnScreen.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psPostProcess.hlsl">
+    <FxCompile Include="src\shader\psPostProcess.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psSkyBox.hlsl">
+    <FxCompile Include="src\shader\psSkyBox.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psShadow.hlsl">
+    <FxCompile Include="src\shader\psShadow.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\vs3d.hlsl">
+    <FxCompile Include="src\shader\vs3d.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
-    <FxCompile Include="src\vsMotion.hlsl">
+    <FxCompile Include="src\shader\vsMotion.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
-    <FxCompile Include="src\vsNone.hlsl">
+    <FxCompile Include="src\shader\vsNone.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
   </ItemGroup>

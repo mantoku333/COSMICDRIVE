@@ -1,190 +1,190 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="src\gs2d.hlsl">
+    <FxCompile Include="src\shader\gs2d.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsCube.hlsl">
+    <FxCompile Include="src\shader\gsCube.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDebugLine.hlsl">
+    <FxCompile Include="src\shader\gsDebugLine.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingX.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingX.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsHPBar.hlsl">
+    <FxCompile Include="src\shader\gsHPBar.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingY.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingY.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsOnScreen.hlsl">
+    <FxCompile Include="src\shader\gsOnScreen.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsSkyBox.hlsl">
+    <FxCompile Include="src\shader\gsSkyBox.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\ps2d.hlsl">
+    <FxCompile Include="src\shader\ps2d.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\ps3d.hlsl">
+    <FxCompile Include="src\shader\ps3d.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psBlur.hlsl">
+    <FxCompile Include="src\shader\psBlur.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psDebugLine.hlsl">
+    <FxCompile Include="src\shader\psDebugLine.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psPostProcess.hlsl">
+    <FxCompile Include="src\shader\psPostProcess.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psOnScreen.hlsl">
+    <FxCompile Include="src\shader\psOnScreen.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psShadow.hlsl">
+    <FxCompile Include="src\shader\psShadow.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\psSkyBox.hlsl">
+    <FxCompile Include="src\shader\psSkyBox.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\vs3d.hlsl">
+    <FxCompile Include="src\shader\vs3d.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
-    <FxCompile Include="src\vsMotion.hlsl">
+    <FxCompile Include="src\shader\vsMotion.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
-    <FxCompile Include="src\vsNone.hlsl">
+    <FxCompile Include="src\shader\vsNone.hlsl">
       <Filter>App\Shader\vs</Filter>
     </FxCompile>
-    <FxCompile Include="src\gsScoreGauge.hlsl">
+    <FxCompile Include="src\shader\gsScoreGauge.hlsl">
       <Filter>App\Shader\gs</Filter>
     </FxCompile>
-    <FxCompile Include="src\psScoreGauge.hlsl">
+    <FxCompile Include="src\shader\psScoreGauge.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\vsNoteInstancing.hlsl" />
+    <FxCompile Include="src\shader\vsNoteInstancing.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Actor.cpp">
+    <ClCompile Include="src\sf\Actor.cpp">
       <Filter>sf\Actor</Filter>
     </ClCompile>
-    <ClCompile Include="src\Button.cpp">
+    <ClCompile Include="src\sf\Button.cpp">
       <Filter>sf\Button</Filter>
     </ClCompile>
-    <ClCompile Include="src\Camera.cpp">
+    <ClCompile Include="src\sf\Camera.cpp">
       <Filter>sf\Camera</Filter>
     </ClCompile>
-    <ClCompile Include="src\Canvas.cpp">
+    <ClCompile Include="src\sf\Canvas.cpp">
       <Filter>sf\Canvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\Collider.cpp">
+    <ClCompile Include="src\sf\Collider.cpp">
       <Filter>sf\Collider</Filter>
     </ClCompile>
-    <ClCompile Include="src\Command.cpp">
+    <ClCompile Include="src\sf\Command.cpp">
       <Filter>sf\Command</Filter>
     </ClCompile>
-    <ClCompile Include="src\Component.cpp">
+    <ClCompile Include="src\sf\Component.cpp">
       <Filter>sf\Component</Filter>
     </ClCompile>
-    <ClCompile Include="src\Debug.cpp">
+    <ClCompile Include="src\sf\Debug.cpp">
       <Filter>sf\Debug</Filter>
     </ClCompile>
-    <ClCompile Include="src\DirectX11.cpp">
+    <ClCompile Include="src\sf\DirectX11.cpp">
       <Filter>sf\DirectX11</Filter>
     </ClCompile>
     <ClCompile Include="src\Easing.cpp">
       <Filter>sf\Easing</Filter>
     </ClCompile>
-    <ClCompile Include="src\File.cpp">
+    <ClCompile Include="src\sf\File.cpp">
       <Filter>sf\File</Filter>
     </ClCompile>
-    <ClCompile Include="src\BinaryFile.cpp">
+    <ClCompile Include="src\sf\BinaryFile.cpp">
       <Filter>sf\File</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextFile.cpp">
+    <ClCompile Include="src\sf\TextFile.cpp">
       <Filter>sf\File</Filter>
     </ClCompile>
-    <ClCompile Include="src\BoxCollider.cpp">
+    <ClCompile Include="src\sf\BoxCollider.cpp">
       <Filter>sf\Collider</Filter>
     </ClCompile>
-    <ClCompile Include="src\SphereCollider.cpp">
+    <ClCompile Include="src\sf\SphereCollider.cpp">
       <Filter>sf\Collider</Filter>
     </ClCompile>
-    <ClCompile Include="src\BlendState.cpp">
+    <ClCompile Include="src\sf\BlendState.cpp">
       <Filter>sf\DirectX11\BlendState</Filter>
     </ClCompile>
-    <ClCompile Include="src\ConstBuffer.cpp">
+    <ClCompile Include="src\sf\ConstBuffer.cpp">
       <Filter>sf\DirectX11\ConstBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\Context.cpp">
+    <ClCompile Include="src\sf\Context.cpp">
       <Filter>sf\DirectX11\Context</Filter>
     </ClCompile>
-    <ClCompile Include="src\Depth.cpp">
+    <ClCompile Include="src\sf\Depth.cpp">
       <Filter>sf\DirectX11\Depth</Filter>
     </ClCompile>
-    <ClCompile Include="src\Device.cpp">
+    <ClCompile Include="src\sf\Device.cpp">
       <Filter>sf\DirectX11\Device</Filter>
     </ClCompile>
-    <ClCompile Include="src\MainDevice.cpp">
+    <ClCompile Include="src\sf\MainDevice.cpp">
       <Filter>sf\DirectX11\MainDevice</Filter>
     </ClCompile>
-    <ClCompile Include="src\PixelShader.cpp">
+    <ClCompile Include="src\sf\PixelShader.cpp">
       <Filter>sf\DirectX11\PixelShader</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderingBuffer2D.cpp">
+    <ClCompile Include="src\sf\RenderingBuffer2D.cpp">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\RenderingBuffer3D.cpp">
+    <ClCompile Include="src\sf\RenderingBuffer3D.cpp">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClCompile>
-    <ClCompile Include="src\RTV.cpp">
+    <ClCompile Include="src\sf\RTV.cpp">
       <Filter>sf\DirectX11\RTV</Filter>
     </ClCompile>
-    <ClCompile Include="src\OffScreenRTV.cpp">
+    <ClCompile Include="src\sf\OffScreenRTV.cpp">
       <Filter>sf\DirectX11\RTV\OffScreenRTV</Filter>
     </ClCompile>
-    <ClCompile Include="src\OnScreenRTV.cpp">
+    <ClCompile Include="src\sf\OnScreenRTV.cpp">
       <Filter>sf\DirectX11\RTV\OnScreenRTV</Filter>
     </ClCompile>
-    <ClCompile Include="src\Sampler.cpp">
+    <ClCompile Include="src\sf\Sampler.cpp">
       <Filter>sf\DirectX11\Sampler</Filter>
     </ClCompile>
-    <ClCompile Include="src\Shader.cpp">
+    <ClCompile Include="src\sf\Shader.cpp">
       <Filter>sf\DirectX11\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="src\SwapChain.cpp">
+    <ClCompile Include="src\sf\SwapChain.cpp">
       <Filter>sf\DirectX11\SwapChain</Filter>
     </ClCompile>
-    <ClCompile Include="src\Texture.cpp">
+    <ClCompile Include="src\sf\Texture.cpp">
       <Filter>sf\DirectX11\Texture</Filter>
     </ClCompile>
-    <ClCompile Include="src\VertexShader.cpp">
+    <ClCompile Include="src\sf\VertexShader.cpp">
       <Filter>sf\DirectX11\VertexShader</Filter>
     </ClCompile>
-    <ClCompile Include="src\Geometry.cpp">
+    <ClCompile Include="src\sf\Geometry.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryCube.cpp">
+    <ClCompile Include="src\sf\GeometryCube.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryCylinder.cpp">
+    <ClCompile Include="src\sf\GeometryCylinder.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryFbx.cpp">
+    <ClCompile Include="src\sf\GeometryFbx.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryField.cpp">
+    <ClCompile Include="src\sf\GeometryField.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometryShader.cpp">
+    <ClCompile Include="src\sf\GeometryShader.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometrySphere.cpp">
+    <ClCompile Include="src\sf\GeometrySphere.cpp">
       <Filter>sf\Geometry</Filter>
     </ClCompile>
-    <ClCompile Include="src\GUI.cpp">
+    <ClCompile Include="src\sf\GUI.cpp">
       <Filter>sf\GUI</Filter>
     </ClCompile>
     <ClCompile Include="imgui\imgui.cpp">
@@ -205,157 +205,157 @@
     <ClCompile Include="imgui\imgui_widgets.cpp">
       <Filter>sf\GUI\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="src\Image.cpp">
+    <ClCompile Include="src\sf\Image.cpp">
       <Filter>sf\Image</Filter>
     </ClCompile>
-    <ClCompile Include="src\IndexBuffer.cpp">
+    <ClCompile Include="src\sf\IndexBuffer.cpp">
       <Filter>sf\IndexBuffer</Filter>
     </ClCompile>
     <ClCompile Include="src\SInput.cpp">
       <Filter>sf\Input</Filter>
     </ClCompile>
-    <ClCompile Include="src\JobSystem.cpp">
+    <ClCompile Include="src\sf\JobSystem.cpp">
       <Filter>sf\JobSystem</Filter>
     </ClCompile>
-    <ClCompile Include="src\Material.cpp">
+    <ClCompile Include="src\sf\Material.cpp">
       <Filter>sf\Material</Filter>
     </ClCompile>
-    <ClCompile Include="src\Mesh.cpp">
+    <ClCompile Include="src\sf\Mesh.cpp">
       <Filter>sf\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="src\Motion.cpp">
+    <ClCompile Include="src\sf\Motion.cpp">
       <Filter>sf\Motion</Filter>
     </ClCompile>
-    <ClCompile Include="src\MotionData.cpp">
+    <ClCompile Include="src\sf\MotionData.cpp">
       <Filter>sf\MotionData</Filter>
     </ClCompile>
-    <ClCompile Include="src\MotionMesh.cpp">
+    <ClCompile Include="src\sf\MotionMesh.cpp">
       <Filter>sf\MotionMesh</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ref.cpp">
+    <ClCompile Include="src\sf\Ref.cpp">
       <Filter>sf\Ref</Filter>
     </ClCompile>
-    <ClCompile Include="src\Ray.cpp">
+    <ClCompile Include="src\sf\Ray.cpp">
       <Filter>sf\Ray</Filter>
     </ClCompile>
-    <ClCompile Include="src\Scene.cpp">
+    <ClCompile Include="src\sf\Scene.cpp">
       <Filter>sf\Scene</Filter>
     </ClCompile>
-    <ClCompile Include="src\SkyBox.cpp">
+    <ClCompile Include="src\app\SkyBox.cpp">
       <Filter>sf\SkyBox</Filter>
     </ClCompile>
-    <ClCompile Include="src\SoundPlayer.cpp">
+    <ClCompile Include="src\sf\SoundPlayer.cpp">
       <Filter>sf\SoundPlayer</Filter>
     </ClCompile>
-    <ClCompile Include="src\SoundResource.cpp">
+    <ClCompile Include="src\sf\SoundResource.cpp">
       <Filter>sf\SoundResource</Filter>
     </ClCompile>
-    <ClCompile Include="src\Subset.cpp">
+    <ClCompile Include="src\sf\Subset.cpp">
       <Filter>sf\Subset</Filter>
     </ClCompile>
-    <ClCompile Include="src\Time.cpp">
+    <ClCompile Include="src\sf\Time.cpp">
       <Filter>sf\Time</Filter>
     </ClCompile>
-    <ClCompile Include="src\Transform.cpp">
+    <ClCompile Include="src\sf\Transform.cpp">
       <Filter>sf\Transform</Filter>
     </ClCompile>
-    <ClCompile Include="src\UI.cpp">
+    <ClCompile Include="src\sf\UI.cpp">
       <Filter>sf\UI</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window.cpp">
+    <ClCompile Include="src\sf\Window.cpp">
       <Filter>sf\Window</Filter>
     </ClCompile>
-    <ClCompile Include="src\Vector3.cpp">
+    <ClCompile Include="src\sf\Vector3.cpp">
       <Filter>sf\Vector3</Filter>
     </ClCompile>
     <ClCompile Include="src\stb.cpp">
       <Filter>sf</Filter>
     </ClCompile>
-    <ClCompile Include="src\App.cpp">
+    <ClCompile Include="src\app\App.cpp">
       <Filter>App</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\ControlCamera.cpp">
+    <ClCompile Include="src\app\ControlCamera.cpp">
       <Filter>App\ControlCamera</Filter>
     </ClCompile>
-    <ClCompile Include="src\ChangeMotionComponent.cpp">
+    <ClCompile Include="src\app\ChangeMotionComponent.cpp">
       <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\FollowCameraComponent.cpp">
+    <ClCompile Include="src\app\FollowCameraComponent.cpp">
       <Filter>App\Component\hoge\FollowCameraComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\LookAtComponent.cpp">
+    <ClCompile Include="src\app\LookAtComponent.cpp">
       <Filter>App\Component\hoge\LookAtComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\MoveComponent.cpp">
+    <ClCompile Include="src\app\MoveComponent.cpp">
       <Filter>App\Component\hoge\MoveComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\NoteComponent.cpp">
+    <ClCompile Include="src\app\NoteComponent.cpp">
       <Filter>App\Component\NoteComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\PlayerComponent.cpp">
+    <ClCompile Include="src\app\PlayerComponent.cpp">
       <Filter>App\Component\PlayerComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\SceneChangeComponent.cpp">
+    <ClCompile Include="src\app\SceneChangeComponent.cpp">
       <Filter>App\Component\SceneChangeComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\SoundComponent.cpp">
+    <ClCompile Include="src\app\SoundComponent.cpp">
       <Filter>App\Component\SoundComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\SelectCanvas.cpp">
+    <ClCompile Include="src\app\SelectCanvas.cpp">
       <Filter>App\Scene\SelectScene\SelectCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\SelectScene.cpp">
+    <ClCompile Include="src\app\SelectScene.cpp">
       <Filter>App\Scene\SelectScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\ResultCanvas.cpp">
+    <ClCompile Include="src\app\ResultCanvas.cpp">
       <Filter>App\Scene\ResultScene\ResultCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\DynamicScene.cpp">
+    <ClCompile Include="src\app\DynamicScene.cpp">
       <Filter>App\Scene\DynamicScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\ResultScene.cpp">
+    <ClCompile Include="src\app\ResultScene.cpp">
       <Filter>App\Scene\ResultScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\ResidentScene.cpp">
+    <ClCompile Include="src\app\ResidentScene.cpp">
       <Filter>App\Scene\ResidentScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\IngameScene.cpp">
+    <ClCompile Include="src\app\IngameScene.cpp">
       <Filter>App\Scene\IngameScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\IngameCanvas.cpp">
+    <ClCompile Include="src\app\IngameCanvas.cpp">
       <Filter>App\Scene\IngameScene\IngameCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\TitleScene.cpp">
+    <ClCompile Include="src\app\TitleScene.cpp">
       <Filter>App\Scene\TitleScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\TitleCanvas.cpp">
+    <ClCompile Include="src\app\TitleCanvas.cpp">
       <Filter>App\Scene\TitleScene\TitleCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\NoteManager.cpp">
+    <ClCompile Include="src\app\NoteManager.cpp">
       <Filter>App\Component\NoteManagerComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\GeometrySwat.cpp">
+    <ClCompile Include="src\app\GeometrySwat.cpp">
       <Filter>App\Component\hoge\GeometrySwat</Filter>
     </ClCompile>
-    <ClCompile Include="src\SwatMotionArray.cpp">
+    <ClCompile Include="src\app\SwatMotionArray.cpp">
       <Filter>App\Component\hoge\SwatMotionArray</Filter>
     </ClCompile>
-    <ClCompile Include="src\AutoRef.cpp">
+    <ClCompile Include="src\sf\AutoRef.cpp">
       <Filter>sf\Ref\AutoRef</Filter>
     </ClCompile>
-    <ClCompile Include="src\EditScene.cpp">
+    <ClCompile Include="src\app\EditScene.cpp">
       <Filter>App\Scene\EditScene</Filter>
     </ClCompile>
     <ClCompile Include="src\EditCanvas.cpp">
       <Filter>App\Scene\EditScene\EditCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\BGMComponent.cpp">
+    <ClCompile Include="src\app\BGMComponent.cpp">
       <Filter>App\Component\BGMComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\EditorComponent.cpp">
+    <ClCompile Include="src\app\EditorComponent.cpp">
       <Filter>App\Component\EditorComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\DirectWriteCustomFont.cpp">
@@ -364,31 +364,31 @@
     <ClCompile Include="src\DirectWrite.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextComponent.cpp">
+    <ClCompile Include="src\sf\TextComponent.cpp">
       <Filter>App\Component</Filter>
     </ClCompile>
-    <ClCompile Include="src\DWriteContext.cpp">
+    <ClCompile Include="src\sf\DWriteContext.cpp">
       <Filter>App\UItext</Filter>
     </ClCompile>
-    <ClCompile Include="src\Text.cpp">
+    <ClCompile Include="src\sf\Text.cpp">
       <Filter>App\UItext</Filter>
     </ClCompile>
-    <ClCompile Include="src\TextImage.cpp">
+    <ClCompile Include="src\sf\TextImage.cpp">
       <Filter>App\UItext</Filter>
     </ClCompile>
-    <ClCompile Include="src\ScoreManager.cpp">
+    <ClCompile Include="src\app\ScoreManager.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\ChedParser.cpp">
+    <ClCompile Include="src\app\ChedParser.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\EffectManager.cpp">
+    <ClCompile Include="src\app\EffectManager.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\LoadingScene.cpp">
+    <ClCompile Include="src\app\LoadingScene.cpp">
       <Filter>App\Scene\LoadingScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\LoadingCanvas.cpp">
+    <ClCompile Include="src\app\LoadingCanvas.cpp">
       <Filter>App\Scene\LoadingScene\LoadingCanvas</Filter>
     </ClCompile>
     <ClCompile Include="Live2D\Framework\src\Physics\CubismPhysics.cpp">
@@ -511,161 +511,161 @@
     <ClCompile Include="Live2D\Framework\src\Rendering\D3D11\CubismShader_D3D11.cpp">
       <Filter>App\Live2D</Filter>
     </ClCompile>
-    <ClCompile Include="src\AppModel.cpp">
+    <ClCompile Include="src\sf\AppModel.cpp">
       <Filter>App\Live2D\app</Filter>
     </ClCompile>
-    <ClCompile Include="src\Live2DComponent.cpp">
+    <ClCompile Include="src\app\Live2DComponent.cpp">
       <Filter>App\Live2D\app</Filter>
     </ClCompile>
-    <ClCompile Include="src\ConfigScene.cpp">
+    <ClCompile Include="src\app\ConfigScene.cpp">
       <Filter>App\Scene\ConfigScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\Config.cpp">
+    <ClCompile Include="src\app\Config.cpp">
       <Filter>App</Filter>
     </ClCompile>
-    <ClCompile Include="src\ConfigCanvas.cpp">
+    <ClCompile Include="src\app\ConfigCanvas.cpp">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\RatingManager.cpp" />
-    <ClCompile Include="src\ChartLoader.cpp" />
-    <ClCompile Include="src\ComboManager.cpp" />
-    <ClCompile Include="src\JudgeService.cpp" />
-    <ClCompile Include="src\NoteInstanceRenderer.cpp" />
-    <ClCompile Include="src\TempoService.cpp" />
-    <ClCompile Include="src\SongListService.cpp" />
-    <ClCompile Include="src\GameSession.cpp" />
+    <ClCompile Include="src\app\RatingManager.cpp" />
+    <ClCompile Include="src\app\ChartLoader.cpp" />
+    <ClCompile Include="src\app\ComboManager.cpp" />
+    <ClCompile Include="src\app\JudgeService.cpp" />
+    <ClCompile Include="src\app\NoteInstanceRenderer.cpp" />
+    <ClCompile Include="src\app\TempoService.cpp" />
+    <ClCompile Include="src\app\SongListService.cpp" />
+    <ClCompile Include="src\app\GameSession.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Actor.h">
+    <ClInclude Include="src\sf\Actor.h">
       <Filter>sf\Actor</Filter>
     </ClInclude>
-    <ClInclude Include="src\Button.h">
+    <ClInclude Include="src\sf\Button.h">
       <Filter>sf\Button</Filter>
     </ClInclude>
-    <ClInclude Include="src\Camera.h">
+    <ClInclude Include="src\sf\Camera.h">
       <Filter>sf\Camera</Filter>
     </ClInclude>
-    <ClInclude Include="src\Canvas.h">
+    <ClInclude Include="src\sf\Canvas.h">
       <Filter>sf\Canvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\Collider.h">
+    <ClInclude Include="src\sf\Collider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\Command.h">
+    <ClInclude Include="src\sf\Command.h">
       <Filter>sf\Command</Filter>
     </ClInclude>
-    <ClInclude Include="src\Component.h">
+    <ClInclude Include="src\sf\Component.h">
       <Filter>sf\Component</Filter>
     </ClInclude>
-    <ClInclude Include="src\Debug.h">
+    <ClInclude Include="src\sf\Debug.h">
       <Filter>sf\Debug</Filter>
     </ClInclude>
-    <ClInclude Include="src\DirectX11.h">
+    <ClInclude Include="src\sf\DirectX11.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
     <ClInclude Include="src\Easing.h">
       <Filter>sf\Easing</Filter>
     </ClInclude>
-    <ClInclude Include="src\File.h">
+    <ClInclude Include="src\sf\File.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\FileBase.h">
+    <ClInclude Include="src\sf\FileBase.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\BinaryFile.h">
+    <ClInclude Include="src\sf\BinaryFile.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextFile.h">
+    <ClInclude Include="src\sf\TextFile.h">
       <Filter>sf\File</Filter>
     </ClInclude>
-    <ClInclude Include="src\BoxCollider.h">
+    <ClInclude Include="src\sf\BoxCollider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\SphereCollider.h">
+    <ClInclude Include="src\sf\SphereCollider.h">
       <Filter>sf\Collider</Filter>
     </ClInclude>
-    <ClInclude Include="src\BlendState.h">
+    <ClInclude Include="src\sf\BlendState.h">
       <Filter>sf\DirectX11\BlendState</Filter>
     </ClInclude>
-    <ClInclude Include="src\ConstBuffer.h">
+    <ClInclude Include="src\sf\ConstBuffer.h">
       <Filter>sf\DirectX11\ConstBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Context.h">
+    <ClInclude Include="src\sf\Context.h">
       <Filter>sf\DirectX11\Context</Filter>
     </ClInclude>
-    <ClInclude Include="src\Depth.h">
+    <ClInclude Include="src\sf\Depth.h">
       <Filter>sf\DirectX11\Depth</Filter>
     </ClInclude>
-    <ClInclude Include="src\Device.h">
+    <ClInclude Include="src\sf\Device.h">
       <Filter>sf\DirectX11\Device</Filter>
     </ClInclude>
-    <ClInclude Include="src\MainDevice.h">
+    <ClInclude Include="src\sf\MainDevice.h">
       <Filter>sf\DirectX11\MainDevice</Filter>
     </ClInclude>
-    <ClInclude Include="src\PixelShader.h">
+    <ClInclude Include="src\sf\PixelShader.h">
       <Filter>sf\DirectX11\PixelShader</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer.h">
+    <ClInclude Include="src\sf\RenderingBuffer.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer2D.h">
+    <ClInclude Include="src\sf\RenderingBuffer2D.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\RenderingBuffer3D.h">
+    <ClInclude Include="src\sf\RenderingBuffer3D.h">
       <Filter>sf\DirectX11\RenderingBuffer</Filter>
     </ClInclude>
-    <ClInclude Include="src\RTV.h">
+    <ClInclude Include="src\sf\RTV.h">
       <Filter>sf\DirectX11\RTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\OffScreenRTV.h">
+    <ClInclude Include="src\sf\OffScreenRTV.h">
       <Filter>sf\DirectX11\RTV\OffScreenRTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\OnScreenRTV.h">
+    <ClInclude Include="src\sf\OnScreenRTV.h">
       <Filter>sf\DirectX11\RTV\OnScreenRTV</Filter>
     </ClInclude>
-    <ClInclude Include="src\Sampler.h">
+    <ClInclude Include="src\sf\Sampler.h">
       <Filter>sf\DirectX11\Sampler</Filter>
     </ClInclude>
-    <ClInclude Include="src\Shader.h">
+    <ClInclude Include="src\sf\Shader.h">
       <Filter>sf\DirectX11\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="src\SwapChain.h">
+    <ClInclude Include="src\sf\SwapChain.h">
       <Filter>sf\DirectX11\SwapChain</Filter>
     </ClInclude>
-    <ClInclude Include="src\Texture.h">
+    <ClInclude Include="src\sf\Texture.h">
       <Filter>sf\DirectX11\Texture</Filter>
     </ClInclude>
-    <ClInclude Include="src\VertexShader.h">
+    <ClInclude Include="src\sf\VertexShader.h">
       <Filter>sf\DirectX11\VertexShader</Filter>
     </ClInclude>
-    <ClInclude Include="src\D3D.h">
+    <ClInclude Include="src\sf\D3D.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
-    <ClInclude Include="src\VertexBuffer.h">
+    <ClInclude Include="src\sf\VertexBuffer.h">
       <Filter>sf\DirectX11</Filter>
     </ClInclude>
-    <ClInclude Include="src\Geometry.h">
+    <ClInclude Include="src\sf\Geometry.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryCube.h">
+    <ClInclude Include="src\sf\GeometryCube.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryCylinder.h">
+    <ClInclude Include="src\sf\GeometryCylinder.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryFbx.h">
+    <ClInclude Include="src\sf\GeometryFbx.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryField.h">
+    <ClInclude Include="src\sf\GeometryField.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometryShader.h">
+    <ClInclude Include="src\sf\GeometryShader.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometrySphere.h">
+    <ClInclude Include="src\sf\GeometrySphere.h">
       <Filter>sf\Geometry</Filter>
     </ClInclude>
-    <ClInclude Include="src\GUI.h">
+    <ClInclude Include="src\sf\GUI.h">
       <Filter>sf\GUI</Filter>
     </ClInclude>
     <ClInclude Include="imgui\imconfig.h">
@@ -692,73 +692,73 @@
     <ClInclude Include="imgui\imstb_truetype.h">
       <Filter>sf\GUI\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="src\Image.h">
+    <ClInclude Include="src\sf\Image.h">
       <Filter>sf\Image</Filter>
     </ClInclude>
-    <ClInclude Include="src\IndexBuffer.h">
+    <ClInclude Include="src\sf\IndexBuffer.h">
       <Filter>sf\IndexBuffer</Filter>
     </ClInclude>
     <ClInclude Include="src\SInput.h">
       <Filter>sf\Input</Filter>
     </ClInclude>
-    <ClInclude Include="src\JobSystem.h">
+    <ClInclude Include="src\sf\JobSystem.h">
       <Filter>sf\JobSystem</Filter>
     </ClInclude>
-    <ClInclude Include="src\Material.h">
+    <ClInclude Include="src\sf\Material.h">
       <Filter>sf\Material</Filter>
     </ClInclude>
-    <ClInclude Include="src\Mesh.h">
+    <ClInclude Include="src\sf\Mesh.h">
       <Filter>sf\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="src\Motion.h">
+    <ClInclude Include="src\sf\Motion.h">
       <Filter>sf\Motion</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionArray.h">
+    <ClInclude Include="src\sf\MotionArray.h">
       <Filter>sf\MotionArray</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionData.h">
+    <ClInclude Include="src\sf\MotionData.h">
       <Filter>sf\MotionData</Filter>
     </ClInclude>
-    <ClInclude Include="src\MotionMesh.h">
+    <ClInclude Include="src\sf\MotionMesh.h">
       <Filter>sf\MotionMesh</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ref.h">
+    <ClInclude Include="src\sf\Ref.h">
       <Filter>sf\Ref</Filter>
     </ClInclude>
-    <ClInclude Include="src\Ray.h">
+    <ClInclude Include="src\sf\Ray.h">
       <Filter>sf\Ray</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scene.h">
+    <ClInclude Include="src\sf\Scene.h">
       <Filter>sf\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="src\SkyBox.h">
+    <ClInclude Include="src\app\SkyBox.h">
       <Filter>sf\SkyBox</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundPlayer.h">
+    <ClInclude Include="src\sf\SoundPlayer.h">
       <Filter>sf\SoundPlayer</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundResource.h">
+    <ClInclude Include="src\sf\SoundResource.h">
       <Filter>sf\SoundResource</Filter>
     </ClInclude>
-    <ClInclude Include="src\Subset.h">
+    <ClInclude Include="src\sf\Subset.h">
       <Filter>sf\Subset</Filter>
     </ClInclude>
-    <ClInclude Include="src\Time.h">
+    <ClInclude Include="src\sf\Time.h">
       <Filter>sf\Time</Filter>
     </ClInclude>
-    <ClInclude Include="src\Transform.h">
+    <ClInclude Include="src\sf\Transform.h">
       <Filter>sf\Transform</Filter>
     </ClInclude>
-    <ClInclude Include="src\UI.h">
+    <ClInclude Include="src\sf\UI.h">
       <Filter>sf\UI</Filter>
     </ClInclude>
-    <ClInclude Include="src\Window.h">
+    <ClInclude Include="src\sf\Window.h">
       <Filter>sf\Window</Filter>
     </ClInclude>
-    <ClInclude Include="src\Vector3.h">
+    <ClInclude Include="src\sf\Vector3.h">
       <Filter>sf\Vector3</Filter>
     </ClInclude>
-    <ClInclude Include="src\Singleton.h">
+    <ClInclude Include="src\sf\Singleton.h">
       <Filter>sf</Filter>
     </ClInclude>
     <ClInclude Include="src\stb_image.h">
@@ -767,109 +767,109 @@
     <ClInclude Include="src\stb_truetype.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\Delegate.h">
+    <ClInclude Include="src\sf\Delegate.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\App.h">
+    <ClInclude Include="src\app\App.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteData.h">
+    <ClInclude Include="src\app\NoteData.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\ScoreManager.h">
+    <ClInclude Include="src\app\ScoreManager.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\ControlCamera.h">
+    <ClInclude Include="src\app\ControlCamera.h">
       <Filter>App\ControlCamera</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChangeMotionComponent.h">
+    <ClInclude Include="src\app\ChangeMotionComponent.h">
       <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\FollowCameraComponent.h">
+    <ClInclude Include="src\app\FollowCameraComponent.h">
       <Filter>App\Component\hoge\FollowCameraComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\LookAtComponent.h">
+    <ClInclude Include="src\app\LookAtComponent.h">
       <Filter>App\Component\hoge\LookAtComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\MoveComponent.h">
+    <ClInclude Include="src\app\MoveComponent.h">
       <Filter>App\Component\hoge\MoveComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteComponent.h">
+    <ClInclude Include="src\app\NoteComponent.h">
       <Filter>App\Component\NoteComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\PlayerComponent.h">
+    <ClInclude Include="src\app\PlayerComponent.h">
       <Filter>App\Component\PlayerComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\SceneChangeComponent.h">
+    <ClInclude Include="src\app\SceneChangeComponent.h">
       <Filter>App\Component\SceneChangeComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\SoundComponent.h">
+    <ClInclude Include="src\app\SoundComponent.h">
       <Filter>App\Component\SoundComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\SelectCanvas.h">
+    <ClInclude Include="src\app\SelectCanvas.h">
       <Filter>App\Scene\SelectScene\SelectCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\SelectScene.h">
+    <ClInclude Include="src\app\SelectScene.h">
       <Filter>App\Scene\SelectScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResultCanvas.h">
+    <ClInclude Include="src\app\ResultCanvas.h">
       <Filter>App\Scene\ResultScene\ResultCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\DynamicScene.h">
+    <ClInclude Include="src\app\DynamicScene.h">
       <Filter>App\Scene\DynamicScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResultScene.h">
+    <ClInclude Include="src\app\ResultScene.h">
       <Filter>App\Scene\ResultScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ResidentScene.h">
+    <ClInclude Include="src\app\ResidentScene.h">
       <Filter>App\Scene\ResidentScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\IngameScene.h">
+    <ClInclude Include="src\app\IngameScene.h">
       <Filter>App\Scene\IngameScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\IngameCanvas.h">
+    <ClInclude Include="src\app\IngameCanvas.h">
       <Filter>App\Scene\IngameScene\IngameCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\TitleScene.h">
+    <ClInclude Include="src\app\TitleScene.h">
       <Filter>App\Scene\TitleScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\TitleCanvas.h">
+    <ClInclude Include="src\app\TitleCanvas.h">
       <Filter>App\Scene\TitleScene\TitleCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\NoteManager.h">
+    <ClInclude Include="src\app\NoteManager.h">
       <Filter>App\Component\NoteManagerComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\GeometrySwat.h">
+    <ClInclude Include="src\app\GeometrySwat.h">
       <Filter>App\Component\hoge\GeometrySwat</Filter>
     </ClInclude>
-    <ClInclude Include="src\SwatMotionArray.h">
+    <ClInclude Include="src\app\SwatMotionArray.h">
       <Filter>App\Component\hoge\SwatMotionArray</Filter>
     </ClInclude>
-    <ClInclude Include="src\AutoRef.h">
+    <ClInclude Include="src\sf\AutoRef.h">
       <Filter>sf\Ref\AutoRef</Filter>
     </ClInclude>
-    <ClInclude Include="src\SafePtr.h">
+    <ClInclude Include="src\sf\SafePtr.h">
       <Filter>sf</Filter>
     </ClInclude>
     <ClInclude Include="src\sf.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\SongInfo.h">
+    <ClInclude Include="src\app\SongInfo.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\EditScene.h">
+    <ClInclude Include="src\app\EditScene.h">
       <Filter>App\Scene\EditScene</Filter>
     </ClInclude>
     <ClInclude Include="src\EditCanvas.h">
       <Filter>App\Scene\EditScene\EditCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\BGMComponent.h">
+    <ClInclude Include="src\app\BGMComponent.h">
       <Filter>App\Component\BGMComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\Config.h">
+    <ClInclude Include="src\app\Config.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\EditorComponent.h">
+    <ClInclude Include="src\app\EditorComponent.h">
       <Filter>App\Component\EditorComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\DirectWriteCustomFont.h">
@@ -878,28 +878,28 @@
     <ClInclude Include="src\DirectWrite.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextComponent.h">
+    <ClInclude Include="src\sf\TextComponent.h">
       <Filter>App\Component</Filter>
     </ClInclude>
-    <ClInclude Include="src\DWriteContext.h">
+    <ClInclude Include="src\sf\DWriteContext.h">
       <Filter>App\UItext</Filter>
     </ClInclude>
-    <ClInclude Include="src\Text.h">
+    <ClInclude Include="src\sf\Text.h">
       <Filter>App\UItext</Filter>
     </ClInclude>
-    <ClInclude Include="src\TextImage.h">
+    <ClInclude Include="src\sf\TextImage.h">
       <Filter>App\UItext</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChedParser.h">
+    <ClInclude Include="src\app\ChedParser.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\EffectManager.h">
+    <ClInclude Include="src\app\EffectManager.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\LoadingScene.h">
+    <ClInclude Include="src\app\LoadingScene.h">
       <Filter>App\Scene\LoadingScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\LoadingCanvas.h">
+    <ClInclude Include="src\app\LoadingCanvas.h">
       <Filter>App\Scene\LoadingScene\LoadingCanvas</Filter>
     </ClInclude>
     <ClInclude Include="Live2D\Framework\src\Physics\CubismPhysics.hpp">
@@ -1064,30 +1064,30 @@
     <ClInclude Include="src\Live2DManager.h">
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
-    <ClInclude Include="src\AppModel.h">
+    <ClInclude Include="src\sf\AppModel.h">
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
-    <ClInclude Include="src\Live2DComponent.h">
+    <ClInclude Include="src\app\Live2DComponent.h">
       <Filter>App\Live2D\app</Filter>
     </ClInclude>
-    <ClInclude Include="src\ConfigScene.h">
+    <ClInclude Include="src\app\ConfigScene.h">
       <Filter>App\Scene\ConfigScene</Filter>
     </ClInclude>
-    <ClInclude Include="src\ConfigCanvas.h">
+    <ClInclude Include="src\app\ConfigCanvas.h">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\RatingManager.h" />
-    <ClInclude Include="src\StringUtils.h">
+    <ClInclude Include="src\app\RatingManager.h" />
+    <ClInclude Include="src\sf\StringUtils.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\ChartLoader.h" />
-    <ClInclude Include="src\ComboManager.h" />
-    <ClInclude Include="src\JudgeConstants.h" />
-    <ClInclude Include="src\JudgeService.h" />
-    <ClInclude Include="src\NoteInstanceRenderer.h" />
-    <ClInclude Include="src\TempoService.h" />
-    <ClInclude Include="src\SongListService.h" />
-    <ClInclude Include="src\GameSession.h" />
+    <ClInclude Include="src\app\ChartLoader.h" />
+    <ClInclude Include="src\app\ComboManager.h" />
+    <ClInclude Include="src\app\JudgeConstants.h" />
+    <ClInclude Include="src\app\JudgeService.h" />
+    <ClInclude Include="src\app\NoteInstanceRenderer.h" />
+    <ClInclude Include="src\app\TempoService.h" />
+    <ClInclude Include="src\app\SongListService.h" />
+    <ClInclude Include="src\app\GameSession.h" />
     <ClInclude Include="GlobalSoundComponent.h" />
   </ItemGroup>
   <ItemGroup>
@@ -1378,7 +1378,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Constant.hlsli">
+    <None Include="src\shader\Constant.hlsli">
       <Filter>App\Shader</Filter>
     </None>
   </ItemGroup>

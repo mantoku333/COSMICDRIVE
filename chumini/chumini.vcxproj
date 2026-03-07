@@ -71,19 +71,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)src;$(ProjectDir)src\app;$(ProjectDir)src\sf;$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)src;$(ProjectDir)src\app;$(ProjectDir)src\sf;$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)src;$(ProjectDir)src\app;$(ProjectDir)src\sf;$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)</IncludePath>
+    <IncludePath>directxtk\include;$(IncludePath);$(ProjectDir)src;$(ProjectDir)src\app;$(ProjectDir)src\sf;$(ProjectDir)</IncludePath>
     <LibraryPath>directxtk\lib\x64\Release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -164,65 +164,65 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Actor.cpp" />
-    <ClCompile Include="src\App.cpp" />
-    <ClCompile Include="src\AppModel.cpp" />
-    <ClCompile Include="src\AutoRef.cpp" />
-    <ClCompile Include="src\BGMComponent.cpp" />
-    <ClCompile Include="src\BinaryFile.cpp" />
-    <ClCompile Include="src\BlendState.cpp" />
-    <ClCompile Include="src\BoxCollider.cpp" />
-    <ClCompile Include="src\Button.cpp" />
-    <ClCompile Include="src\Camera.cpp" />
-    <ClCompile Include="src\Canvas.cpp" />
-    <ClCompile Include="src\ChangeMotionComponent.cpp" />
-    <ClCompile Include="src\ChedParser.cpp" />
-    <ClCompile Include="src\ChartLoader.cpp" />
-    <ClCompile Include="src\Collider.cpp" />
-    <ClCompile Include="src\Command.cpp" />
-    <ClCompile Include="src\Component.cpp" />
-    <ClCompile Include="src\Config.cpp" />
-    <ClCompile Include="src\ConfigCanvas.cpp" />
-    <ClCompile Include="src\ConfigScene.cpp" />
-    <ClCompile Include="src\ConstBuffer.cpp" />
-    <ClCompile Include="src\Context.cpp" />
-    <ClCompile Include="src\ControlCamera.cpp" />
-    <ClCompile Include="src\Debug.cpp" />
-    <ClCompile Include="src\Depth.cpp" />
-    <ClCompile Include="src\Device.cpp" />
+    <ClCompile Include="src\sf\Actor.cpp" />
+    <ClCompile Include="src\app\App.cpp" />
+    <ClCompile Include="src\sf\AppModel.cpp" />
+    <ClCompile Include="src\sf\AutoRef.cpp" />
+    <ClCompile Include="src\app\BGMComponent.cpp" />
+    <ClCompile Include="src\sf\BinaryFile.cpp" />
+    <ClCompile Include="src\sf\BlendState.cpp" />
+    <ClCompile Include="src\sf\BoxCollider.cpp" />
+    <ClCompile Include="src\sf\Button.cpp" />
+    <ClCompile Include="src\sf\Camera.cpp" />
+    <ClCompile Include="src\sf\Canvas.cpp" />
+    <ClCompile Include="src\app\ChangeMotionComponent.cpp" />
+    <ClCompile Include="src\app\ChedParser.cpp" />
+    <ClCompile Include="src\app\ChartLoader.cpp" />
+    <ClCompile Include="src\sf\Collider.cpp" />
+    <ClCompile Include="src\sf\Command.cpp" />
+    <ClCompile Include="src\sf\Component.cpp" />
+    <ClCompile Include="src\app\Config.cpp" />
+    <ClCompile Include="src\app\ConfigCanvas.cpp" />
+    <ClCompile Include="src\app\ConfigScene.cpp" />
+    <ClCompile Include="src\sf\ConstBuffer.cpp" />
+    <ClCompile Include="src\sf\Context.cpp" />
+    <ClCompile Include="src\app\ControlCamera.cpp" />
+    <ClCompile Include="src\sf\Debug.cpp" />
+    <ClCompile Include="src\sf\Depth.cpp" />
+    <ClCompile Include="src\sf\Device.cpp" />
     <ClCompile Include="src\DirectWrite.cpp" />
     <ClCompile Include="src\DirectWriteCustomFont.cpp" />
-    <ClCompile Include="src\DirectX11.cpp" />
-    <ClCompile Include="src\DWriteContext.cpp" />
-    <ClCompile Include="src\DynamicScene.cpp" />
+    <ClCompile Include="src\sf\DirectX11.cpp" />
+    <ClCompile Include="src\sf\DWriteContext.cpp" />
+    <ClCompile Include="src\app\DynamicScene.cpp" />
     <ClCompile Include="src\Easing.cpp" />
     <ClCompile Include="src\EditCanvas.cpp" />
-    <ClCompile Include="src\EditorComponent.cpp" />
-    <ClCompile Include="src\EditScene.cpp" />
-    <ClCompile Include="src\EffectManager.cpp" />
-    <ClCompile Include="src\File.cpp" />
-    <ClCompile Include="src\FollowCameraComponent.cpp" />
-    <ClCompile Include="src\Geometry.cpp" />
-    <ClCompile Include="src\GeometryCube.cpp" />
-    <ClCompile Include="src\GeometryCylinder.cpp" />
-    <ClCompile Include="src\GeometryFbx.cpp" />
-    <ClCompile Include="src\GeometryField.cpp" />
-    <ClCompile Include="src\GeometryShader.cpp" />
-    <ClCompile Include="src\GeometrySphere.cpp" />
-    <ClCompile Include="src\GUI.cpp" />
-    <ClCompile Include="src\GeometrySwat.cpp" />
-    <ClCompile Include="src\Image.cpp" />
+    <ClCompile Include="src\app\EditorComponent.cpp" />
+    <ClCompile Include="src\app\EditScene.cpp" />
+    <ClCompile Include="src\app\EffectManager.cpp" />
+    <ClCompile Include="src\sf\File.cpp" />
+    <ClCompile Include="src\app\FollowCameraComponent.cpp" />
+    <ClCompile Include="src\sf\Geometry.cpp" />
+    <ClCompile Include="src\sf\GeometryCube.cpp" />
+    <ClCompile Include="src\sf\GeometryCylinder.cpp" />
+    <ClCompile Include="src\sf\GeometryFbx.cpp" />
+    <ClCompile Include="src\sf\GeometryField.cpp" />
+    <ClCompile Include="src\sf\GeometryShader.cpp" />
+    <ClCompile Include="src\sf\GeometrySphere.cpp" />
+    <ClCompile Include="src\sf\GUI.cpp" />
+    <ClCompile Include="src\app\GeometrySwat.cpp" />
+    <ClCompile Include="src\sf\Image.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="imgui\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="imgui\imgui.cpp" />
     <ClCompile Include="imgui\imgui_draw.cpp" />
     <ClCompile Include="imgui\imgui_tables.cpp" />
     <ClCompile Include="imgui\imgui_widgets.cpp" />
-    <ClCompile Include="src\IndexBuffer.cpp" />
-    <ClCompile Include="src\JobSystem.cpp" />
-    <ClCompile Include="src\ComboManager.cpp" />
-    <ClCompile Include="src\JudgeService.cpp" />
-    <ClCompile Include="src\Live2DComponent.cpp" />
+    <ClCompile Include="src\sf\IndexBuffer.cpp" />
+    <ClCompile Include="src\sf\JobSystem.cpp" />
+    <ClCompile Include="src\app\ComboManager.cpp" />
+    <ClCompile Include="src\app\JudgeService.cpp" />
+    <ClCompile Include="src\app\Live2DComponent.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismCdiJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismDefaultParameterId.cpp" />
     <ClCompile Include="Live2D\Framework\src\CubismFramework.cpp" />
@@ -263,122 +263,122 @@
     <ClCompile Include="Live2D\Framework\src\Utils\CubismDebug.cpp" />
     <ClCompile Include="Live2D\Framework\src\Utils\CubismJson.cpp" />
     <ClCompile Include="Live2D\Framework\src\Utils\CubismString.cpp" />
-    <ClCompile Include="src\LoadingCanvas.cpp" />
-    <ClCompile Include="src\LoadingScene.cpp" />
-    <ClCompile Include="src\LookAtComponent.cpp" />
+    <ClCompile Include="src\app\LoadingCanvas.cpp" />
+    <ClCompile Include="src\app\LoadingScene.cpp" />
+    <ClCompile Include="src\app\LookAtComponent.cpp" />
     <ClCompile Include="src\main.cpp" />
-    <ClCompile Include="src\MainDevice.cpp" />
-    <ClCompile Include="src\Material.cpp" />
-    <ClCompile Include="src\Mesh.cpp" />
-    <ClCompile Include="src\Motion.cpp" />
-    <ClCompile Include="src\MotionData.cpp" />
-    <ClCompile Include="src\MotionMesh.cpp" />
-    <ClCompile Include="src\MoveComponent.cpp" />
-    <ClCompile Include="src\NoteComponent.cpp" />
-    <ClCompile Include="src\NoteInstanceRenderer.cpp" />
-    <ClCompile Include="src\NoteManager.cpp" />
-    <ClCompile Include="src\TempoService.cpp" />
-    <ClCompile Include="src\OffScreenRTV.cpp" />
-    <ClCompile Include="src\OnScreenRTV.cpp" />
-    <ClCompile Include="src\PixelShader.cpp" />
-    <ClCompile Include="src\PlayerComponent.cpp" />
-    <ClCompile Include="src\Ray.cpp" />
-    <ClCompile Include="src\Ref.cpp" />
-    <ClCompile Include="src\RenderingBuffer2D.cpp" />
-    <ClCompile Include="src\RenderingBuffer3D.cpp" />
-    <ClCompile Include="src\ResidentScene.cpp" />
-    <ClCompile Include="src\ResultCanvas.cpp" />
-    <ClCompile Include="src\ResultScene.cpp" />
-    <ClCompile Include="src\RTV.cpp" />
-    <ClCompile Include="src\Sampler.cpp" />
-    <ClCompile Include="src\Scene.cpp" />
-    <ClCompile Include="src\SceneChangeComponent.cpp" />
-    <ClCompile Include="src\ScoreManager.cpp" />
-    <ClCompile Include="src\RatingManager.cpp" />
-    <ClCompile Include="src\SelectCanvas.cpp" />
-    <ClCompile Include="src\SongListService.cpp" />
-    <ClCompile Include="src\SelectScene.cpp" />
-    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\sf\MainDevice.cpp" />
+    <ClCompile Include="src\sf\Material.cpp" />
+    <ClCompile Include="src\sf\Mesh.cpp" />
+    <ClCompile Include="src\sf\Motion.cpp" />
+    <ClCompile Include="src\sf\MotionData.cpp" />
+    <ClCompile Include="src\sf\MotionMesh.cpp" />
+    <ClCompile Include="src\app\MoveComponent.cpp" />
+    <ClCompile Include="src\app\NoteComponent.cpp" />
+    <ClCompile Include="src\app\NoteInstanceRenderer.cpp" />
+    <ClCompile Include="src\app\NoteManager.cpp" />
+    <ClCompile Include="src\app\TempoService.cpp" />
+    <ClCompile Include="src\sf\OffScreenRTV.cpp" />
+    <ClCompile Include="src\sf\OnScreenRTV.cpp" />
+    <ClCompile Include="src\sf\PixelShader.cpp" />
+    <ClCompile Include="src\app\PlayerComponent.cpp" />
+    <ClCompile Include="src\sf\Ray.cpp" />
+    <ClCompile Include="src\sf\Ref.cpp" />
+    <ClCompile Include="src\sf\RenderingBuffer2D.cpp" />
+    <ClCompile Include="src\sf\RenderingBuffer3D.cpp" />
+    <ClCompile Include="src\app\ResidentScene.cpp" />
+    <ClCompile Include="src\app\ResultCanvas.cpp" />
+    <ClCompile Include="src\app\ResultScene.cpp" />
+    <ClCompile Include="src\sf\RTV.cpp" />
+    <ClCompile Include="src\sf\Sampler.cpp" />
+    <ClCompile Include="src\sf\Scene.cpp" />
+    <ClCompile Include="src\app\SceneChangeComponent.cpp" />
+    <ClCompile Include="src\app\ScoreManager.cpp" />
+    <ClCompile Include="src\app\RatingManager.cpp" />
+    <ClCompile Include="src\app\SelectCanvas.cpp" />
+    <ClCompile Include="src\app\SongListService.cpp" />
+    <ClCompile Include="src\app\SelectScene.cpp" />
+    <ClCompile Include="src\sf\Shader.cpp" />
     <ClCompile Include="src\SInput.cpp" />
-    <ClCompile Include="src\SkyBox.cpp" />
-    <ClCompile Include="src\SoundPlayer.cpp" />
-    <ClCompile Include="src\SoundResource.cpp" />
-    <ClCompile Include="src\SphereCollider.cpp" />
+    <ClCompile Include="src\app\SkyBox.cpp" />
+    <ClCompile Include="src\sf\SoundPlayer.cpp" />
+    <ClCompile Include="src\sf\SoundResource.cpp" />
+    <ClCompile Include="src\sf\SphereCollider.cpp" />
     <ClCompile Include="src\stb.cpp" />
-    <ClCompile Include="src\Subset.cpp" />
-    <ClCompile Include="src\SwapChain.cpp" />
-    <ClCompile Include="src\SwatMotionArray.cpp" />
-    <ClCompile Include="src\IngameCanvas.cpp" />
-    <ClCompile Include="src\IngameScene.cpp" />
-    <ClCompile Include="src\GameSession.cpp" />
-    <ClCompile Include="src\SoundComponent.cpp" />
-    <ClCompile Include="src\Text.cpp" />
-    <ClCompile Include="src\TextComponent.cpp" />
-    <ClCompile Include="src\TextFile.cpp" />
-    <ClCompile Include="src\TextImage.cpp" />
-    <ClCompile Include="src\Texture.cpp" />
-    <ClCompile Include="src\Time.cpp" />
-    <ClCompile Include="src\TitleCanvas.cpp" />
-    <ClCompile Include="src\TitleScene.cpp" />
-    <ClCompile Include="src\Transform.cpp" />
-    <ClCompile Include="src\UI.cpp" />
-    <ClCompile Include="src\Vector3.cpp" />
-    <ClCompile Include="src\VertexShader.cpp" />
-    <ClCompile Include="src\Window.cpp" />
+    <ClCompile Include="src\sf\Subset.cpp" />
+    <ClCompile Include="src\sf\SwapChain.cpp" />
+    <ClCompile Include="src\app\SwatMotionArray.cpp" />
+    <ClCompile Include="src\app\IngameCanvas.cpp" />
+    <ClCompile Include="src\app\IngameScene.cpp" />
+    <ClCompile Include="src\app\GameSession.cpp" />
+    <ClCompile Include="src\app\SoundComponent.cpp" />
+    <ClCompile Include="src\sf\Text.cpp" />
+    <ClCompile Include="src\sf\TextComponent.cpp" />
+    <ClCompile Include="src\sf\TextFile.cpp" />
+    <ClCompile Include="src\sf\TextImage.cpp" />
+    <ClCompile Include="src\sf\Texture.cpp" />
+    <ClCompile Include="src\sf\Time.cpp" />
+    <ClCompile Include="src\app\TitleCanvas.cpp" />
+    <ClCompile Include="src\app\TitleScene.cpp" />
+    <ClCompile Include="src\sf\Transform.cpp" />
+    <ClCompile Include="src\sf\UI.cpp" />
+    <ClCompile Include="src\sf\Vector3.cpp" />
+    <ClCompile Include="src\sf\VertexShader.cpp" />
+    <ClCompile Include="src\sf\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Actor.h" />
-    <ClInclude Include="src\App.h" />
+    <ClInclude Include="src\sf\Actor.h" />
+    <ClInclude Include="src\app\App.h" />
     <ClInclude Include="src\AppAllocator.h" />
-    <ClInclude Include="src\AppModel.h" />
-    <ClInclude Include="src\AutoRef.h" />
-    <ClInclude Include="src\BGMComponent.h" />
-    <ClInclude Include="src\BinaryFile.h" />
-    <ClInclude Include="src\BlendState.h" />
-    <ClInclude Include="src\BoxCollider.h" />
-    <ClInclude Include="src\Button.h" />
-    <ClInclude Include="src\Camera.h" />
-    <ClInclude Include="src\Canvas.h" />
-    <ClInclude Include="src\ChangeMotionComponent.h" />
-    <ClInclude Include="src\ChedParser.h" />
-    <ClInclude Include="src\ChartLoader.h" />
-    <ClInclude Include="src\Collider.h" />
-    <ClInclude Include="src\Command.h" />
-    <ClInclude Include="src\Component.h" />
-    <ClInclude Include="src\Config.h" />
-    <ClInclude Include="src\ConfigCanvas.h" />
-    <ClInclude Include="src\ConfigScene.h" />
-    <ClInclude Include="src\ConstBuffer.h" />
-    <ClInclude Include="src\Context.h" />
-    <ClInclude Include="src\ControlCamera.h" />
-    <ClInclude Include="src\D3D.h" />
-    <ClInclude Include="src\Debug.h" />
-    <ClInclude Include="src\Delegate.h" />
-    <ClInclude Include="src\Depth.h" />
-    <ClInclude Include="src\Device.h" />
+    <ClInclude Include="src\sf\AppModel.h" />
+    <ClInclude Include="src\sf\AutoRef.h" />
+    <ClInclude Include="src\app\BGMComponent.h" />
+    <ClInclude Include="src\sf\BinaryFile.h" />
+    <ClInclude Include="src\sf\BlendState.h" />
+    <ClInclude Include="src\sf\BoxCollider.h" />
+    <ClInclude Include="src\sf\Button.h" />
+    <ClInclude Include="src\sf\Camera.h" />
+    <ClInclude Include="src\sf\Canvas.h" />
+    <ClInclude Include="src\app\ChangeMotionComponent.h" />
+    <ClInclude Include="src\app\ChedParser.h" />
+    <ClInclude Include="src\app\ChartLoader.h" />
+    <ClInclude Include="src\sf\Collider.h" />
+    <ClInclude Include="src\sf\Command.h" />
+    <ClInclude Include="src\sf\Component.h" />
+    <ClInclude Include="src\app\Config.h" />
+    <ClInclude Include="src\app\ConfigCanvas.h" />
+    <ClInclude Include="src\app\ConfigScene.h" />
+    <ClInclude Include="src\sf\ConstBuffer.h" />
+    <ClInclude Include="src\sf\Context.h" />
+    <ClInclude Include="src\app\ControlCamera.h" />
+    <ClInclude Include="src\sf\D3D.h" />
+    <ClInclude Include="src\sf\Debug.h" />
+    <ClInclude Include="src\sf\Delegate.h" />
+    <ClInclude Include="src\sf\Depth.h" />
+    <ClInclude Include="src\sf\Device.h" />
     <ClInclude Include="src\DirectWrite.h" />
     <ClInclude Include="src\DirectWriteCustomFont.h" />
-    <ClInclude Include="src\DirectX11.h" />
-    <ClInclude Include="src\DWriteContext.h" />
-    <ClInclude Include="src\DynamicScene.h" />
+    <ClInclude Include="src\sf\DirectX11.h" />
+    <ClInclude Include="src\sf\DWriteContext.h" />
+    <ClInclude Include="src\app\DynamicScene.h" />
     <ClInclude Include="src\Easing.h" />
     <ClInclude Include="src\EditCanvas.h" />
-    <ClInclude Include="src\EditorComponent.h" />
-    <ClInclude Include="src\EditScene.h" />
-    <ClInclude Include="src\EffectManager.h" />
-    <ClInclude Include="src\File.h" />
-    <ClInclude Include="src\FileBase.h" />
-    <ClInclude Include="src\FollowCameraComponent.h" />
-    <ClInclude Include="src\Geometry.h" />
-    <ClInclude Include="src\GeometryCube.h" />
-    <ClInclude Include="src\GeometryCylinder.h" />
-    <ClInclude Include="src\GeometryFbx.h" />
-    <ClInclude Include="src\GeometryField.h" />
-    <ClInclude Include="src\GeometryShader.h" />
-    <ClInclude Include="src\GeometrySphere.h" />
-    <ClInclude Include="src\GUI.h" />
-    <ClInclude Include="src\GeometrySwat.h" />
-    <ClInclude Include="src\Image.h" />
+    <ClInclude Include="src\app\EditorComponent.h" />
+    <ClInclude Include="src\app\EditScene.h" />
+    <ClInclude Include="src\app\EffectManager.h" />
+    <ClInclude Include="src\sf\File.h" />
+    <ClInclude Include="src\sf\FileBase.h" />
+    <ClInclude Include="src\app\FollowCameraComponent.h" />
+    <ClInclude Include="src\sf\Geometry.h" />
+    <ClInclude Include="src\sf\GeometryCube.h" />
+    <ClInclude Include="src\sf\GeometryCylinder.h" />
+    <ClInclude Include="src\sf\GeometryFbx.h" />
+    <ClInclude Include="src\sf\GeometryField.h" />
+    <ClInclude Include="src\sf\GeometryShader.h" />
+    <ClInclude Include="src\sf\GeometrySphere.h" />
+    <ClInclude Include="src\sf\GUI.h" />
+    <ClInclude Include="src\app\GeometrySwat.h" />
+    <ClInclude Include="src\sf\Image.h" />
     <ClInclude Include="imgui\backends\imgui_impl_dx11.h" />
     <ClInclude Include="imgui\backends\imgui_impl_win32.h" />
     <ClInclude Include="imgui\imconfig.h" />
@@ -387,12 +387,12 @@
     <ClInclude Include="imgui\imstb_rectpack.h" />
     <ClInclude Include="imgui\imstb_textedit.h" />
     <ClInclude Include="imgui\imstb_truetype.h" />
-    <ClInclude Include="src\IndexBuffer.h" />
-    <ClInclude Include="src\JobSystem.h" />
-    <ClInclude Include="src\ComboManager.h" />
-    <ClInclude Include="src\JudgeConstants.h" />
-    <ClInclude Include="src\JudgeService.h" />
-    <ClInclude Include="src\Live2DComponent.h" />
+    <ClInclude Include="src\sf\IndexBuffer.h" />
+    <ClInclude Include="src\sf\JobSystem.h" />
+    <ClInclude Include="src\app\ComboManager.h" />
+    <ClInclude Include="src\app\JudgeConstants.h" />
+    <ClInclude Include="src\app\JudgeService.h" />
+    <ClInclude Include="src\app\Live2DComponent.h" />
     <ClInclude Include="src\Live2DManager.h" />
     <ClInclude Include="Live2D\Framework\src\CubismCdiJson.hpp" />
     <ClInclude Include="Live2D\Framework\src\CubismDefaultParameterId.hpp" />
@@ -446,84 +446,84 @@
     <ClInclude Include="Live2D\Framework\src\Utils\CubismDebug.hpp" />
     <ClInclude Include="Live2D\Framework\src\Utils\CubismJson.hpp" />
     <ClInclude Include="Live2D\Framework\src\Utils\CubismString.hpp" />
-    <ClInclude Include="src\LoadingCanvas.h" />
-    <ClInclude Include="src\LoadingScene.h" />
-    <ClInclude Include="src\LookAtComponent.h" />
-    <ClInclude Include="src\MainDevice.h" />
-    <ClInclude Include="src\Material.h" />
-    <ClInclude Include="src\Mesh.h" />
-    <ClInclude Include="src\Motion.h" />
-    <ClInclude Include="src\MotionArray.h" />
-    <ClInclude Include="src\MotionData.h" />
-    <ClInclude Include="src\MotionMesh.h" />
-    <ClInclude Include="src\MoveComponent.h" />
-    <ClInclude Include="src\NoteComponent.h" />
-    <ClInclude Include="src\NoteData.h" />
-    <ClInclude Include="src\NoteInstanceRenderer.h" />
-    <ClInclude Include="src\NoteManager.h" />
-    <ClInclude Include="src\TempoService.h" />
-    <ClInclude Include="src\OffScreenRTV.h" />
-    <ClInclude Include="src\OnScreenRTV.h" />
-    <ClInclude Include="src\PixelShader.h" />
-    <ClInclude Include="src\PlayerComponent.h" />
-    <ClInclude Include="src\Ray.h" />
-    <ClInclude Include="src\Ref.h" />
-    <ClInclude Include="src\RenderingBuffer.h" />
-    <ClInclude Include="src\RenderingBuffer2D.h" />
-    <ClInclude Include="src\RenderingBuffer3D.h" />
-    <ClInclude Include="src\ResidentScene.h" />
-    <ClInclude Include="src\ResultCanvas.h" />
-    <ClInclude Include="src\ResultScene.h" />
-    <ClInclude Include="src\RTV.h" />
-    <ClInclude Include="src\SafePtr.h" />
-    <ClInclude Include="src\Sampler.h" />
-    <ClInclude Include="src\Scene.h" />
-    <ClInclude Include="src\SceneChangeComponent.h" />
-    <ClInclude Include="src\ScoreManager.h" />
-    <ClInclude Include="src\RatingManager.h" />
-    <ClInclude Include="src\SelectCanvas.h" />
-    <ClInclude Include="src\SelectScene.h" />
+    <ClInclude Include="src\app\LoadingCanvas.h" />
+    <ClInclude Include="src\app\LoadingScene.h" />
+    <ClInclude Include="src\app\LookAtComponent.h" />
+    <ClInclude Include="src\sf\MainDevice.h" />
+    <ClInclude Include="src\sf\Material.h" />
+    <ClInclude Include="src\sf\Mesh.h" />
+    <ClInclude Include="src\sf\Motion.h" />
+    <ClInclude Include="src\sf\MotionArray.h" />
+    <ClInclude Include="src\sf\MotionData.h" />
+    <ClInclude Include="src\sf\MotionMesh.h" />
+    <ClInclude Include="src\app\MoveComponent.h" />
+    <ClInclude Include="src\app\NoteComponent.h" />
+    <ClInclude Include="src\app\NoteData.h" />
+    <ClInclude Include="src\app\NoteInstanceRenderer.h" />
+    <ClInclude Include="src\app\NoteManager.h" />
+    <ClInclude Include="src\app\TempoService.h" />
+    <ClInclude Include="src\sf\OffScreenRTV.h" />
+    <ClInclude Include="src\sf\OnScreenRTV.h" />
+    <ClInclude Include="src\sf\PixelShader.h" />
+    <ClInclude Include="src\app\PlayerComponent.h" />
+    <ClInclude Include="src\sf\Ray.h" />
+    <ClInclude Include="src\sf\Ref.h" />
+    <ClInclude Include="src\sf\RenderingBuffer.h" />
+    <ClInclude Include="src\sf\RenderingBuffer2D.h" />
+    <ClInclude Include="src\sf\RenderingBuffer3D.h" />
+    <ClInclude Include="src\app\ResidentScene.h" />
+    <ClInclude Include="src\app\ResultCanvas.h" />
+    <ClInclude Include="src\app\ResultScene.h" />
+    <ClInclude Include="src\sf\RTV.h" />
+    <ClInclude Include="src\sf\SafePtr.h" />
+    <ClInclude Include="src\sf\Sampler.h" />
+    <ClInclude Include="src\sf\Scene.h" />
+    <ClInclude Include="src\app\SceneChangeComponent.h" />
+    <ClInclude Include="src\app\ScoreManager.h" />
+    <ClInclude Include="src\app\RatingManager.h" />
+    <ClInclude Include="src\app\SelectCanvas.h" />
+    <ClInclude Include="src\app\SelectScene.h" />
     <ClInclude Include="src\sf.h" />
-    <ClInclude Include="src\Shader.h" />
-    <ClInclude Include="src\Singleton.h" />
+    <ClInclude Include="src\sf\Shader.h" />
+    <ClInclude Include="src\sf\Singleton.h" />
     <ClInclude Include="src\SInput.h" />
-    <ClInclude Include="src\SkyBox.h" />
-    <ClInclude Include="src\SongInfo.h" />
-    <ClInclude Include="src\SongListService.h" />
-    <ClInclude Include="src\SoundPlayer.h" />
-    <ClInclude Include="src\SoundResource.h" />
-    <ClInclude Include="src\SphereCollider.h" />
+    <ClInclude Include="src\app\SkyBox.h" />
+    <ClInclude Include="src\app\SongInfo.h" />
+    <ClInclude Include="src\app\SongListService.h" />
+    <ClInclude Include="src\sf\SoundPlayer.h" />
+    <ClInclude Include="src\sf\SoundResource.h" />
+    <ClInclude Include="src\sf\SphereCollider.h" />
     <ClInclude Include="src\stb_image.h" />
     <ClInclude Include="src\stb_truetype.h" />
-    <ClInclude Include="src\StringUtils.h" />
-    <ClInclude Include="src\Subset.h" />
-    <ClInclude Include="src\SwapChain.h" />
-    <ClInclude Include="src\SwatMotionArray.h" />
-    <ClInclude Include="src\IngameCanvas.h" />
-    <ClInclude Include="src\IngameScene.h" />
-    <ClInclude Include="src\GameSession.h" />
+    <ClInclude Include="src\sf\StringUtils.h" />
+    <ClInclude Include="src\sf\Subset.h" />
+    <ClInclude Include="src\sf\SwapChain.h" />
+    <ClInclude Include="src\app\SwatMotionArray.h" />
+    <ClInclude Include="src\app\IngameCanvas.h" />
+    <ClInclude Include="src\app\IngameScene.h" />
+    <ClInclude Include="src\app\GameSession.h" />
     <ClInclude Include="GlobalSoundComponent.h" />
-    <ClInclude Include="src\SoundComponent.h" />
-    <ClInclude Include="src\Text.h" />
-    <ClInclude Include="src\TextComponent.h" />
-    <ClInclude Include="src\TextFile.h" />
-    <ClInclude Include="src\TextImage.h" />
-    <ClInclude Include="src\Texture.h" />
-    <ClInclude Include="src\Time.h" />
-    <ClInclude Include="src\TitleCanvas.h" />
-    <ClInclude Include="src\TitleScene.h" />
-    <ClInclude Include="src\Transform.h" />
-    <ClInclude Include="src\UI.h" />
-    <ClInclude Include="src\Vector3.h" />
-    <ClInclude Include="src\VertexBuffer.h" />
-    <ClInclude Include="src\VertexShader.h" />
-    <ClInclude Include="src\Window.h" />
+    <ClInclude Include="src\app\SoundComponent.h" />
+    <ClInclude Include="src\sf\Text.h" />
+    <ClInclude Include="src\sf\TextComponent.h" />
+    <ClInclude Include="src\sf\TextFile.h" />
+    <ClInclude Include="src\sf\TextImage.h" />
+    <ClInclude Include="src\sf\Texture.h" />
+    <ClInclude Include="src\sf\Time.h" />
+    <ClInclude Include="src\app\TitleCanvas.h" />
+    <ClInclude Include="src\app\TitleScene.h" />
+    <ClInclude Include="src\sf\Transform.h" />
+    <ClInclude Include="src\sf\UI.h" />
+    <ClInclude Include="src\sf\Vector3.h" />
+    <ClInclude Include="src\sf\VertexBuffer.h" />
+    <ClInclude Include="src\sf\VertexShader.h" />
+    <ClInclude Include="src\sf\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\Constant.hlsli" />
+    <None Include="src\shader\Constant.hlsli" />
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="src\gs2d.hlsl">
+    <FxCompile Include="src\shader\gs2d.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -537,7 +537,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsCube.hlsl">
+    <FxCompile Include="src\shader\gsCube.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -551,7 +551,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsDebugLine.hlsl">
+    <FxCompile Include="src\shader\gsDebugLine.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -565,7 +565,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingX.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingX.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -579,7 +579,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsDownSamplingY.hlsl">
+    <FxCompile Include="src\shader\gsDownSamplingY.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -593,7 +593,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsHPBar.hlsl">
+    <FxCompile Include="src\shader\gsHPBar.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -607,7 +607,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsOnScreen.hlsl">
+    <FxCompile Include="src\shader\gsOnScreen.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -621,14 +621,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\gsScoreGauge.hlsl">
+    <FxCompile Include="src\shader\gsScoreGauge.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assets\\Shader\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
-    <FxCompile Include="src\gsSkyBox.hlsl">
+    <FxCompile Include="src\shader\gsSkyBox.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -642,7 +642,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Geometry</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Geometry</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\ps2d.hlsl">
+    <FxCompile Include="src\shader\ps2d.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -656,7 +656,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\ps3d.hlsl">
+    <FxCompile Include="src\shader\ps3d.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -670,7 +670,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psBlur.hlsl">
+    <FxCompile Include="src\shader\psBlur.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -684,7 +684,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psDebugLine.hlsl">
+    <FxCompile Include="src\shader\psDebugLine.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -698,7 +698,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psOnScreen.hlsl">
+    <FxCompile Include="src\shader\psOnScreen.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -712,7 +712,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psPostProcess.hlsl">
+    <FxCompile Include="src\shader\psPostProcess.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -726,14 +726,14 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psScoreGauge.hlsl">
+    <FxCompile Include="src\shader\psScoreGauge.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Assets\\Shader\%(Filename).cso</ObjectFileOutput>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="src\psShadow.hlsl">
+    <FxCompile Include="src\shader\psShadow.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -747,7 +747,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\psSkyBox.hlsl">
+    <FxCompile Include="src\shader\psSkyBox.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -761,7 +761,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\vs3d.hlsl">
+    <FxCompile Include="src\shader\vs3d.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -775,7 +775,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\vsMotion.hlsl">
+    <FxCompile Include="src\shader\vsMotion.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -789,7 +789,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\vsNone.hlsl">
+    <FxCompile Include="src\shader\vsNone.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
@@ -803,7 +803,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="src\vsNoteInstancing.hlsl">
+    <FxCompile Include="src\shader\vsNoteInstancing.hlsl">
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">5.0</ShaderModel>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

@@ -1,10 +1,10 @@
 #pragma once
 #include "sf.h"
 #include "Scene.h"
-#include "Time.h"
+#include "sf/Time.h"
 #include "SInput.h"
 #include "SkyBox.h"
-#include "AppModel.h"
+#include "sf/AppModel.h"
 
 namespace app
 {

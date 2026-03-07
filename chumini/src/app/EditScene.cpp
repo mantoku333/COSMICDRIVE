@@ -2,7 +2,7 @@
 #include "EditCanvas.h"
 #include "SInput.h"
 #include "Debug.h"
-#include "Time.h"          // DeltaTime を使う想定
+#include "sf/Time.h"          // DeltaTime を使う想定
 #include <fstream>
 #include <sstream>
 #include <algorithm>
