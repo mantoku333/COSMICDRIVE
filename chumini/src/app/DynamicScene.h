@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 #include "GeometrySwat.h"
 #include "SwatMotionArray.h"
@@ -14,10 +14,10 @@ namespace app
 		private:
 			sf::geometry::GeometrySphere g_sphere;
 
-			//lŒ^ƒ‚ƒfƒ‹
+			//äººå‹ãƒ¢ãƒ‡ãƒ«
 			GeometrySwat g_human;
 
-			//lŒ^ƒ‚[ƒVƒ‡ƒ“ƒAƒŒƒC
+			//äººå‹ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚¢ãƒ¬ã‚¤
 			SwatMotionArray ma_human;
 		};
 	}

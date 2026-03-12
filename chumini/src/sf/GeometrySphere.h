@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Geometry.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
@@ -6,7 +6,7 @@ namespace sf
 {
 	namespace geometry
 	{
-		//Œ`óƒNƒ‰ƒX-‹…
+		//å½¢çŠ¶ã‚¯ãƒ©ã‚¹-çƒ
 		class GeometrySphere :public Geometry
 		{
 		public:

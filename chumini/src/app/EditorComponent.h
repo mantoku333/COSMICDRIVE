@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 namespace app
 {
@@ -13,7 +13,7 @@ namespace app
 			void Update();
 
 		private:
-			//XVƒRƒ}ƒ“ƒh
+			//æ›´æ–°ã‚³ãƒãƒ³ãƒ‰
 			sf::command::Command<> updateCommand;
 			sf::geometry::GeometryCube g_cube;
 		};

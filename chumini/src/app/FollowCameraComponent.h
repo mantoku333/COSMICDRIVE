@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 namespace app
 {
@@ -16,8 +16,8 @@ namespace app
 		private:
             void Update(const sf::command::ICommand& command);
 
-            float cameraYaw = 0.0f;   // …•½‰ñ“]
-            float cameraPitch = 10.0f; // ‚’¼‰ñ“]i‰Šú’l‚Í‚â‚â‰ºŒü‚«j
+            float cameraYaw = 0.0f;   // æ°´å¹³å›è»¢
+            float cameraPitch = 10.0f; // å‚ç›´å›è»¢ï¼ˆåˆæœŸå€¤ã¯ã‚„ã‚„ä¸‹å‘ãï¼‰
             Vector2 prevMousePos = Vector2::Zero;
             bool firstUpdate = true;
 

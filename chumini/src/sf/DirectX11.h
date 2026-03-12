@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Singleton.h"
 #include "MainDevice.h"
 #include "OnScreenRTV.h"

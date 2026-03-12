@@ -1,4 +1,4 @@
-#include "ScoreManager.h"
+﻿#include "ScoreManager.h"
 #include "Debug.h" // sf::debug::Debug::Log
 #include <fstream>
 #include <filesystem>

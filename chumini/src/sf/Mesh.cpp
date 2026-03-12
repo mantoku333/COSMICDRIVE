@@ -1,4 +1,4 @@
-#include "Mesh.h"
+﻿#include "Mesh.h"
 #include "GUI.h"
 
 std::vector<sf::Mesh*> sf::Mesh::meshes;

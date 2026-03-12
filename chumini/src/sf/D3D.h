@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 #include <DirectXMath.h>
 #include <d3d11.h>
-#include <stdexcept>	//runtime_error‚ğg‚¤‚½‚ß
+#include <stdexcept>	//runtime_errorã‚’ä½¿ã†ãŸã‚
 
 #pragma comment(lib,"d3d11.lib")
 
@@ -12,7 +12,7 @@ namespace sf
 {
 	namespace dx
 	{
-		//D3DŠî’êƒNƒ‰ƒX
+		//D3DåŸºåº•ã‚¯ãƒ©ã‚¹
 		class D3D
 		{
 		public:

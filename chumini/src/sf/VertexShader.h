@@ -1,4 +1,4 @@
-#pragma once
+Ôªø#pragma once
 #include "Shader.h"
 
 namespace sf
@@ -7,7 +7,7 @@ namespace sf
 	{
 		namespace shader
 		{
-			//í∏ì_ÉVÉFÅ[É_(D3D)
+			//È†ÇÁÇπ„Ç∑„Çß„Éº„ÉÄ(D3D)
 			class VertexShader :public Shader
 			{
 			public:

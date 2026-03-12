@@ -1,4 +1,4 @@
-#include "DirectX11.h"
+﻿#include "DirectX11.h"
 
 void sf::dx::DirectX11::Create(HWND _hwnd)
 {

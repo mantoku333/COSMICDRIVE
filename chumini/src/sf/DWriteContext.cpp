@@ -1,4 +1,4 @@
-#include "DWriteContext.h"
+﻿#include "DWriteContext.h"
 #include "DirectX11.h"
 #include <d2d1helper.h>
 #include <dwrite.h>

@@ -1,4 +1,4 @@
-#include "ResidentScene.h"
+ï»¿#include "ResidentScene.h"
 #include "IngameScene.h"
 #include "TitleScene.h"
 #include "SelectScene.h"	
@@ -8,12 +8,12 @@
 void app::ResidentScene::Init()
 {
 	auto camActor = Instantiate();
-	camActor.Target()->transform.SetPosition(Vector3(0, 0, 0));    // z=-50 ‚ ‚½‚è‚©‚ç³–ÊŒü‚«
+	camActor.Target()->transform.SetPosition(Vector3(0, 0, 0));    // z=-50 ã‚ãŸã‚Šã‹ã‚‰æ­£é¢å‘ã
 	camActor.Target()->AddComponent<ControlCamera>();
 	auto camComp = camActor.Target()->AddComponent<sf::Camera>();
 	sf::Camera::main = camComp.Get();
 
-	//‰eƒJƒƒ‰
+	//å½±ã‚«ãƒ¡ãƒ©
 	sf::ref::Ref<sf::Actor> shadowActor = Instantiate();
 	shadowActor.Target()->transform.SetPosition(Vector3(0, 5, 0));
 	shadowActor.Target()->transform.SetRotation(Vector3(0, 0, 0));
@@ -25,7 +25,7 @@ void app::ResidentScene::Init()
 
 void app::ResidentScene::LoadLoadingScene()
 {
-	//‰ŠúƒV[ƒ“‚ÍƒƒCƒ“ƒXƒŒƒbƒh“à‚Åƒ[ƒhAƒAƒNƒeƒBƒx[ƒg‚³‚¹‚é
+	//åˆæœŸã‚·ãƒ¼ãƒ³ã¯ãƒ¡ã‚¤ãƒ³ã‚¹ãƒ¬ãƒƒãƒ‰å†…ã§ãƒ­ãƒ¼ãƒ‰ã€ã‚¢ã‚¯ãƒ†ã‚£ãƒ™ãƒ¼ãƒˆã•ã›ã‚‹
 	auto scene = test::TitleScene::StandbyScene();
 	//auto scene = test::SelectScene::StandbyScene();
 	//auto scene = test::IngameScene::StandbyScene();

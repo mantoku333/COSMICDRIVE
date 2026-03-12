@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "DirectX11.h"
 #include "Ref.h"
 #include "Material.h"
@@ -9,7 +9,7 @@ namespace sf
 {
 	namespace geometry
 	{
-		//Œ`óŠî’êƒNƒ‰ƒX
+		//å½¢çŠ¶åŸºåº•ã‚¯ãƒ©ã‚¹
 		class Geometry :public sf::ref::autoRef<Geometry>
 		{
 		public:

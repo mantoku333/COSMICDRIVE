@@ -1,0 +1,13 @@
+root = true
+
+[*.{cpp,c,cc,h,hpp,inl,vcxproj,filters,props,targets}]
+charset = utf-8-bom
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{hlsl,hlsli}]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true

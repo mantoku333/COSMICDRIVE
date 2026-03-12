@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <CubismFramework.hpp>
 #include <Model/CubismUserModel.hpp>

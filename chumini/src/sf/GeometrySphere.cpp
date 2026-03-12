@@ -1,4 +1,4 @@
-#include "GeometrySphere.h"
+ï»¿#include "GeometrySphere.h"
 
 sf::geometry::GeometrySphere::GeometrySphere()
 {
@@ -6,7 +6,7 @@ sf::geometry::GeometrySphere::GeometrySphere()
 
 	const float radius = 1.0f;
 
-	// ’¸“_‚ğ¶¬
+	// é ‚ç‚¹ã‚’ç”Ÿæˆ
 	for (int lat = 0; lat <= latitudeSegments; ++lat) {
 		float theta = lat * DirectX::XM_PI / latitudeSegments;
 		float sinTheta = sinf(theta);

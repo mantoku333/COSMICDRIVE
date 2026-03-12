@@ -1,4 +1,4 @@
-#include "GeometryField.h"
+﻿#include "GeometryField.h"
 #include "DirectX11.h"
 
 void sf::geometry::GeometryField::Load()

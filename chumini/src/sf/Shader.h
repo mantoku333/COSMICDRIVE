@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "D3D.h"
 namespace sf
 {
@@ -6,7 +6,7 @@ namespace sf
 	{
 		namespace shader
 		{
-			//ƒVƒF[ƒ_[Šî’êƒNƒ‰ƒX
+			//ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼åŸºåº•ã‚¯ãƒ©ã‚¹
 			class Shader :public D3D
 			{
 			public:

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "App.h"
 #include "SafePtr.h"
 #include "SceneChangeComponent.h"

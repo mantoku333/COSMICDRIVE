@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ScoreManager.h"
 
 namespace app::test {

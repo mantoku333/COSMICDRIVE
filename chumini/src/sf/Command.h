@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <functional>
 #include <mutex>
 #include <map>
@@ -11,7 +11,7 @@ namespace sf
 
 #define COMMANDIDX_MAX	(8)
 
-		//XVƒRƒ}ƒ“ƒhŠî’êƒNƒ‰ƒX
+		//æ›´æ–°ã‚³ãƒãƒ³ãƒ‰åŸºåº•ã‚¯ãƒ©ã‚¹
 		class ICommand :public ref::autoRef<ICommand>
 		{
 		public:
@@ -38,7 +38,7 @@ namespace sf
 		};
 
 		/// <summary>
-		/// XVƒRƒ}ƒ“ƒh
+		/// æ›´æ–°ã‚³ãƒãƒ³ãƒ‰
 		/// </summary>
 		/// <typeparam name="UpdateOrder"></typeparam>
 		template<unsigned int UpdateOrder = 1>

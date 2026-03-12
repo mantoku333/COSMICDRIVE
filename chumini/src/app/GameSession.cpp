@@ -1,4 +1,4 @@
-#include "GameSession.h"
+﻿#include "GameSession.h"
 #include <algorithm>
 
 namespace app::test {

@@ -1,4 +1,4 @@
-#include "JudgeService.h"
+﻿#include "JudgeService.h"
 #include "JudgeConstants.h"
 #include <cmath>
 #include <algorithm>

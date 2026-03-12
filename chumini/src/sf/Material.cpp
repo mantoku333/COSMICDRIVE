@@ -1,4 +1,4 @@
-#include "Material.h"
+﻿#include "Material.h"
 #include "DirectX11.h"
 
 void sf::Material::SetGPU(ID3D11DeviceContext* d3dContext, bool diffuseTexture, bool normalTexture) const

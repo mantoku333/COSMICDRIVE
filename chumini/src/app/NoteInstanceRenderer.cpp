@@ -1,4 +1,4 @@
-#include "NoteInstanceRenderer.h"
+﻿#include "NoteInstanceRenderer.h"
 #include "DirectX11.h"
 #include "Debug.h"
 #include <cstdio>

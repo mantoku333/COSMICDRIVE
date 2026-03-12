@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <d3d11.h>
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_dx11.h"
@@ -16,7 +16,7 @@ namespace sf
 		class GUI
 		{
 		public:
-			//GUI‚Ì‰Šú‰»
+			//GUIã®åˆæœŸåŒ–
 			static void Init(HWND hwnd, ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dContext);
 			static void UnInit();
 			static void Begin();

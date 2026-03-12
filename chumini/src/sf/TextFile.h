@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "FileBase.h"
 #include <vector>
 
@@ -6,7 +6,7 @@ namespace sf
 {
 	namespace file
 	{
-		//ƒeƒLƒXƒgƒtƒ@ƒCƒ‹‚ÉƒAƒNƒZƒX‚·‚éƒNƒ‰ƒX
+		//ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã«ã‚¢ã‚¯ã‚»ã‚¹ã™ã‚‹ã‚¯ãƒ©ã‚¹
 		class TextFile :private FileBase
 		{
 		public:

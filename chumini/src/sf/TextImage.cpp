@@ -1,4 +1,4 @@
-#include "TextImage.h"
+﻿#include "TextImage.h"
 #include <d2d1helper.h>
 #include <vector>
 #include "Debug.h" // Added for debugging

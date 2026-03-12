@@ -1,4 +1,4 @@
-#include "TextFile.h"
+ï»¿#include "TextFile.h"
 #include "File.h"
 
 sf::file::TextFile::TextFile(std::string _fileName) :FileBase(_fileName)
@@ -47,7 +47,7 @@ std::string sf::file::TextFile::Read()
 
 	data = c;
 
-	//‰üsƒR[ƒh‚ğ–³‚­‚·
+	//æ”¹è¡Œã‚³ãƒ¼ãƒ‰ã‚’ç„¡ãã™
 	if (data.back() == '\n')
 	{
 		data.erase(data.end() - 1);
@@ -79,7 +79,7 @@ std::vector<std::string> sf::file::TextFile::ReadAll()
 
 		std::string str = c;
 
-		//ƒf[ƒ^‚ª–³‚­‚È‚ê‚Î
+		//ãƒ‡ãƒ¼ã‚¿ãŒç„¡ããªã‚Œã°
 		if (str.empty())
 		{
 			break;
@@ -89,7 +89,7 @@ std::vector<std::string> sf::file::TextFile::ReadAll()
 			break;
 		}
 
-		//‰üsƒR[ƒh‚ğ–³‚­‚·
+		//æ”¹è¡Œã‚³ãƒ¼ãƒ‰ã‚’ç„¡ãã™
 		if (str.back() == '\n')
 		{
 			str.erase(str.end() - 1);

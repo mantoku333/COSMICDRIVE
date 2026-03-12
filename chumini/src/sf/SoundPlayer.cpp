@@ -1,4 +1,4 @@
-#include "SoundPlayer.h"
+﻿#include "SoundPlayer.h"
 
 sf::sound::SoundPlayer::~SoundPlayer()
 {

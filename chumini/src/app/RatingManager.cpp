@@ -1,4 +1,4 @@
-#include "RatingManager.h"
+﻿#include "RatingManager.h"
 #include "Debug.h"
 #include <vector>
 #include <algorithm>

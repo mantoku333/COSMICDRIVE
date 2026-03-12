@@ -1,4 +1,4 @@
-#include "ChartLoader.h"
+﻿#include "ChartLoader.h"
 #include "ChedParser.h"
 #include "StringUtils.h"
 #include "Debug.h"

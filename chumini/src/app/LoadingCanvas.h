@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "App.h"
 #include "TextImage.h"
 #include "SongInfo.h"

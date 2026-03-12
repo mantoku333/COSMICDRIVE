@@ -1,9 +1,9 @@
-#include "App.h"
+ï»¿#include "App.h"
 
 int main(void)
 {
 #ifdef _DEBUG
-	//ƒƒ‚ƒŠƒŠ[ƒNŒŸo
+	//ãƒ¡ãƒ¢ãƒªãƒªãƒ¼ã‚¯æ¤œå‡º
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 

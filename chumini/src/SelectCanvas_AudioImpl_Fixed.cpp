@@ -1,4 +1,4 @@
-
+﻿
     // ===== プレビュー再生 =====
     void SelectCanvas::PlayPreview() {
         // 前の曲を止める

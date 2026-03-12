@@ -8,7 +8,7 @@ struct In
     uint instanceId : SV_InstanceID;
 };
 
-SamplerState mySampler : register(s0); //ƒTƒ“ƒvƒ‰[
+SamplerState mySampler : register(s0); //ã‚µãƒ³ãƒ—ãƒ©ãƒ¼
 
 PS3D_In main(In input)
 {

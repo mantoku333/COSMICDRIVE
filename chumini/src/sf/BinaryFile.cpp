@@ -1,4 +1,4 @@
-#include "BinaryFile.h"
+﻿#include "BinaryFile.h"
 
 sf::file::BinaryFile::BinaryFile(std::string _fileName) :FileBase(_fileName)
 {

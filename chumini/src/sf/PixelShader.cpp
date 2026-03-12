@@ -1,4 +1,4 @@
-#include "PixelShader.h"
+﻿#include "PixelShader.h"
 #include "DirectX11.h"
 
 bool sf::dx::shader::PixelShader::lock = false;

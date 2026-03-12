@@ -1,4 +1,4 @@
-#include "Button.h"
+Ôªø#include "Button.h"
 
 sf::ref::Ref<sf::ui::Button> sf::ui::Button::selectingButton;
 
@@ -44,7 +44,7 @@ void sf::ui::Button::Update()
 
 	if (MoveUp())
 	{
-		//è„É{É^Éì
+		//‰∏ä„Éú„Çø„É≥
 		sf::ref::Ref<Button>& button = Up;
 		if (!button.IsNull())
 		{
@@ -62,7 +62,7 @@ void sf::ui::Button::Update()
 
 	if (MoveDown())
 	{
-		//â∫É{É^Éì
+		//‰∏ã„Éú„Çø„É≥
 		sf::ref::Ref<Button>& button = Down;
 		if (!button.IsNull())
 		{
@@ -80,7 +80,7 @@ void sf::ui::Button::Update()
 
 	if (MoveLeft())
 	{
-		//ç∂É{É^Éì
+		//Â∑¶„Éú„Çø„É≥
 		sf::ref::Ref<Button>& button = Left;
 		if (!button.IsNull())
 		{
@@ -98,7 +98,7 @@ void sf::ui::Button::Update()
 
 	if (MoveRight())
 	{
-		//âEÉ{É^Éì
+		//Âè≥„Éú„Çø„É≥
 		sf::ref::Ref<Button>& button = Right;
 		if (!button.IsNull())
 		{

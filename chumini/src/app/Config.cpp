@@ -1,4 +1,4 @@
-#include "Config.h"
+﻿#include "Config.h"
 #include "BinaryFile.h"
 #include "SInput.h"
 #include <string>

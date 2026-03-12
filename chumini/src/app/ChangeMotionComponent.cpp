@@ -1,23 +1,23 @@
-#include "ChangeMotionComponent.h"
+ï»¿#include "ChangeMotionComponent.h"
 #include "SwatMotionArray.h"
 
 void app::test::ChangeMotionComponent::Begin()
 {
 	updateCommand.Bind(std::bind(&ChangeMotionComponent::Update, this));
 
-	//MotionƒRƒ“ƒ|[ƒlƒ“ƒg‚ðŽæ“¾
+	//Motionã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆã‚’å–å¾—
 	motion = actorRef.Target()->GetComponent<sf::motion::Motion>();
 }
 
 void app::test::ChangeMotionComponent::Update()
 {
-	//1ƒL[‚ª‰Ÿ‚³‚ê‚½‚ç
+	//1ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‚‰
 	if (SInput::Instance().GetKeyDown(Key::KEY_1))
 	{
 		motion->SetMotion(SwatMotionArray::ID_Idle);
 	}
 
-	//2ƒL[‚ª‰Ÿ‚³‚ê‚½‚ç
+	//2ã‚­ãƒ¼ãŒæŠ¼ã•ã‚ŒãŸã‚‰
 	if (SInput::Instance().GetKeyDown(Key::KEY_2))
 	{
 		motion->SetMotion(SwatMotionArray::ID_Walk);

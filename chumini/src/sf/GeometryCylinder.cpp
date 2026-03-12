@@ -1,4 +1,4 @@
-#include "GeometryCylinder.h"
+ï»¿#include "GeometryCylinder.h"
 
 sf::geometry::GeometryCylinder::GeometryCylinder()
 {
@@ -8,14 +8,14 @@ sf::geometry::GeometryCylinder::GeometryCylinder()
     float halfHeight = 0.5f;
     float angleStep = DirectX::XM_2PI / segments;
 
-    // ã–Ê‚Ì’†S“_
+    // ä¸Šé¢ã®ä¸­å¿ƒç‚¹
     dx::Vertex3D topCenter;
     topCenter.pos = DirectX::XMFLOAT3(0.0f, halfHeight, 0.0f);
     topCenter.nor = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
     topCenter.uv = DirectX::XMFLOAT2(0.5f, 0.5f);
     vertices.push_back(topCenter);
 
-    // ã–Ê‚Ì’¸“_
+    // ä¸Šé¢ã®é ‚ç‚¹
     for (int i = 0; i <= segments; ++i) {
         float angle = i * angleStep;
         float x = radius * cosf(angle);
@@ -28,14 +28,14 @@ sf::geometry::GeometryCylinder::GeometryCylinder()
         vertices.push_back(topVertex);
     }
 
-    // ’ê–Ê‚Ì’†S“_
+    // åº•é¢ã®ä¸­å¿ƒç‚¹
     dx::Vertex3D bottomCenter;
     bottomCenter.pos = DirectX::XMFLOAT3(0.0f, -halfHeight, 0.0f);
     bottomCenter.nor = DirectX::XMFLOAT3(0.0f, -1.0f, 0.0f);
     bottomCenter.uv = DirectX::XMFLOAT2(0.5f, 0.5f);
     vertices.push_back(bottomCenter);
 
-    // ’ê–Ê‚Ì’¸“_
+    // åº•é¢ã®é ‚ç‚¹
     int bottomCenterIndex = static_cast<int>(vertices.size());
     for (int i = 0; i <= segments; ++i) {
         float angle = i * angleStep;
@@ -49,7 +49,7 @@ sf::geometry::GeometryCylinder::GeometryCylinder()
         vertices.push_back(bottomVertex);
     }
 
-    // ‘¤–Ê‚Ì’¸“_
+    // å´é¢ã®é ‚ç‚¹
     int sideStartIndex = static_cast<int>(vertices.size());
     for (int i = 0; i <= segments; ++i) {
         float angle = i * angleStep;
@@ -74,14 +74,14 @@ sf::geometry::GeometryCylinder::GeometryCylinder()
 
     std::vector<WORD> indices;
 
-    // ã–Ê‚ÌƒCƒ“ƒfƒbƒNƒX
+    // ä¸Šé¢ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
     for (int i = 1; i <= segments; ++i) {
         indices.push_back(0);
         indices.push_back(i + 1);
         indices.push_back(i);
     }
 
-    // ’ê–Ê‚ÌƒCƒ“ƒfƒbƒNƒX
+    // åº•é¢ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
     int bottomStartIndex = bottomCenterIndex;
     for (int i = 1; i <= segments; ++i) {
         indices.push_back(bottomStartIndex);
@@ -89,7 +89,7 @@ sf::geometry::GeometryCylinder::GeometryCylinder()
         indices.push_back(bottomStartIndex + i + 1);
     }
 
-    // ‘¤–Ê‚ÌƒCƒ“ƒfƒbƒNƒX
+    // å´é¢ã®ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹
     for (int i = 0; i < segments; ++i) {
         int topIndex = sideStartIndex + i * 2;
         int bottomIndex = topIndex + 1;

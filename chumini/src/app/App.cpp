@@ -1,4 +1,4 @@
-#include "App.h"
+﻿#include "App.h"
 #include "DWriteContext.h"
 #include "DirectX11.h"
 #include "ResidentScene.h"

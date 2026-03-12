@@ -1,8 +1,8 @@
-#pragma once
+ï»¿#pragma once
 #include "Mesh.h"
 namespace sf
 {
-	//ƒ‚[ƒVƒ‡ƒ“‚Æ•R‚Ã‚¯‰Â”\‚ÈƒƒbƒVƒ…
+	//ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã¨ç´ã¥ã‘å¯èƒ½ãªãƒ¡ãƒƒã‚·ãƒ¥
 	class MotionMesh :public Mesh
 	{
 	public:

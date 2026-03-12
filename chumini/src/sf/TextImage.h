@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Image.h"
 #include "Texture.h"
 #include <d2d1.h>

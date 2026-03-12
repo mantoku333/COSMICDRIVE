@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
-// �֐��錾
+// 関数宣言
 void DirectWrite();

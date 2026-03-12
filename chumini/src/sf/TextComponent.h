@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 #include "TextImage.h"
 #include "DWriteContext.h"
@@ -12,7 +12,7 @@ namespace sf::ui
         void Begin() override;
         void Update(const sf::command::ICommand& command);
 
-        // ƒeƒLƒXƒgİ’èAPI
+        // ãƒ†ã‚­ã‚¹ãƒˆè¨­å®šAPI
         void SetText(const std::wstring& newText);
         void SetFont(const std::wstring& fontName);
         void SetFontSize(float size);
@@ -20,7 +20,7 @@ namespace sf::ui
 
     private:
         std::wstring text = L"";
-        std::wstring font = L"”¾‹t–¾’©";
+        std::wstring font = L"å›é€†æ˜æœ";
         float fontSize = 80.0f;
         D2D1::ColorF color = D2D1::ColorF(D2D1::ColorF::White);
 

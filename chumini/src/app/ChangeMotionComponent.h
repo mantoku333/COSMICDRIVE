@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 namespace app
 {
@@ -15,7 +15,7 @@ namespace app
 		private:
 			sf::command::Command<> updateCommand;
 
-			//MotionƒRƒ“ƒ|[ƒlƒ“ƒg•Û‘¶—p•Ï”
+			//Motionã‚³ãƒ³ãƒãƒ¼ãƒãƒ³ãƒˆä¿å­˜ç”¨å¤‰æ•°
 			sf::SafePtr<sf::motion::Motion> motion;
 		};
 	}

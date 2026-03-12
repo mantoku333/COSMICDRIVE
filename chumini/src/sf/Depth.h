@@ -1,10 +1,10 @@
-#pragma once
+Ôªø#pragma once
 #include "D3D.h"
 namespace sf
 {
 	namespace dx
 	{
-		//ê[ìx(D3D)
+		//Ê∑±Â∫¶(D3D)
 		class Depth :D3D
 		{
 		public:

@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include "D3D.h"
 namespace sf
 {
 	namespace dx
 	{
-		//ƒfƒoƒCƒX(D3D)
+		//ãƒ‡ãƒã‚¤ã‚¹(D3D)
 		class Device :public D3D
 		{
 		public:
@@ -18,7 +18,7 @@ namespace sf
 			ID3D11Device* GetDevice()const { return d3dDevice; }
 
 			/// <summary>
-			/// ’¸“_ƒoƒbƒtƒ@‚Ìì¬
+			/// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ä½œæˆ
 			/// </summary>
 			/// <param name="vertex"></param>
 			/// <param name="vSize"></param>
@@ -28,7 +28,7 @@ namespace sf
 			HRESULT CreateVertexBuffer(const void* vertex, int vSize, int byteSize, ID3D11Buffer** vertexBuffer);
 
 			/// <summary>
-			/// ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚Ìì¬
+			/// ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã®ä½œæˆ
 			/// </summary>
 			/// <param name="index"></param>
 			/// <param name="indexBuffer"></param>

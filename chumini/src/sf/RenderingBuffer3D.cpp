@@ -1,4 +1,4 @@
-#include "RenderingBuffer3D.h"
+ï»¿#include "RenderingBuffer3D.h"
 #include "Debug.h"
 
 HRESULT sf::rbuffer::RenderingBuffer3D::Create(int w, int h)
@@ -64,7 +64,7 @@ HRESULT sf::rbuffer::RenderingDoubleBuffer3D::Create(int w, int h)
 
 void sf::rbuffer::RenderingDoubleBuffer3D::NextBuffer()
 {
-	//Ÿ‚Ìƒoƒbƒtƒ@
+	//æ¬¡ã®ãƒãƒƒãƒ•ã‚¡
 	idx++;
 	idx %= BUFFERSIZE;
 }

@@ -1,4 +1,4 @@
-#include "GeometryCube.h"
+﻿#include "GeometryCube.h"
 #include "DirectX11.h"
 
 void sf::geometry::GeometryCube::Draw(const Material& mtl)

@@ -1,4 +1,4 @@
-#include "ControlCamera.h"
+﻿#include "ControlCamera.h"
 #include "Config.h"
 
 void app::ControlCamera::Begin()

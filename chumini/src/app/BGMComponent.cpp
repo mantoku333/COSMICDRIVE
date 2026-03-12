@@ -1,4 +1,4 @@
-#include "BGMComponent.h"
+﻿#include "BGMComponent.h"
 #include "Debug.h"
 #include "Config.h"
 

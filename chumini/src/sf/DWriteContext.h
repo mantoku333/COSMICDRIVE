@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <d2d1.h>
 #include <dwrite.h>
 #include <wrl/client.h>

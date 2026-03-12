@@ -1,10 +1,10 @@
-#pragma once
+ï»¿#pragma once
 #include "D3D.h"
 namespace sf
 {
 	namespace dx
 	{
-		//’è”ƒoƒbƒtƒ@Šî’êƒNƒ‰ƒX(D3D)
+		//å®šæ•°ãƒãƒƒãƒ•ã‚¡åŸºåº•ã‚¯ãƒ©ã‚¹(D3D)
 		class IConstBuffer :public D3D
 		{
 		public:
@@ -24,7 +24,7 @@ namespace sf
 
 		};
 
-		//’è”ƒoƒbƒtƒ@(D3D)
+		//å®šæ•°ãƒãƒƒãƒ•ã‚¡(D3D)
 		template<typename T>
 		class ConstBuffer :public IConstBuffer
 		{

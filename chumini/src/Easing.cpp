@@ -1,4 +1,4 @@
-#include "Easing.h"
+﻿#include "Easing.h"
 #include <cmath>
 
 static double Linear(float x) { return x; }

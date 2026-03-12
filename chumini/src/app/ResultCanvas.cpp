@@ -1,4 +1,4 @@
-#include "ResultCanvas.h"
+﻿#include "ResultCanvas.h"
 #include "ResultScene.h"  // MVP: Presenterの定義が必要
 #include "GameSession.h"
 #include "SelectScene.h" 

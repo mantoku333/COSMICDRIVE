@@ -1,4 +1,4 @@
-#include "GeometryShader.h"
+﻿#include "GeometryShader.h"
 #include "DirectX11.h"
 
 sf::dx::shader::GeometryShader::~GeometryShader()

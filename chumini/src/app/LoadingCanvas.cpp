@@ -1,4 +1,4 @@
-#include "LoadingCanvas.h"
+﻿#include "LoadingCanvas.h"
 #include "LoadingScene.h" // Full definition for Presenter calls
 #include "sf/Time.h"
 #include "DirectX11.h"

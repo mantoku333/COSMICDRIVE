@@ -1,4 +1,4 @@
-#include "IndexBuffer.h"
+﻿#include "IndexBuffer.h"
 #include "DirectX11.h"
 sf::dx::IndexBuffer::~IndexBuffer()
 {

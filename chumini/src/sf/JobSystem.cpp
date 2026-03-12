@@ -1,4 +1,4 @@
-#include "JobSystem.h"
+﻿#include "JobSystem.h"
 
 static sf::jobsystem::JobSystem* instance = nullptr;
 

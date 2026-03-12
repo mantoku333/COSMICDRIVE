@@ -1,4 +1,4 @@
-#include "ResultScene.h"
+﻿#include "ResultScene.h"
 #include "ResultCanvas.h"
 #include "SelectScene.h"
 #include "IngameCanvas.h"

@@ -7,7 +7,7 @@ struct In
 #if 1
 static const int vertexCount = 36;
 
-//À•Wî•ñ
+//åº§æ¨™æƒ…å ±
 static const float4 positions[vertexCount] =
 {
     // Front face
@@ -59,7 +59,7 @@ static const float4 positions[vertexCount] =
     float4(+0.5f, -0.5f, -0.5f, 1.0f),
 };
 
-// UVÀ•W
+// UVåº§æ¨™
 static const float2 uv[vertexCount] =
 {
     // Front face
@@ -111,7 +111,7 @@ static const float2 uv[vertexCount] =
     float2(1.0f, 1.0f),
 };
 
-// –@üî•ñ
+// æ³•ç·šæƒ…å ±
 static const float3 normal[vertexCount] =
 {
     // Front face

@@ -1,4 +1,4 @@
-#include "SwapChain.h"
+﻿#include "SwapChain.h"
 
 sf::dx::SwapChain::~SwapChain()
 {

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 namespace sf
 {
@@ -21,9 +21,9 @@ namespace sf
 			static bool Press();
 
 		public:
-			sf::del::VDelegate OnButtonEnter;	//ƒJ[ƒ\ƒ‹‚ª‡‚í‚³‚Á‚½
-			sf::del::VDelegate OnButtonExit;	//ƒJ[ƒ\ƒ‹‚ªo‚½
-			sf::del::VDelegate OnButtonPress;	//ƒNƒŠƒbƒN“ü—Í‚³‚ê‚½
+			sf::del::VDelegate OnButtonEnter;	//ã‚«ãƒ¼ã‚½ãƒ«ãŒåˆã‚ã•ã£ãŸæ™‚
+			sf::del::VDelegate OnButtonExit;	//ã‚«ãƒ¼ã‚½ãƒ«ãŒå‡ºãŸæ™‚
+			sf::del::VDelegate OnButtonPress;	//ã‚¯ãƒªãƒƒã‚¯å…¥åŠ›ã•ã‚ŒãŸæ™‚
 
 			sf::ref::Ref<Button> Up;
 			sf::ref::Ref<Button> Down;

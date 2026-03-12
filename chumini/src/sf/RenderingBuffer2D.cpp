@@ -1,4 +1,4 @@
-#include "RenderingBuffer2D.h"
+ï»¿#include "RenderingBuffer2D.h"
 #include "Debug.h"
 
 HRESULT sf::rbuffer::RenderingBuffer2D::Create(int w, int h)
@@ -56,7 +56,7 @@ HRESULT sf::rbuffer::RenderingDoubleBuffer2D::Create(int w, int h)
 
 void sf::rbuffer::RenderingDoubleBuffer2D::NextBuffer()
 {
-	//Ÿ‚Ìƒoƒbƒtƒ@
+	//æ¬¡ã®ãƒãƒƒãƒ•ã‚¡
 	idx++;
 	idx %= BUFFERSIZE;
 }

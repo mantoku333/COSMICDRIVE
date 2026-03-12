@@ -1,11 +1,11 @@
-#pragma once
+ï»¿#pragma once
 #include "D3D.h"
 
 namespace sf
 {
 	namespace dx
 	{
-		//ƒXƒƒbƒvƒ`ƒFƒCƒ“(D3D)
+		//ã‚¹ãƒ¯ãƒƒãƒ—ãƒã‚§ã‚¤ãƒ³(D3D)
 		class SwapChain :public D3D
 		{
 		public:

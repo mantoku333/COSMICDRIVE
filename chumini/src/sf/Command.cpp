@@ -1,4 +1,4 @@
-#include "Command.h"
+﻿#include "Command.h"
 #include "Debug.h"
 #include "Config.h" // Added for Config
 

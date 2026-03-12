@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Transform.h"
 #include "Command.h"
 #include "Delegate.h"
@@ -32,7 +32,7 @@ namespace sf
 			sf::command::Command<> c;
 		};
 
-		//UIŠî’êƒNƒ‰ƒX
+		//UIåŸºåº•ã‚¯ãƒ©ã‚¹
 		class UI :public MovablePosition
 		{
 		public:

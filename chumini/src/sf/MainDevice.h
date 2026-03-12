@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "Device.h"
 #include "Context.h"
 #include "SwapChain.h"
@@ -7,7 +7,7 @@ namespace sf
 {
 	namespace dx
 	{
-		//ƒƒCƒ“ƒfƒoƒCƒXƒNƒ‰ƒX(D3D)
+		//ãƒ¡ã‚¤ãƒ³ãƒ‡ãƒã‚¤ã‚¹ã‚¯ãƒ©ã‚¹(D3D)
 		class MainDevice :
 			public Device,
 			public Context,

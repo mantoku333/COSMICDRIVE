@@ -1,9 +1,9 @@
-#pragma once
+ï»¿#pragma once
 #include <DirectXMath.h>
 #include "Easing.h"
 namespace sf
 {
-	//01•âŠÔ
+	//01è£œé–“
 	inline float Lerp01(float _min, float _max, float value)
 	{
 		if (_max == _min)return 0.0f;
@@ -14,14 +14,14 @@ namespace sf
 		return (value - _min) / (_max - _min);
 	}
 
-	//üŒ`•âŠÔ
+	//ç·šå½¢è£œé–“
 	template<typename T>
 	T Lerp(T a, T b, float r)
 	{
 		return a + (b - a) * r;
 	}
 
-	//üŒ`•âŠÔ
+	//ç·šå½¢è£œé–“
 	template<typename T>
 	T Lerp(T a, T b, float r, EASE ease)
 	{
@@ -108,14 +108,14 @@ public:
 	void operator=(const DirectX::XMVECTOR& v);
 
 	/// <summary>
-	/// •½sˆÚ“®—Ê‚Ìæ“¾
+	/// å¹³è¡Œç§»å‹•é‡ã®å–å¾—
 	/// </summary>
 	/// <param name="mtx"></param>
 	/// <returns></returns>
 	static Vector3 GetTranslation(const DirectX::XMMATRIX& mtx);
 
 	/// <summary>
-	/// Šg‘å—Ê‚Ìæ“¾
+	/// æ‹¡å¤§é‡ã®å–å¾—
 	/// </summary>
 	/// <param name="mtx"></param>
 	/// <returns></returns>

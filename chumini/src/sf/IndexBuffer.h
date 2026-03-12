@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include "D3D.h"
 
@@ -6,7 +6,7 @@ namespace sf
 {
 	namespace dx
 	{
-		//ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@(D3D)
+		//ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡(D3D)
 		class IndexBuffer :public D3D
 		{
 		public:

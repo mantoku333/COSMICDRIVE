@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "App.h"
 namespace app
 {
@@ -10,8 +10,8 @@ namespace app
 			void LoadMotions()override;
 
 		public:
-			static const int ID_Idle = 0;	//ƒAƒCƒhƒ‹
-			static const int ID_Walk = 1;	//•à‚«
+			static const int ID_Idle = 0;	//ã‚¢ã‚¤ãƒ‰ãƒ«
+			static const int ID_Walk = 1;	//æ­©ã
 		};
 	}
 }

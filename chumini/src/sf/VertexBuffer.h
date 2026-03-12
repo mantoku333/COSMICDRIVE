@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include "D3D.h"
 #include "DirectX11.h"
@@ -6,7 +6,7 @@ namespace sf
 {
 	namespace dx
 	{
-		//3D’¸“_\‘¢‘Ì
+		//3Dé ‚ç‚¹æ§‹é€ ä½“
 		struct Vertex3D
 		{
 			DirectX::XMFLOAT3 pos = DirectX::XMFLOAT3(0, 0, 0);
@@ -19,7 +19,7 @@ namespace sf
 		};
 
 
-		//’¸“_ƒoƒbƒtƒ@(D3D)
+		//é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡(D3D)
 		template<typename T>
 		class VertexBuffer :public D3D
 		{
@@ -35,7 +35,7 @@ namespace sf
 			}
 
 			/// <summary>
-			/// ’¸“_ƒoƒbƒtƒ@‚Ìì¬
+			/// é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ã®ä½œæˆ
 			/// </summary>
 			/// <param name="vertices"></param>
 			/// <returns></returns>

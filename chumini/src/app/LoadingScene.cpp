@@ -1,4 +1,4 @@
-#include "LoadingScene.h"
+﻿#include "LoadingScene.h"
 #include "LoadingCanvas.h"
 #include "Debug.h"
 #include "sf/Time.h"

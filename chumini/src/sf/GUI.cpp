@@ -1,4 +1,4 @@
-#include "GUI.h"
+ï»¿#include "GUI.h"
 
 int sf::gui::GUI::offset = 0;
 
@@ -6,11 +6,11 @@ void sf::gui::GUI::Init(HWND hwnd, ID3D11Device* d3dDevice, ID3D11DeviceContext*
 {
 	ImGui::CreateContext();
 
-	//“ú–{Œê‰»
+	//æ—¥æœ¬èªåŒ–
 	ImGuiIO& io = ImGui::GetIO();
 	io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\meiryo.ttc", 24.0f, NULL, io.Fonts->GetGlyphRangesJapanese());
 
-	//ImGUI‚Ì‰Šú‰»
+	//ImGUIã®åˆæœŸåŒ–
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
