@@ -11,17 +11,17 @@ namespace app
 {
 	namespace test
 	{
-		class TitleScene;  // 蜑肴婿螳｣險
-		enum class TitleButton;  // 蜑肴婿螳｣險
+		class TitleScene;  // 前方宣言
+		enum class TitleButton;  // 前方宣言
 
 		// ============================================================
-		// TitleCanvas - 繧ｿ繧､繝医Ν逕ｻ髱｢縺ｮView・・VP・・
+		// 補助処理
 		// 
 		// 蠖ｹ蜑ｲ:
-		// - UI隕∫ｴ縺ｮ逕滓・繝ｻ邂｡逅・
+		// 処理本体
 		// - 謠冗判蜃ｦ逅・
-		// - 蜈･蜉帶､懷・竊単resenter縺ｫ蟋碑ｭｲ
-		// - Presenter縺ｮ迥ｶ諷九ｒ蜿ら・縺励※陦ｨ遉ｺ譖ｴ譁ｰ
+		// 処理本体
+		// 処理本体
 		// ============================================================
 		class TitleCanvas : public sf::ui::Canvas
 		{
@@ -32,15 +32,15 @@ namespace app
 			virtual ~TitleCanvas();
 
 			// --------------------------------------------
-			// Presenter險ｭ螳夲ｼ・cene縺九ｉ蜻ｼ縺ｰ繧後ｋ・・
+			// 処理本体
 			// --------------------------------------------
 			
-			/// Presenter縺ｸ縺ｮ蜿ら・繧定ｨｭ螳・
+			// 処理本体
 			void SetPresenter(TitleScene* scene) { presenter = scene; }
 
 		private:
 			// --------------------------------------------
-			// Presenter蜿ら・
+			// Presenter参照
 			// --------------------------------------------
 			TitleScene* presenter = nullptr;
 
@@ -50,7 +50,7 @@ namespace app
 			AppModel* _hiyoriModel = nullptr;
 
 			// --------------------------------------------
-			// 譖ｴ譁ｰ繧ｳ繝槭Φ繝・
+			// 処理本体
 			// --------------------------------------------
 			sf::command::Command<> updateCommand;
 
@@ -65,7 +65,7 @@ namespace app
 			sf::ui::Image* whiteBacking = nullptr; 
 			sf::Texture backTexture; 
 
-			// 繧ｸ繝｣繧ｱ繝・ヨ繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ
+			// ジャケット表示を更新
 			struct ScrollingJacket {
 				sf::ui::Image* uiImage;
 				float posX; 
@@ -82,32 +82,32 @@ namespace app
 			const float jacketInterval = 270.0f;      
 
 			// --------------------------------------------
-			// 螳壽焚
+			// 定数
 			// --------------------------------------------
 			static constexpr float screenWidth = 1920.0f;
 			static constexpr float screenHeight = 1080.0f;
 			float animationTimer = 0.0f;
 
 			// --------------------------------------------
-			// 蜀・Κ繝｡繧ｽ繝・ラ
+			// ジャケット表示を更新
 			// --------------------------------------------
 			
-			/// 繧ｸ繝｣繧ｱ繝・ヨ繝輔Ο繝ｼ蛻晄悄蛹・
+			// ジャケット表示を更新
 			void InitializeJacketFlow();
 			
-			/// 蜈･蜉帶､懷・縺励※Presenter縺ｫ騾夂衍
+			// 処理本体
 			void DetectInputAndNotify(const sf::command::ICommand& command);
 			
-			/// 繧ｸ繝｣繧ｱ繝・ヨ繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ譖ｴ譁ｰ
+			// ジャケット表示を更新
 			void UpdateJacketScrolling(float dt);
 			
-			/// 繝懊ち繝ｳ繝上う繝ｩ繧､繝郁｡ｨ遉ｺ譖ｴ譁ｰ
+			// / ボタンハイライト表示更新
 			void UpdateButtonHighlight(TitleButton selected);
 
-			/// 繝槭え繧ｹ菴咲ｽｮ蜿門ｾ・
+			// 処理本体
 			Vector2 GetMousePosition();
 			
-			/// 繝懊ち繝ｳ繝帙ヰ繝ｼ蛻､螳・
+			// 処理本体
 			bool IsButtonHovered(const Vector2& mousePos, sf::ui::TextImage* button);
 		};
 	}

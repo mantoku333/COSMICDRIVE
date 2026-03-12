@@ -2,7 +2,7 @@
 #include "Live2DManager.h"
 #include "DirectX11.h"
 #include "Actor.h"
-#include "Scene.h" // IScene螳夂ｾｩ逕ｨ
+#include "Scene.h" // IScene定義用
 
 using namespace app::test;
 using namespace sf;
@@ -13,7 +13,7 @@ namespace {
 }
 
 void Live2DComponent::Begin() {
-    // Live2DManager縺ｮ蛻晄悄蛹厄ｼ域里縺ｫ縺輔ｌ縺ｦ縺・ｋ蝣ｴ蜷医・蜀・Κ縺ｧ蠑ｾ縺九ｌ繧区Φ螳壹□縺悟ｿｵ縺ｮ縺溘ａ・・
+    // Live2D関連処理
     Live2DManager::GetInstance()->Initialize();
 }
 
@@ -101,16 +101,16 @@ void Live2DComponent::SetDragging(float x, float y) {
 }
 
 void Live2DComponent::Draw() {
-    // 笘・せ繝ｬ繝・ラ繧ｻ繝ｼ繝・ Draw荳ｭ縺ｯ繝・せ繝医Λ繧ｯ繧ｿ繧貞ｾ・ｩ溘＆縺帙ｋ
+    // Live2D関連処理
     std::scoped_lock lock(s_live2dGlobalMutex, m_drawMutex);
     
-    // 笘・す繝ｼ繝ｳ驕ｷ遘ｻ繧ｯ繝ｩ繝・す繝･髦ｲ豁｢: 遐ｴ譽・ｸ医∩縺ｪ繧画緒逕ｻ繧ｹ繧ｭ繝・・
+    // 条件分岐
     if (m_isDestroyed) {
         OutputDebugStringA("Live2DComponent::Draw - SKIPPED (destroyed)\n");
         return;
     }
 
-    // 笘・す繝ｼ繝ｳ驕ｷ遘ｻ繧ｯ繝ｩ繝・す繝･髦ｲ豁｢: 繧ｷ繝ｼ繝ｳ縺轡eActivate迥ｶ諷九↑繧画緒逕ｻ繧ｹ繧ｭ繝・・
+    // 処理本体
     auto owner = actorRef.Target();
     if (!owner || !owner->GetScene().IsActivate()) {
         OutputDebugStringA("Live2DComponent::Draw - SKIPPED (scene deactivated)\n");
@@ -125,7 +125,7 @@ void Live2DComponent::Draw() {
     auto device = dx11->GetMainDevice().GetDevice();
     auto context = dx11->GetMainDevice().GetContext();
 
-    // 笘・ョ繝舌う繧ｹ/繧ｳ繝ｳ繝・く繧ｹ繝医・譛牙柑諤ｧ繝√ぉ繝・け・・ntel GPU繧ｯ繝ｩ繝・す繝･髦ｲ豁｢・・
+    // 条件分岐
     if (!device || !context) {
         OutputDebugStringA("Live2DComponent::Draw - Device or Context is null, skipping draw.\n");
         return;
@@ -137,16 +137,16 @@ void Live2DComponent::Draw() {
         return;
     }
 
-    // Live2D縺ｮ謠冗判
+    // Live2Dの描画
 
     // =========================================================
-    // 謠冗判螳溯｡・
+    // 処理本体
     // =========================================================
     UINT numViewports = 1;
     D3D11_VIEWPORT vp = {};
     context->RSGetViewports(&numViewports, &vp);
 
-    // 笘・ン繝･繝ｼ繝昴・繝医・譛牙柑諤ｧ繝√ぉ繝・け・医ぞ繝ｭ髯､邂鈴亟豁｢・・
+    // 条件分岐
     if (numViewports == 0 || vp.Width <= 0.0f || vp.Height <= 0.0f) {
         OutputDebugStringA("Live2DComponent::Draw - Invalid viewport, skipping draw.\n");
         return;
@@ -159,16 +159,16 @@ void Live2DComponent::Draw() {
 
         auto renderer = _model->GetMyRenderer();
         if (renderer) {
-            renderer->SetDefaultRenderState(); // Live2D蛛ｴ縺ｮ繝・ヵ繧ｩ繝ｫ繝郁ｨｭ螳壹ｂ驕ｩ逕ｨ
+            renderer->SetDefaultRenderState();
 
             // =========================================================
-            // 繝ｬ繝ｳ繝繝ｪ繝ｳ繧ｰ繧ｹ繝・・繝医・騾驕ｿ縺ｨ險ｭ螳・(SetDefaultRenderState蠕後↓蠑ｷ蛻ｶ驕ｩ逕ｨ)
+            // デバッグログを出力
             // =========================================================
 
-            // 繝医・繝ｭ繧ｸ繝ｼ繧担trip縺九ｉList縺ｸ螟画峩
+            // デバッグログを出力
             context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            // 笘・く繝｣繝・す繝･縺輔ｌ縺溘せ繝・・繝医ｒ菴ｿ逕ｨ・域ｯ弱ヵ繝ｬ繝ｼ繝逕滓・繧貞ｻ・ｭ｢・・
+            // 処理本体
             InitCachedStates(device);
             
             if (m_cachedBlendState) {
@@ -184,7 +184,7 @@ void Live2DComponent::Draw() {
                 context->OMSetDepthStencilState(m_cachedDepthState, 0);
             }
 
-            // 繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｮ辟｡蜉ｹ蛹厄ｼ亥ｹｲ貂蛾亟豁｢・・
+            // 処理本体
             context->GSSetShader(nullptr, nullptr, 0);
             context->HSSetShader(nullptr, nullptr, 0);
             context->DSSetShader(nullptr, nullptr, 0);
@@ -198,7 +198,7 @@ void Live2DComponent::Draw() {
 
             float aspect = vp.Width / vp.Height;
             
-            // 逕ｻ髱｢縺ｫ蜿弱∪繧九ｈ縺・↓繧ｹ繧ｱ繝ｼ繝ｫ隱ｿ謨ｴ (Base Fit)
+            // 処理本体
             float scale = 2.0f / modelCanvasH; 
             matrix.Scale(scale / aspect, scale);
 
@@ -231,48 +231,48 @@ void Live2DComponent::Draw() {
     }
 
     // =========================================================
-    // 縲宣㍾隕√代Ξ繝ｳ繝繝ｪ繝ｳ繧ｰ繧ｹ繝・・繝医・繝ｪ繧ｻ繝・ヨ (蠕檎援莉倥￠)
+    // 処理本体
     // =========================================================
 
     // 笘・esource Unbind (Driver Clean-up)
     ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
     context->PSSetShaderResources(0, 2, nullSRVs);
     
-    // 1. 繧ｷ繧ｶ繝ｼ遏ｩ蠖｢縺ｮ辟｡蜉ｹ蛹・(縺薙ｌ縺梧ｮ九▲縺ｦ縺・ｋ縺ｨUI縺ｪ縺ｩ縺梧ｶ域ｻ・☆繧・
+    // 処理本体
     context->RSSetScissorRects(0, nullptr);
 
-    // 2. 繧ｷ繧ｧ繝ｼ繝繝ｼ縺ｮ隗｣髯､ (谺｡縺ｮ謠冗判縺ｸ縺ｮ蟷ｲ貂蛾亟豁｢)
+    // 2. シェーダーの解除 (次の描画への干渉防止)
     context->VSSetShader(nullptr, nullptr, 0);
     context->PSSetShader(nullptr, nullptr, 0);
     context->GSSetShader(nullptr, nullptr, 0);
     context->HSSetShader(nullptr, nullptr, 0);
     context->DSSetShader(nullptr, nullptr, 0);
 
-    // 3. 繧､繝ｳ繝励ャ繝医Ξ繧､繧｢繧ｦ繝医・隗｣髯､
+    // 処理本体
     context->IASetInputLayout(nullptr);
 
-    // 4. 繝医・繝ｭ繧ｸ繝ｼ繧貞渕譛ｬ縺ｮTriangleList縺ｫ謌ｻ縺・
+    // デバッグログを出力
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 笘・. 繝悶Ξ繝ｳ繝峨せ繝・・繝医・豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ繝ｻ繝ｩ繧ｹ繧ｿ繝ｩ繧､繧ｶ繧偵ョ繝輔か繝ｫ繝医↓謌ｻ縺呻ｼ・extImage蟷ｲ貂蛾亟豁｢・・
+    // 処理本体
     context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     context->OMSetDepthStencilState(nullptr, 0);
     context->RSSetState(nullptr);
 
-    // 笘・. GPU蜷梧悄: Intel GPU繝峨Λ繧､繝舌・繧ｯ繝ｩ繝・す繝･髦ｲ豁｢
-    // GPU繧ｳ繝槭Φ繝峨ｒ螳御ｺ・＆縺帙※縺九ｉ谺｡縺ｮ蜃ｦ逅・↓騾ｲ繧
+    // Live2D関連処理
+    // Live2D関連処理
 }
 
 Live2DComponent::~Live2DComponent() {
-    // 笘・せ繝ｬ繝・ラ繧ｻ繝ｼ繝・ Draw螳御ｺ・ｒ蠕・▲縺ｦ縺九ｉ繝ｪ繧ｽ繝ｼ繧ｹ隗｣謾ｾ
+    // Live2D関連処理
     std::scoped_lock lock(s_live2dGlobalMutex, m_drawMutex);
     
-    // 笘・ｴ譽・ヵ繝ｩ繧ｰ繧呈怙蛻昴↓繧ｻ繝・ヨ・・raw蜻ｼ縺ｳ蜃ｺ縺励ｒ髦ｲ豁｢・・
+    // 処理本体
     m_isDestroyed = true;
     OutputDebugStringA("Live2DComponent::~Live2DComponent - DESTRUCTOR CALLED\n");
 
-    // 笘・PU繧ｳ繝槭Φ繝峨ヵ繝ｩ繝・す繝･: Intel GPU繝峨Λ繧､繝舌・繧ｯ繝ｩ繝・す繝･髦ｲ豁｢
-    // 繝ｪ繧ｽ繝ｼ繧ｹ隗｣謾ｾ蜑阪↓GPU縺梧緒逕ｻ繧ｳ繝槭Φ繝峨ｒ螳御ｺ・☆繧九・繧貞ｾ・▽
+    // 処理本体
+    // 処理本体
     ReleaseCachedStates();
     if (_model) {
         delete _model;
@@ -280,11 +280,11 @@ Live2DComponent::~Live2DComponent() {
     }
 }
 
-// 笘・せ繝・・繝医・蛻晄悄蛹厄ｼ井ｸ蠎ｦ縺縺大ｮ溯｡鯉ｼ・
+// Live2D関連処理
 void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     if (m_statesInitialized || !device) return;
 
-    // 繝悶Ξ繝ｳ繝峨せ繝・・繝郁ｨｭ螳・
+    // 処理本体
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.AlphaToCoverageEnable = FALSE;
     blendDesc.IndependentBlendEnable = FALSE;
@@ -298,7 +298,7 @@ void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     device->CreateBlendState(&blendDesc, &m_cachedBlendState);
 
-    // 繝ｩ繧ｹ繧ｿ繝ｩ繧､繧ｶ繧ｹ繝・・繝郁ｨｭ螳・
+    // 処理本体
     D3D11_RASTERIZER_DESC rasterDesc = {};
     rasterDesc.FillMode = D3D11_FILL_SOLID;
     rasterDesc.CullMode = D3D11_CULL_NONE;
@@ -307,7 +307,7 @@ void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     rasterDesc.ScissorEnable = FALSE;
     device->CreateRasterizerState(&rasterDesc, &m_cachedRasterState);
 
-    // 豺ｱ蠎ｦ繧ｹ繝・Φ繧ｷ繝ｫ繧ｹ繝・・繝郁ｨｭ螳・
+    // 処理本体
     D3D11_DEPTH_STENCIL_DESC depthDesc = {};
     depthDesc.DepthEnable = FALSE;
     depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;

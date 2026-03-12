@@ -30,7 +30,7 @@ namespace app
 
 			void OnActivated() override;
 
-			/// 繝・せ繝医Λ繧ｯ繧ｿ - 繧ｻ繝・す繝ｧ繝ｳ繧偵ヵ繧ｩ繝ｼ繝ｫ繝舌ャ繧ｯ縺ｫ繧ｳ繝斐・
+			// 補助処理
 			~IngameScene();
 
             void Draw() override;
@@ -47,13 +47,13 @@ namespace app
 			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f }; 
 
 			const float laneW = panelW / lanes;*/
-			//-------------------------------------------縺薙ｌ繧峨ｒ謗帝勁縺励※譁ｰ縺励＞險ｭ螳壹↓縺吶ｋ
+			// -------------------------------------------これらを排除して新しい設定にする
 
-			const int lanes = 4;           // 繝ｬ繝ｼ繝ｳ謨ｰ
-			const float laneW = 3.0f;      // 繝ｬ繝ｼ繝ｳ蟷・
-			const float laneH = 50.0f;    // 螂･陦後″・・譁ｹ蜷托ｼ・
-			const float rotX = -10.0f;     // 蛯ｾ縺搾ｼ医メ繝･繧ｦ繝九ぜ繝鬚ｨ縺ｮ隗貞ｺｦ・・
-			const float baseY = 0.0f;      // 鬮倥＆縺ｮ蝓ｺ貅・
+			const int lanes = 4;           // レーン数
+			const float laneW = 3.0f;      // レーン幅
+			const float laneH = 50.0f;     // レーン長
+			const float rotX = -10.0f;
+			const float baseY = 0.0f;
 
 			const float barRatio = 0.1f;
 
@@ -62,7 +62,7 @@ namespace app
 
 			sf::ref::Ref<sf::Actor> managerActor;
 
-			sf::ref::Ref<sf::Actor> judgeBar;  // 蛻､螳壹Λ繧､繝ｳ蜿ら・逕ｨ
+			sf::ref::Ref<sf::Actor> judgeBar;
 
 			void SetSelectedSong(const SongInfo& song) { selectedSong = song; }
 			const SongInfo& GetSelectedSong() const { return selectedSong; }
@@ -70,7 +70,7 @@ namespace app
             // Trigger visual glitch for Skill Notes
             void TriggerSkillEffect();
 
-            /// 繧ｲ繝ｼ繝繧ｻ繝・す繝ｧ繝ｳ縺ｸ縺ｮ蜿ら・繧貞叙蠕・
+            // 処理本体
             GameSession& GetGameSession() { return gameSession; }
 
 		private:
@@ -85,17 +85,17 @@ namespace app
 			float startDisplayTimer = 0.0f;
             float skillEffectTimer = 0.0f; // Effect duration timer
 
-			bool isPlaying = false; // 繧ｲ繝ｼ繝荳ｭ縺九←縺・°縺ｮ繝輔Λ繧ｰ
+			bool isPlaying = false;
 
 			void StartGame();
 
-			SongInfo selectedSong; // 驕ｸ謚樊･ｽ譖ｲ諠・ｱ
+			SongInfo selectedSong;
 			std::vector<sf::ref::Ref<sf::Actor>> laneEdges;
 
-			// 譖ｴ譁ｰ繧ｳ繝槭Φ繝・
+			// 処理本体
 			sf::command::Command<> updateCommand;
 
-			// 繧ｭ繝･繝ｼ繝悶・蠖｢迥ｶ
+			// 処理本体
 			sf::geometry::GeometryCube g_cube;
 
 			sf::ref::Ref<sf::Actor> playerActor;
@@ -121,7 +121,7 @@ namespace app
             };
             std::vector<BgObject> bgObjects;
 
-            /// 繧ｲ繝ｼ繝繧ｻ繝・す繝ｧ繝ｳ・・繝励Ξ繧､蛻・・蛻､螳壹ョ繝ｼ繧ｿ繧剃ｿ晄戟・・
+            // 処理本体
             GameSession gameSession;
 		};
 	}

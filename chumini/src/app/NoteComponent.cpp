@@ -20,7 +20,7 @@ namespace app::test {
         }
 
 
-        // ===== 繝ｬ繝ｼ繝ｳ諠・ｱ繧貞叙蠕・=====
+        // 処理本体
         lanes = ingameScene->lanes;
         laneW = ingameScene->laneW;
         laneH = ingameScene->laneH;
@@ -32,14 +32,14 @@ namespace app::test {
             baseY += 1.0f;
         }
 
-        // ===== 繝弱・繝・・蛻晄悄菴咲ｽｮ繧堤ｮ怜・ =====
+        // 処理本体
         slopeRad = rotX * 3.14159265f / 180.0f;
         startZ = laneH * 0.5f;                      // 蜃ｺ迴ｾ菴咲ｽｮ・亥･･・・
-        endZ = -laneH * 0.5f + laneH * barRatio;  // 蛻､螳壹ヰ繝ｼ菴咲ｽｮ・域焔蜑搾ｼ・
+        endZ = -laneH * 0.5f + laneH * barRatio;
         startY = baseY - std::tan(slopeRad) * startZ;
         endY = baseY - std::tan(slopeRad) * endZ;
 
-        // lane index 縺九ｉ X蠎ｧ讓吶ｒ險育ｮ・
+        // 描画パラメータを更新
         float currentX = actor->transform.GetPosition().x;
         actor->transform.SetPosition({ currentX, startY, startZ });
         actor->transform.SetRotation({ rotX, 0, 0 });
@@ -93,7 +93,7 @@ namespace app::test {
     void NoteComponent::Update(const sf::command::ICommand&) {
         if (!isActive) return;
 
-        // 繝槭ロ繝ｼ繧ｸ繝｣縺後＞縺ｪ縺代ｌ縺ｰ譎る俣繧堤衍繧後↑縺・・縺ｧ蜍輔°縺ｪ縺・
+        // 条件分岐
         if (noteManager.isNull()) return;
 
         auto actor = actorRef.Target();
@@ -106,13 +106,13 @@ namespace app::test {
            // logTimer = 0.0f; 
         }
 
-        // 1. 繝槭ロ繝ｼ繧ｸ繝｣縺九ｉ縲檎樟蝨ｨ縺ｮ豁｣遒ｺ縺ｪBGM譎る俣縲阪ｒ繧ゅｉ縺・
+        // 処理本体
         float currentSongTime = noteManager->GetSongTime();
 
-        // 2. 逹蠑ｾ縺ｾ縺ｧ縺ｮ谿九ｊ譎る俣繧定ｨ育ｮ・
+        // 処理本体
         float timeUntilHit = info.hittime - currentSongTime;
 
-        // 3. 菴咲ｽｮ繧呈ｱｺ螳・
+        // 処理本体
         float z = endZ + (timeUntilHit * noteSpeed);
 
         // DEBUG: Debug log for Note Movement (Lane 3 HoldStart only for clarity)
@@ -120,7 +120,7 @@ namespace app::test {
              // sf::debug::Debug::Log("NoteUpdate: Lane3 HoldStart T=" + std::to_string(currentSongTime) + " Z=" + std::to_string(z) + " Active=" + std::to_string(isActive)); 
         }
 
-        // 4. 蛯ｾ譁懊↓蜷医ｏ縺帙※Y蠎ｧ讓吶ｒ陬懈ｭ｣
+        // 4. 傾斜に合わせてY座標を補正
         float y = baseY - std::tan(slopeRad) * z;
 
         // HOLD START Logic
@@ -202,7 +202,7 @@ namespace app::test {
             }
         }
 
-        // 5. 蠎ｧ讓呎峩譁ｰ
+        // 5. 座標更新
         auto pos = actor->transform.GetPosition();
         pos.y = y;
         pos.z = z;

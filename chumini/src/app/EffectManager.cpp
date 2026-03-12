@@ -14,7 +14,7 @@ namespace app::test {
     }
 
     // ----------------------------------------------------------------
-    // Effekseer縺ｮ蛻晄悄蛹・
+    // 処理本体
     // ----------------------------------------------------------------
     void EffectManager::InitializeEffekseer(ID3D11Device* device, ID3D11DeviceContext* context) {
         if (device != nullptr && context != nullptr) {
@@ -25,10 +25,10 @@ namespace app::test {
 
             if (efkRenderer != nullptr && efkManager != nullptr) {
 
-                // 蟾ｦ謇句ｺｧ讓咏ｳｻ・・irectX讓呎ｺ厄ｼ峨↓險ｭ螳壹☆繧・
+                // 処理本体
                 efkManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
-                // Effekseer縺梧緒逕ｻ縺励◆蠕後↓縲∝・縺ｮDirectX縺ｮ險ｭ螳壹↓謌ｻ縺・
+                // 処理本体
                 efkRenderer->SetRestorationOfStatesFlag(true);
 
                 efkManager->SetSpriteRenderer(efkRenderer->CreateSpriteRenderer());
@@ -45,7 +45,7 @@ namespace app::test {
     }
 
     // ----------------------------------------------------------------
-    // 2D繧ｹ繝励Λ繧､繝医・蛻晄悄蛹・
+    // 処理本体
     // ----------------------------------------------------------------
     void EffectManager::InitializeSprite(ImageFactory factory, sf::Texture* texture, int poolSize) {
         if (factory && texture) {
@@ -71,7 +71,7 @@ namespace app::test {
     }
 
     // ----------------------------------------------------------------
-    // Effekseer 讖溯・
+    // Effekseer 読み込み
     // ----------------------------------------------------------------
     void EffectManager::LoadEffekseer(const std::string& key, const std::u16string& path) {
         if (efkManager == nullptr) return;
@@ -90,12 +90,12 @@ namespace app::test {
     void EffectManager::DrawEffekseer() {
         if (efkManager != nullptr && efkRenderer != nullptr) {
 
-            // 繧ｷ繧ｧ繝ｼ繝繝ｼ隗｣髯､
+            // シェーダー解除
             m_context->GSSetShader(nullptr, nullptr, 0);
             m_context->HSSetShader(nullptr, nullptr, 0);
             m_context->DSSetShader(nullptr, nullptr, 0);
 
-            // 繝医・繝ｭ繧ｸ繝ｼ繧ょｿｵ縺ｮ縺溘ａ繝ｪ繧ｻ繝・ヨ・・ffekseer縺ｯTriangleList繧剃ｽｿ縺・∪縺吶′縲∝ｿｵ縺ｮ縺溘ａ・・
+            // デバッグログを出力
             m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
             efkRenderer->BeginRendering();
@@ -105,7 +105,7 @@ namespace app::test {
     }
 
     // ----------------------------------------------------------------
-    // 繧ｹ繝励Λ繧､繝・讖溯・
+    // 処理本体
     // ----------------------------------------------------------------
     void EffectManager::SpawnSprite(float x, float y, float scale, float duration, const Color& color) {
         SpawnSprite(x, y, scale, scale, duration, color);
@@ -128,13 +128,13 @@ namespace app::test {
     }
 
     // ----------------------------------------------------------------
-    // 蜈ｱ騾壹・譖ｴ譁ｰ
+    // 共通更新処理
     // ----------------------------------------------------------------
     void EffectManager::Update(const sf::command::ICommand&) {
 
         float dt = sf::Time::DeltaTime();
 
-        // 繧ｹ繝励Λ繧､繝域峩譁ｰ
+        // スプライト更新
         for (auto& effect : spritePool) {
             if (!effect.active) continue;
             if (effect.image.isNull()) { effect.active = false; continue; }
@@ -146,7 +146,7 @@ namespace app::test {
                 continue;
             }
             if (effect.duration > 0.0f) {
-                // UV繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ險育ｮ・
+                // スプライトシートのフレーム更新
                 float t = effect.timer / effect.duration;
                 int totalFrames = gridCols * gridRows;
                 int currentFrame = static_cast<int>(t * totalFrames);
@@ -159,7 +159,7 @@ namespace app::test {
             }
         }
 
-        // Effekseer譖ｴ譁ｰ
+        // Effekseer更新
         if (efkManager != nullptr) {
             efkManager->Update(dt * 60.0f);
         }
@@ -182,7 +182,7 @@ namespace app::test {
 
     void EffectManager::SetScale(Effekseer::Handle handle, float x, float y, float z) {
         if (efkManager != nullptr) {
-            // Effekseer縺ｮ繝槭ロ繝ｼ繧ｸ繝｣繝ｼ縺ｫ繝上Φ繝峨Ν縺ｮ繧ｵ繧､繧ｺ螟画峩繧剃ｾ晞ｼ
+            // スケールを更新
             efkManager->SetScale(handle, x, y, z);
         }
     }

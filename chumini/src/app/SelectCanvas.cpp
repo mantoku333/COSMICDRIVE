@@ -8,7 +8,7 @@
 #include "Easing.h"
 #include "Config.h"
 
-// 繝・く繧ｹ繝域緒逕ｻ縺ｫ蠢・ｦ・
+// 依存ヘッダ
 #include "Text.h"
 #include "TextImage.h"
 #include "DWriteContext.h"
@@ -21,16 +21,16 @@
 #include "ChedParser.h" 
 #include "ScoreManager.h" 
 #include "RatingManager.h"
-#include "StringUtils.h"  // 譁・ｭ励さ繝ｼ繝牙､画鋤繝ｦ繝ｼ繝・ぅ繝ｪ繝・ぅ
+#include "StringUtils.h"  // 文字コード変換ユーティリティ
 
 namespace app::test {
 
-    // sf::util 縺ｮ髢｢謨ｰ繧剃ｽｿ逕ｨ・医Ο繝ｼ繧ｫ繝ｫ髢｢謨ｰ縺ｯ蜑企勁・・
+    // ユーティリティを利用
     using sf::util::WstringToUtf8;
     using sf::util::Utf8ToWstring;
     using sf::util::Utf8ToShiftJis;
 
-    // ===== 繝ｦ繝ｼ繝・ぅ繝ｪ繝・ぅ =====
+    // ===== Utility =====
     static inline float WrapFloat(float x, float N) {
         float r = std::fmod(x, N);
         if (r < 0) r += N;
@@ -71,24 +71,24 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // 襍ｷ蜍墓凾・壽峇繧ｿ繧､繝医Ν蛻晄悄蛹・
+        // 条件分岐
         if (songTitleText && !songs.empty()) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
 
-        // 笘・ｿｽ蜉: 繧｢繝ｼ繝・ぅ繧ｹ繝・
+        // 条件分岐
         if (artistText) {
             artistText->SetText(Utf8ToWstring(songs[targetIndex].artist));
         }
 
-        // 笘・ｿｽ蜉: BPM
+        // 条件分岐
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
         }
 
-        // 笘・ｿｽ蜉: 髮｣譏灘ｺｦ
+        // 条件分岐
         if (difficultyText) {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
@@ -109,13 +109,13 @@ namespace app::test {
             }
         }
 
-        // 笘・ｿｽ蜉: 繧ｸ繝｣繝ｳ繝ｫ蜷・
+        // 楽曲リスト情報を更新
         const auto& allGenres = songListService.GetAllGenres();
         int currentGenreIndex = songListService.GetCurrentGenreIndex();
         if (!allGenres.empty()) {
             if(genreText) genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
 
-            int N = (int)allGenres.size(); // 繧ｸ繝｣繝ｳ繝ｫ謨ｰ
+            int N = (int)allGenres.size(); // ジャンル数
             if (prevGenreText) {
                 int prevIdx = (currentGenreIndex - 1 + N) % N;
                 prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
@@ -131,7 +131,7 @@ namespace app::test {
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
     }
 
-    // ===== 繝・け繧ｹ繝√Ε蛻晄悄蛹・=====
+    // 処理本体
     void SelectCanvas::InitializeTextures() {
         textureBack.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
         textureSelectFrame.LoadTextureFromFile("Assets\\Texture\\SelectFrame.png");
@@ -140,29 +140,29 @@ namespace app::test {
         textureCC.LoadTextureFromFile("Assets\\Texture\\CC.png");
     }
 
-    // ===== 讌ｽ譖ｲ蛻晄悄蛹・=====
+    // 処理本体
     void SelectCanvas::InitializeSongs() {
-        // SongListService縺ｫ繧ｹ繧ｭ繝｣繝ｳ繧貞ｧ碑ｭｲ
+        // SongListServiceにスキャンを委譲
         songListService.ScanSongs("Songs");
         songs = songListService.GetCurrentSongs();
 
         // ----------------------------------------------------
-        // 繧ｸ繝｣繧ｱ繝・ヨ繝・け繧ｹ繝√Ε縺ｮ繝ｭ繝ｼ繝・(笘・ｿｮ豁｣邂・園)
+        // ジャケット表示を更新
         // ----------------------------------------------------
         jacketTextures.resize(songs.size());
         for (size_t i = 0; i < songs.size(); ++i) {
             bool loaded = false;
             if (!songs[i].jacketPath.empty()) {
 
-                // 笘・ｿｮ豁｣: WindowsAPI (LoadTextureFromFile) 縺ｫ貂｡縺吶◆繧√↓ Shift-JIS 縺ｫ螟画鋤縺吶ｋ
-                // UTF-8 縺ｮ縺ｾ縺ｾ縺縺ｨ縲梧欠螳壹＆繧後◆繝輔ぃ繧､繝ｫ縺瑚ｦ九▽縺九ｊ縺ｾ縺帙ｓ縲阪↓縺ｪ繧翫∪縺・
+                // ジャケット表示を更新
+                // ジャケット表示を更新
                 std::string sjisPath = Utf8ToShiftJis(songs[i].jacketPath);
 
                 if (jacketTextures[i].LoadTextureFromFile(sjisPath)) {
                     loaded = true;
                 }
                 else {
-                    // 繝ｭ繝ｼ繝牙､ｱ謨励Ο繧ｰ繧４hift-JIS縺ｧ蜃ｺ縺吶→譁・ｭ怜喧縺代＠縺ｪ縺・
+                    // ジャケット表示を更新
                     sf::debug::Debug::Log("Jacket Load Failed: " + sjisPath);
                 }
             }
@@ -173,7 +173,7 @@ namespace app::test {
         }
     }
 
-    // ===== UI蛻晄悄蛹・=====
+    // 処理本体
     void SelectCanvas::InitializeUI() {
 
         auto* dx11 = sf::dx::DirectX11::Instance();
@@ -190,12 +190,12 @@ namespace app::test {
         CC->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
         CC->material.texture = &textureCC;*/
 
-        // 繧ｸ繝｣繧ｱ繝・ヨUI繧ｳ繝ｳ繝昴・繝阪Φ繝医・莠句燕逕滓・
+        // ジャケット表示を更新
         jacketComponents.clear();
         for(int i = 0; i < MAX_VISIBLE; ++i) {
              auto jacket = AddUI<sf::ui::Image>();
              jacket->transform.SetScale(Vector3(SCALE_EDGE, SCALE_EDGE, 1.0f));
-             jacket->SetVisible(false); // 蛻晄悄縺ｯ髱櫁｡ｨ遉ｺ
+             jacket->SetVisible(false); // 初期は非表示
              jacketComponents.push_back(jacket);
         }
 
@@ -203,13 +203,13 @@ namespace app::test {
         UpdateJacketPositions();
 
      // =========================================================
-     // 繧｢繧ｦ繝医Λ繧､繝ｳ縺ｮ逕滓・
+     // 処理本体
      // =========================================================
 
-     // 縺ｵ縺｡縺ｮ螟ｪ縺・
+     // 処理本体
         float outlineSize = 3.0f;
 
-        // 4譁ｹ蜷代・繧ｺ繝ｬ繧貞ｮ夂ｾｩ
+        // 処理本体
         Vector3 offsets[4] = {
             Vector3(-outlineSize, 0, 0),
             Vector3(outlineSize, 0, 0),
@@ -217,7 +217,7 @@ namespace app::test {
             Vector3(0,  outlineSize, 0)
         };
 
-        // 繝ｫ繝ｼ繝励＠縺ｦ4縺､菴懊ｋ
+        // ループして4つ作る
         for (int i = 0; i < 4; ++i) {
             titleOutline[i] = AddUI<sf::ui::TextImage>();
 
@@ -236,7 +236,7 @@ namespace app::test {
         }
 
         // =========================================================
-        // 繝｡繧､繝ｳ譁・ｭ暦ｼ域悽菴難ｼ峨・逕滓・
+        // UI要素を生成
         // =========================================================
         titleText = AddUI<sf::ui::TextImage>();
         titleText->transform.SetPosition(Vector3(0, LAYOUT_TITLE_Y, 0.0f));
@@ -247,7 +247,7 @@ namespace app::test {
             L"SONG SELECT",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             120.0f,
-            D2D1::ColorF(D2D1::ColorF::DeepSkyBlue), // 笘・牡縺ｯ縲檎區縲・
+            D2D1::ColorF(D2D1::ColorF::DeepSkyBlue),
             1024, 240
         );
 
@@ -263,14 +263,14 @@ namespace app::test {
             1800, 200);
 
     // ---------------------------------------------------------
-    // 繧｢繝ｼ繝・ぅ繧ｹ繝亥錐
+    // UI要素を生成
     // ---------------------------------------------------------
         artistText = AddUI<sf::ui::TextImage>();
         artistText->transform.SetPosition(Vector3(0, LAYOUT_ARTIST_Y, LAYOUT_SONG_INFO_Z));
         artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
             device,
-            L"", // 蛻晄悄蛟､
+            L"", // 初期値
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
@@ -285,7 +285,7 @@ namespace app::test {
         bpmText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         bpmText->Create(
             device,
-            L"", // 蛻晄悄蛟､
+            L"", // 初期値
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
@@ -293,10 +293,10 @@ namespace app::test {
         );
 
         // ---------------------------------------------------------
-        // 髮｣譏灘ｺｦ陦ｨ遉ｺ
+        // 難易度表示
         // ---------------------------------------------------------
         difficultyText = AddUI<sf::ui::TextImage>();
-        difficultyText->transform.SetPosition(Vector3(650, -300, 1.0f)); // 繧ｹ繧ｳ繧｢縺ｮ荳・
+        difficultyText->transform.SetPosition(Vector3(650, -300, 1.0f));
         difficultyText->transform.SetScale(Vector3(4.0f, 1.0f, 1.0f));
         difficultyText->Create(
             device,
@@ -308,49 +308,49 @@ namespace app::test {
         );
 
         // ---------------------------------------------------------
-        // 笘・ｿｽ蜉: 繧ｸ繝｣繝ｳ繝ｫ蜷崎｡ｨ遉ｺ (SONG SELECT縺ｮ荳・
+        // UI要素を生成
         // ---------------------------------------------------------
         genreText = AddUI<sf::ui::TextImage>();
-        // SONG SELECT(480) 繧医ｊ荳・(350縺ゅ◆繧・
+        // 位置を更新
         genreText->transform.SetPosition(Vector3(0, LAYOUT_GENRE_Y, 0)); 
         genreText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         genreText->Create(
             device,
             L"", 
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            100.0f, // 蟆代＠螟ｧ縺阪ａ
+            100.0f, // 少し大きめ
             D2D1::ColorF(D2D1::ColorF::Yellow), // 逶ｮ遶九▽濶ｲ
             1024, 200
         );
 
-        // 笘・ｿｽ蜉: 蜑阪・繧ｸ繝｣繝ｳ繝ｫ
+        // UI要素を生成
         prevGenreText = AddUI<sf::ui::TextImage>();
-        prevGenreText->transform.SetPosition(Vector3(-550.0f, LAYOUT_GENRE_Y, 0)); // 蟾ｦ縺ｫ驟咲ｽｮ
-        prevGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // 繧ｵ繧､繧ｺ繝繧ｦ繝ｳ
+        prevGenreText->transform.SetPosition(Vector3(-550.0f, LAYOUT_GENRE_Y, 0)); // 左に配置
+        prevGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
         prevGenreText->Create(
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            50.0f, // 繝輔か繝ｳ繝医し繧､繧ｺ繝繧ｦ繝ｳ (70 -> 50)
+            50.0f, // フォントサイズダウン (70 -> 50)
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
         );
 
-        // 笘・ｿｽ蜉: 谺｡縺ｮ繧ｸ繝｣繝ｳ繝ｫ
+        // UI要素を生成
         nextGenreText = AddUI<sf::ui::TextImage>();
-        nextGenreText->transform.SetPosition(Vector3(550.0f, LAYOUT_GENRE_Y, 0)); // 蜿ｳ縺ｫ驟咲ｽｮ
-        nextGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // 繧ｵ繧､繧ｺ繝繧ｦ繝ｳ
+        nextGenreText->transform.SetPosition(Vector3(550.0f, LAYOUT_GENRE_Y, 0)); // 右に配置
+        nextGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
         nextGenreText->Create(
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            50.0f, // 繝輔か繝ｳ繝医し繧､繧ｺ繝繧ｦ繝ｳ (70 -> 50)
+            50.0f, // フォントサイズダウン (70 -> 50)
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
         );
 
-        // 笘・ｿｽ蜉: 繝上う繧ｹ繧ｳ繧｢
-        // 笘・ｿｽ蜉: 繝上う繧ｹ繧ｳ繧｢
+        // UI要素を生成
+        // UI要素を生成
         highScoreText = AddUI<sf::ui::TextImage>();
         highScoreText->transform.SetPosition(Vector3(650, -400, 1.0f)); 
         highScoreText->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f));
@@ -360,10 +360,10 @@ namespace app::test {
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             40.0f,
             D2D1::ColorF(D2D1::ColorF::White),
-            1536, 128  // 讓ｪ蟷・ｒ1024縺九ｉ1536縺ｫ諡｡螟ｧ
+            1536, 128
         );
 
-        // 笘・ｿｽ蜉: 繝ｩ繝ｳ繧ｯ繝槭・繧ｯ
+        // UI要素を生成
         rankMark = AddUI<sf::ui::TextImage>();
         rankMark->transform.SetPosition(Vector3(800, -350, 1.0f)); 
         rankMark->transform.SetScale(Vector3(3.0f, 3.0f, 1.0f));
@@ -377,9 +377,9 @@ namespace app::test {
         );
 
 
-        // 笘・ｿｽ蜉: 繝励Ξ繧､繝､繝ｼ繝ｬ繝ｼ繝郁｡ｨ遉ｺ・亥ｷｦ荳具ｼ・
+        // UI要素を生成
         playerRatingText = AddUI<sf::ui::TextImage>();
-        playerRatingText->transform.SetPosition(Vector3(-750, -450, 1.0f)); // 蟾ｦ荳・
+        playerRatingText->transform.SetPosition(Vector3(-750, -450, 1.0f));
         playerRatingText->transform.SetScale(Vector3(6.0f, 1.5f, 1.0f));
         playerRatingText->Create(
             device,
@@ -390,27 +390,27 @@ namespace app::test {
             1024, 128
         );
 
-        // 繝励Ξ繧､繝､繝ｼ繝ｬ繝ｼ繝医ｒ險育ｮ励＠縺ｦ陦ｨ遉ｺ・亥ｰ乗焚轤ｹ隨ｬ2菴阪〒蛻・ｊ謐ｨ縺ｦ・・
+        // 処理本体
         float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
-        // 蛻・ｊ謐ｨ縺ｦ: 100蛟阪＠縺ｦ謨ｴ謨ｰ驛ｨ蛻・ｒ蜿悶ｊ縲・00縺ｧ蜑ｲ繧・
+        // 処理本体
         float truncatedRating = std::floor(playerRating * 100.0f) / 100.0f;
         wchar_t ratingBuf[64];
         swprintf_s(ratingBuf, L"Rating: %.2f", truncatedRating);
         playerRatingText->SetText(ratingBuf);
 
-        // 笘・ｿｽ蜉: 繝ｬ繝ｼ繝郁ｩｳ邏ｰ陦ｨ遉ｺUI・亥・譛溘・髱櫁｡ｨ遉ｺ・・
-        // 閭梧勹逕ｨ繝・け繧ｹ繝√Ε繧定ｪｭ縺ｿ霎ｼ繧・域里蟄倥・閭梧勹繧貞・蛻ｩ逕ｨ・・
+        // テクスチャを読み込む
+        // テクスチャを読み込む
         ratingDetailBackgroundTexture.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
         
-        // 蜊企乗・閭梧勹・亥ｷｦ蛛ｴ縺ｫ驟咲ｽｮ・・
+        // UI要素を生成
         ratingDetailBackground = AddUI<sf::ui::Image>();
-        ratingDetailBackground->transform.SetPosition(Vector3(-550, 0, 5.0f)); // 繝・く繧ｹ繝医ｈ繧雁･･縺ｫ
-        ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f)); // 10蛟阪↓諡｡螟ｧ
+        ratingDetailBackground->transform.SetPosition(Vector3(-550, 0, 5.0f));
+        ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f)); // 10倍に拡大
         ratingDetailBackground->material.texture = &ratingDetailBackgroundTexture;
-        ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f}); // 鮟偵・0%荳埼乗・
+        ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f}); // 半透明の黒（90%）
         ratingDetailBackground->SetVisible(false);
 
-        // "RATING" 繝ｩ繝吶Ν・井ｸ逡ｪ荳奇ｼ・
+        // "RATING" ラベル（最上段）
         ratingDetailLabelText = AddUI<sf::ui::TextImage>();
         ratingDetailLabelText->transform.SetPosition(Vector3(-650, 460, 10.0f));
         ratingDetailLabelText->transform.SetScale(Vector3(6.0f, 2.0f, 1.0f));
@@ -424,7 +424,7 @@ namespace app::test {
         );
         ratingDetailLabelText->SetVisible(false);
 
-        // 蜷郁ｨ医Ξ繝ｼ繝郁｡ｨ遉ｺ・医Λ繝吶Ν縺ｮ荳具ｼ・
+        // UI要素を生成
         ratingDetailTotalText = AddUI<sf::ui::TextImage>();
         ratingDetailTotalText->transform.SetPosition(Vector3(-650, 380, 10.0f)); // 400 -> 380
         ratingDetailTotalText->transform.SetScale(Vector3(10.0f, 3.0f, 1.0f));
@@ -432,13 +432,13 @@ namespace app::test {
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            100.0f, // 螟ｧ縺阪￥
+            100.0f, // 大きく
             D2D1::ColorF(D2D1::ColorF::Cyan),
             1024, 200
         );
         ratingDetailTotalText->SetVisible(false);
 
-        // 繧ｿ繧､繝医Ν・亥粋險医Ξ繝ｼ繝医・荳具ｼ・
+        // UI要素を生成
         ratingDetailTitle = AddUI<sf::ui::TextImage>();
         ratingDetailTitle->transform.SetPosition(Vector3(-650, 280, 10.0f)); // 300 -> 280
         ratingDetailTitle->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
@@ -452,11 +452,11 @@ namespace app::test {
         );
         ratingDetailTitle->SetVisible(false);
 
-        // 隧ｳ邏ｰ繝ｪ繧ｹ繝茨ｼ・0陦後∝ｷｦ蛛ｴ・・
+        // ループ処理
         for (int i = 0; i < 10; ++i) {
             auto* line = AddUI<sf::ui::TextImage>();
             line->transform.SetPosition(Vector3(-650, 200 - i * 70, 10.0f)); // 220 -> 200
-            line->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f)); // 蟆代＠蟆上＆縺・
+            line->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f));
             line->Create(
                 device,
                 L"",
@@ -473,9 +473,9 @@ namespace app::test {
 
     }
 
-    // ===== 繧ｸ繝｣繧ｱ繝・ヨ蜀肴ｧ狗ｯ・=====
+    // ジャケット表示を更新
     void SelectCanvas::RebuildJacketPool() {
-        // 蜈ｨ縺ｦ荳譌ｦ髱櫁｡ｨ遉ｺ
+        // 全て一旦非表示
         for (auto* img : jacketComponents) {
             if (img) img->SetVisible(false);
         }
@@ -483,10 +483,10 @@ namespace app::test {
 
         if (songs.empty()) return;
 
-        // 蠢・ｦ∵焚繧定ｨ育ｮ・
+        // 処理本体
         const int poolSize = std::min<int>(MAX_VISIBLE, std::max<int>(3, (int)songs.size()));
         
-        // 莠句燕逕滓・貂医∩繧ｳ繝ｳ繝昴・繝阪Φ繝医°繧牙牡繧雁ｽ薙※
+        // ループ処理
         for (int i = 0; i < poolSize; ++i) {
             if (i < (int)jacketComponents.size()) {
                  auto* jacket = jacketComponents[i];
@@ -500,7 +500,7 @@ namespace app::test {
     void SelectCanvas::Update(const sf::command::ICommand& command) {
         animationTime += sf::Time::DeltaTime();
 
-        // 繝ｬ繝ｼ繝・ぅ繝ｳ繧ｰ隧ｳ邏ｰ繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ譖ｴ譁ｰ
+        // 条件分岐
         if (showRatingDetail && ratingDetailAnimationTimer < 1.0f) {
             ratingDetailAnimationTimer += sf::Time::DeltaTime() / RATING_DETAIL_ANIMATION_DURATION;
             if (ratingDetailAnimationTimer > 1.0f) ratingDetailAnimationTimer = 1.0f;
@@ -515,7 +515,7 @@ namespace app::test {
     }
 
 
-    // ===== 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ =====
+    // ===== アニメーション =====
     void SelectCanvas::UpdateAnimation() {
         // ... (existing slide logic) ...
 
@@ -612,63 +612,63 @@ namespace app::test {
             slideTimer = 0.0f;
         }
 
-        // 繝ｬ繝ｼ繝・ぅ繝ｳ繧ｰ隧ｳ邏ｰ陦ｨ遉ｺ縺ｮ繧ｹ繝ｩ繧､繝峨う繝ｳ繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ・井ｸ九°繧我ｸ翫↓繧ｹ繝ｩ繧､繝会ｼ・
+        // 条件分岐
         if (ratingDetailAnimationTimer > 0.0f) {
-            // 繧､繝ｼ繧ｸ繝ｳ繧ｰ驕ｩ逕ｨ・・aseOutExpo縺ｧ繧ｷ繝･繝・→蜃ｺ縺ｦ縺上ｋ諢溘§縺ｫ・・
+            // レーティング詳細UIを更新
             float easedTimer = (float)Easing(ratingDetailAnimationTimer, EASE::EaseOutExpo);
             
-            // 繧ｹ繝ｩ繧､繝峨う繝ｳ縺ｮ繧ｪ繝輔そ繝・ヨ險育ｮ暦ｼ井ｸ九°繧会ｼ・
-            // 逕ｻ髱｢螟厄ｼ井ｸ具ｼ峨°繧牙ｮ壻ｽ咲ｽｮ・・・峨∈遘ｻ蜍・
+            // 処理本体
+            // 処理本体
             const float startOffsetY = -1080.0f;
             float currentOffsetY = startOffsetY * (1.0f - easedTimer);
             
-            // X蠎ｧ讓吶・菴咲ｽｮ隱ｿ謨ｴ・亥ｷｦ縺ｫ隧ｰ繧√ｋ・・-550 -> -750 -> -650・・
+            // 処理本体
             const float uiX = -650.0f;
 
-            // 閭梧勹縺ｮ譖ｴ譁ｰ
+            // 背景の更新
             if (ratingDetailBackground) {
-                // 菴咲ｽｮ繧呈峩譁ｰ・・縺ｯ蝗ｺ螳壹〆縺ｯ繧ｹ繝ｩ繧､繝峨〇縺ｯ縺昴・縺ｾ縺ｾ・・
+                // 位置を更新
                 ratingDetailBackground->transform.SetPosition(Vector3(uiX, 0.0f + currentOffsetY, 5.0f));
-                // 繧ｹ繧ｱ繝ｼ繝ｫ縺ｯ蝗ｺ螳夲ｼ域怙螟ｧ繧ｵ繧､繧ｺ・・
+                // スケールを更新
                 ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f));
                 ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.50f * easedTimer});
                 ratingDetailBackground->SetVisible(true);
             }
             
-            // 繝ｩ繝吶Ν縺ｮ譖ｴ譁ｰ
+            // ラベルの更新
             if (ratingDetailLabelText) {
-                // 螳壻ｽ咲ｽｮ(460) + 繧ｪ繝輔そ繝・ヨ
+                // 位置を更新
                 ratingDetailLabelText->transform.SetPosition(Vector3(uiX, 460.0f + currentOffsetY, 10.0f));
                 ratingDetailLabelText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer});
                 ratingDetailLabelText->SetVisible(true);
             }
 
-            // 蜷郁ｨ医Ξ繝ｼ繝医・譖ｴ譁ｰ
+            // 合計レートの更新
             if (ratingDetailTotalText) {
-                // 螳壻ｽ咲ｽｮ(380) + 繧ｪ繝輔そ繝・ヨ
+                // 位置を更新
                 ratingDetailTotalText->transform.SetPosition(Vector3(uiX, 380.0f + currentOffsetY, 10.0f));
-                ratingDetailTotalText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer}); // 繧ｷ繧｢繝ｳ縺ｧ逶ｮ遶九◆縺帙ｋ
+                ratingDetailTotalText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer}); // シアンで目立たせる
                 ratingDetailTotalText->SetVisible(true);
             }
             
-            // 繧ｿ繧､繝医Ν縺ｮ譖ｴ譁ｰ
+            // タイトルの更新
             if (ratingDetailTitle) {
-                // 螳壻ｽ咲ｽｮ(280) + 繧ｪ繝輔そ繝・ヨ
+                // 位置を更新
                 ratingDetailTitle->transform.SetPosition(Vector3(uiX, 280.0f + currentOffsetY, 10.0f));
                 ratingDetailTitle->material.SetColor({1.0f, 1.0f, 0.0f, easedTimer});
                 ratingDetailTitle->SetVisible(true);
             }
             
-            // 繝ｪ繧ｹ繝医・譖ｴ譁ｰ
+            // 処理本体
             int lineIndex = 0;
             for (auto* line : ratingDetailLines) {
                 if (line) {
-                    // 螳壻ｽ咲ｽｮ(200 - i*70) + 繧ｪ繝輔そ繝・ヨ
+                    // 処理本体
                     float baseLineY = 200.0f - lineIndex * 70.0f;
                     line->transform.SetPosition(Vector3(uiX, baseLineY + currentOffsetY, 10.0f));
                     line->material.SetColor({1.0f, 1.0f, 1.0f, easedTimer});
                     
-                    // 繧ｫ繧ｦ繝ｳ繝医↓蝓ｺ縺･縺・※陦ｨ遉ｺ蛻ｶ蠕｡
+                    // 条件分岐
                     if (lineIndex < ratingDetailItemCount) {
                         line->SetVisible(true);
                     } else {
@@ -678,7 +678,7 @@ namespace app::test {
                 lineIndex++;
             }
         } else {
-            // 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ邨ゆｺ・凾縺ｯ髱櫁｡ｨ遉ｺ
+            // 条件分岐
             if (ratingDetailBackground) ratingDetailBackground->SetVisible(false);
             if (ratingDetailLabelText) ratingDetailLabelText->SetVisible(false);
             if (ratingDetailTitle) ratingDetailTitle->SetVisible(false);
@@ -689,7 +689,7 @@ namespace app::test {
         }
     }
 
-    // ===== 繧ｸ繝｣繧ｱ繝・ヨ驟咲ｽｮ譖ｴ譁ｰ =====
+    // ジャケット表示を更新
     void SelectCanvas::UpdateJacketPositions() {
         if (songs.empty() || jacketPool.empty()) return;
         const int N = (int)songs.size();
@@ -719,7 +719,7 @@ namespace app::test {
         }
     }
 
-    // ===== 譫譖ｴ譁ｰ =====
+    // ===== 選択枠更新 =====
     void SelectCanvas::UpdateSelectedFrame() {
         if (songs.empty() || jacketPool.empty()) {
             if (selectFrame) selectFrame->SetVisible(false);
@@ -731,7 +731,7 @@ namespace app::test {
         selectFrame->SetVisible(true);
     }
 
-    // ===== 谺｡縺ｸ =====
+    // ===== 次へ =====
     void SelectCanvas::SelectNext() {
         if (songs.empty()) return;
         const int N = (int)songs.size();
@@ -746,19 +746,19 @@ namespace app::test {
             songTitleText->SetText(title);
         }
 
-        // 繧｢繝ｼ繝・ぅ繧ｹ繝域峩譁ｰ
+        // 条件分岐
         if (artistText) {
             std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
             artistText->SetText(artist);
         }
 
-        // BPM譖ｴ譁ｰ
+        // BPM更新
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
         }
 
-        // 髮｣譏灘ｺｦ譖ｴ譁ｰ
+        // 難易度更新
         if (difficultyText) {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
@@ -780,7 +780,7 @@ namespace app::test {
         }
 
 
-        // 笘・枚蟄怜喧縺大ｯｾ遲・ Shift-JIS螟画鋤縺励※繝ｭ繧ｰ蜃ｺ蜉・
+        // デバッグログを出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
         
         PlayPreview();
@@ -800,19 +800,19 @@ namespace app::test {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
-        // 繧｢繝ｼ繝・ぅ繧ｹ繝域峩譁ｰ
+        // 条件分岐
         if (artistText) {
             std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
             artistText->SetText(artist);
         }
 
-        // BPM譖ｴ譁ｰ
+        // BPM更新
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
         }
 
-        // 髮｣譏灘ｺｦ譖ｴ譁ｰ
+        // 難易度更新
         if (difficultyText) {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
@@ -833,14 +833,14 @@ namespace app::test {
             }
         }
 
-        // 笘・枚蟄怜喧縺大ｯｾ遲・
+        // デバッグログを出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
 
         PlayPreview();
     }
 
     void SelectCanvas::CancelSelection() {
-        // MVP: Presenter縺ｫ繧ｷ繝ｼ繝ｳ驕ｷ遘ｻ繧貞ｧ碑ｭｲ
+        // MVP: Presenterにシーン遷移を委譲
         if (presenter) {
             presenter->NavigateToTitle();
         }
@@ -851,7 +851,7 @@ namespace app::test {
 
         const SongInfo& selected = songs[targetIndex];
 
-        // MVP: Presenter縺ｫ繧ｷ繝ｼ繝ｳ驕ｷ遘ｻ繧貞ｧ碑ｭｲ
+        // MVP: Presenterにシーン遷移を委譲
         if (presenter) {
             presenter->NavigateToGame(selected);
         }
@@ -875,7 +875,7 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // UI譖ｴ譁ｰ
+        // UI更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
@@ -891,7 +891,7 @@ namespace app::test {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
         }
-        // Score & Rank譖ｴ譁ｰ
+        // Score & Rank 更新
         if (highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
             if (record.highScore > 0) {
@@ -918,14 +918,14 @@ namespace app::test {
         showRatingDetail = show;
         
         if (show && ratingDetailTotalText) {
-            // 蜷郁ｨ医Ξ繝ｼ繝郁ｨｭ螳・
+            // 処理本体
             float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
             float truncated = std::floor(playerRating * 100.0f) / 100.0f;
             wchar_t totalBuf[64];
             swprintf_s(totalBuf, L"%.2f", truncated);
             ratingDetailTotalText->SetText(totalBuf);
             
-            // 隧ｳ邏ｰ繝ｪ繧ｹ繝郁ｨｭ螳・
+            // 処理本体
             auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
             ratingDetailItemCount = std::min<int>((int)topCharts.size(), (int)ratingDetailLines.size());
             
@@ -945,9 +945,9 @@ namespace app::test {
         }
     }
 
-    // ===== 繝励Ξ繝薙Η繝ｼ蜀咲函 =====
+    // ===== プレビュー再生 =====
     void SelectCanvas::PlayPreview() {
-        // 蜑阪・譖ｲ繧呈ｭ｢繧√ｋ
+        // プレビュー再生を制御
         previewPlayer.Stop();
         previewResource = nullptr;
 
@@ -958,39 +958,39 @@ namespace app::test {
 
         if (info.musicPath.empty()) return;
 
-        // 繝代せ繧担hift-JIS縺ｫ螟画鋤
+        // パスをShift-JISに変換
         std::string sjisPath = Utf8ToShiftJis(info.musicPath);
 
-        // 譁ｰ縺励＞繝ｪ繧ｽ繝ｼ繧ｹ繧剃ｽ懈・
+        // 処理本体
         previewResource = new sf::sound::SoundResource();
 
-        // 繝ｭ繝ｼ繝牙､ｱ謨励＠縺溘ｉ蜀咲函縺励↑縺・
+        // 条件分岐
         if (FAILED(previewResource.Target()->LoadSound(sjisPath, true))) { // true = loop
             sf::debug::Debug::Log("Preview Load Failed: " + sjisPath);
             return;
         }
 
         previewPlayer.SetResource(previewResource);
-        previewPlayer.SetVolume(gAudioVolume.master * gAudioVolume.bgm); // 蠢・ｦ√↓蠢懊§縺ｦ隱ｿ謨ｴ
+        previewPlayer.SetVolume(gAudioVolume.master * gAudioVolume.bgm);
         previewPlayer.Play(info.previewStartTime);
     }
 
-    // ===== 繧ｸ繝｣繝ｳ繝ｫ螟画峩 =====
+    // ===== ジャンル変更 =====
     void SelectCanvas::ChangeGenre(int direction) {
-        // 迴ｾ蝨ｨ縺ｮ繧ｸ繝｣繝ｳ繝ｫ + direction 縺ｧ谺｡/蜑阪・繧ｸ繝｣繝ｳ繝ｫ縺ｫ遘ｻ蜍・
+        // 楽曲リスト情報を更新
         int currentIdx = songListService.GetCurrentGenreIndex();
         int newIdx = currentIdx + direction;
-        // SongListService縺ｫ繧ｸ繝｣繝ｳ繝ｫ螟画峩繧貞ｧ碑ｭｲ・亥ｾｪ迺ｰ蜃ｦ逅・・SongListService蜀・〒陦後ｏ繧後ｋ・・
+        // 楽曲リスト情報を更新
         songs = songListService.ChangeGenre(newIdx);
         
-        // 驕ｸ謚槭Μ繧ｻ繝・ヨ
+        // 処理本体
         targetIndex = 0;
         selectedIndex = 0;
         currentIndex = 0.0f;
         slideStartIdx = 0.0f;
         slideTimer = 0.0f;
 
-        // 繧ｿ繧､繝医Ν遲画峩譁ｰ
+        // タイトル等更新
         if (!songs.empty()) {
             if (songTitleText) songTitleText->SetText(Utf8ToWstring(songs[0].title));
             if (artistText)    artistText->SetText(Utf8ToWstring(songs[0].artist));
@@ -1012,7 +1012,7 @@ namespace app::test {
             }
         }
 
-        // 繧ｸ繝｣繝ｳ繝ｫ蜷肴峩譁ｰ
+        // ジャンル名更新
         const auto& allGenres = songListService.GetAllGenres();
         int currentGenreIndex = songListService.GetCurrentGenreIndex();
         int N = (int)allGenres.size();
@@ -1021,7 +1021,7 @@ namespace app::test {
             genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
         }
 
-        // 蜑榊ｾ後・繧ｸ繝｣繝ｳ繝ｫ蜷肴峩譁ｰ
+        // 条件分岐
         if (prevGenreText && N > 0) {
             int prevIdx = (currentGenreIndex - 1 + N) % N;
             prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
@@ -1031,7 +1031,7 @@ namespace app::test {
             nextGenreText->SetText(Utf8ToWstring(allGenres[nextIdx].name));
         }
 
-        // 笘・ｿｮ豁｣: jacketTextures 縺ｮ蜀阪Ο繝ｼ繝・
+        // ジャケット表示を更新
         jacketTextures.clear();
         jacketTextures.resize(songs.size());
         
