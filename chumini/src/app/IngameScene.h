@@ -1,7 +1,7 @@
-﻿#pragma once
+#pragma once
 #include "App.h"
 
-#include "sf/Time.h"        // for sf::Time::DeltaTime()
+#include "sf/Time.h"
 #include <fstream>
 #include <sstream>
 #include <algorithm>
@@ -15,12 +15,12 @@
 
 namespace app { namespace test { class BGMComponent; } }
 
-
-
 namespace app
 {
 	namespace test
 	{
+		/// インゲームシーン
+		/// レーン配置・ノート管理・カウントダウン・BGM同期・背景演出を総合管理する
 		class IngameScene :public sf::Scene<IngameScene>
 		{
 		public:
@@ -30,7 +30,6 @@ namespace app
 
 			void OnActivated() override;
 
-			// 補助処理
 			~IngameScene();
 
             void Draw() override;
@@ -41,88 +40,75 @@ namespace app
 
 			sf::ref::Ref<sf::Actor> GetPlayerActor() const { return playerActor; }
 
-			//--------------
-			/*const float panelW = 20.0f;
-			const float panelH = 30.0f;
-			const Vector3 panelPos{ -5.0f, 0.0f, 10.0f }; 
-
-			const float laneW = panelW / lanes;*/
-			// -------------------------------------------これらを排除して新しい設定にする
-
-			const int lanes = 4;           // レーン数
+			// ===== レーンパラメータ =====
+			const int lanes = 4;           // メインレーン数
 			const float laneW = 3.0f;      // レーン幅
-			const float laneH = 50.0f;     // レーン長
-			const float rotX = -10.0f;
-			const float baseY = 0.0f;
+			const float laneH = 50.0f;     // レーン奥行き
+			const float rotX = -10.0f;     // X軸回転角度（度）
+			const float baseY = 0.0f;      // レーン基準Y座標
+			const float barRatio = 0.1f;   // 判定ラインの位置比率
 
-			const float barRatio = 0.1f;
+			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;  // レーンパネルアクター
+			std::vector<sf::ref::Ref<sf::Actor>> clickLanes;  // クリック判定レーン
 
-			std::vector<sf::ref::Ref<sf::Actor>> lanePanels;
-			std::vector<sf::ref::Ref<sf::Actor>> clickLanes;
-
-			sf::ref::Ref<sf::Actor> managerActor;
-
-			sf::ref::Ref<sf::Actor> judgeBar;
+			sf::ref::Ref<sf::Actor> managerActor;  // マネージャーアクター
+			sf::ref::Ref<sf::Actor> judgeBar;      // 判定バーアクター
 
 			void SetSelectedSong(const SongInfo& song) { selectedSong = song; }
 			const SongInfo& GetSelectedSong() const { return selectedSong; }
 
-            // Trigger visual glitch for Skill Notes
+            /// スキルノート発動時の視覚エフェクトをトリガーする
             void TriggerSkillEffect();
 
-            // 処理本体
+            /// 現在のゲームセッションを取得する
             GameSession& GetGameSession() { return gameSession; }
 
 		private:
 			
+			// --- ステートマシン ---
 			enum class State {
-				Idle,
-				Countdown,
-				Playing
+				Idle,       // 待機
+				Countdown,  // カウントダウン中
+				Playing     // プレイ中
 			};
 			State state = State::Idle;
-			float countdownTimer = 0.0f;
-			float startDisplayTimer = 0.0f;
-            float skillEffectTimer = 0.0f; // Effect duration timer
+			float countdownTimer = 0.0f;       // カウントダウン残り時間
+			float startDisplayTimer = 0.0f;    // 「START」表示の残り時間
+            float skillEffectTimer = 0.0f;     // スキルエフェクトの残り時間
 
-			bool isPlaying = false;
+			bool isPlaying = false;            // ゲーム開始済みフラグ
 
-			void StartGame();
+			void StartGame();                  // ゲーム開始処理
 
+			// --- 楽曲情報 ---
 			SongInfo selectedSong;
-			std::vector<sf::ref::Ref<sf::Actor>> laneEdges;
+			std::vector<sf::ref::Ref<sf::Actor>> laneEdges;  // レーン外枠アクター
 
-			// 処理本体
-			sf::command::Command<> updateCommand;
+			sf::command::Command<> updateCommand;  // 更新コマンド
 
-			// 処理本体
-			sf::geometry::GeometryCube g_cube;
+			sf::geometry::GeometryCube g_cube;     // 共通キューブジオメトリ
 
-			sf::ref::Ref<sf::Actor> playerActor;
+			sf::ref::Ref<sf::Actor> playerActor;   // プレイヤーアクター
 
-			std::vector<NoteData> noteSequence;
+			std::vector<NoteData> noteSequence;    // ノートシーケンス
 			size_t nextIndex = 0;
-			//float leadTime = 1.5f;
 
+			sf::SafePtr<app::test::BGMComponent> bgmPlayer;        // BGMプレイヤー
+			sf::SafePtr<app::test::Live2DComponent> l2dComp;       // Live2Dコンポーネント
 
-			sf::SafePtr<app::test::BGMComponent> bgmPlayer;
-			
-			sf::SafePtr<app::test::Live2DComponent> l2dComp;
+            // --- スキルSE ---
+            sf::ref::Ref<sf::sound::SoundResource> skillSeResource;  // スキルSEリソース
+            sf::SafePtr<sf::sound::SoundPlayer> skillSePlayer;       // スキルSEプレイヤー
 
-            // Skill SE
-            sf::ref::Ref<sf::sound::SoundResource> skillSeResource;
-            sf::SafePtr<sf::sound::SoundPlayer> skillSePlayer;
-
-            // Background Objects (3D Primitives)
+            // --- 背景オブジェクト（3Dプリミティブ） ---
             struct BgObject {
-                sf::ref::Ref<sf::Actor> actor;
-                Vector3 rotVel;
-                Vector3 moveVel;
+                sf::ref::Ref<sf::Actor> actor;  // 背景オブジェクトアクター
+                Vector3 rotVel;                 // 回転速度
+                Vector3 moveVel;                // 移動速度
             };
             std::vector<BgObject> bgObjects;
 
-            // 処理本体
-            GameSession gameSession;
+            GameSession gameSession;  // ゲームセッションデータ
 		};
 	}
 }

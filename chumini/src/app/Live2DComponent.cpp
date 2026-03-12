@@ -1,28 +1,29 @@
-﻿#include "Live2DComponent.h"
+#include "Live2DComponent.h"
 #include "Live2DManager.h"
 #include "DirectX11.h"
 #include "Actor.h"
-#include "Scene.h" // IScene定義用
+#include "Scene.h"
 
 using namespace app::test;
 using namespace sf;
 
 namespace {
-    std::mutex s_live2dGlobalMutex;
-    std::mutex s_live2dSdkInitMutex;
+    std::mutex s_live2dGlobalMutex;    // Live2D SDK全体のグローバルミューテックス
+    std::mutex s_live2dSdkInitMutex;   // SDK静的リソース初期化用ミューテックス
 }
 
+/// 初期化処理 - Live2Dマネージャーを初期化する
 void Live2DComponent::Begin() {
-    // Live2D関連処理
     Live2DManager::GetInstance()->Initialize();
 }
 
+/// モデルファイルを読み込み、レンダラーを準備する
 void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileName) {
     std::scoped_lock lock(s_live2dGlobalMutex, m_drawMutex);
-    OutputDebugStringA("Live2DComponent::LoadModel - Start\n");
 
     Live2DManager::GetInstance()->Initialize();
 
+    // DirectX11デバイスの取得と検証
     auto* dx11 = sf::dx::DirectX11::Instance();
     if (!dx11) {
         OutputDebugStringA("Live2DComponent::LoadModel - [ERROR] DirectX11 instance is null!\n");
@@ -35,12 +36,14 @@ void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileN
         return;
     }
 
+    // デバイスロスト状態のチェック
     const HRESULT removedReason = device->GetDeviceRemovedReason();
     if (FAILED(removedReason)) {
         OutputDebugStringA("Live2DComponent::LoadModel - [ERROR] Device removed before model load.\n");
         return;
     }
 
+    // 既存モデルがあれば解放
     if (_model) {
         delete _model;
         _model = nullptr;
@@ -48,127 +51,95 @@ void Live2DComponent::LoadModel(const std::string& dir, const std::string& fileN
 
     _model = new AppModel();
 
+    // SDK静的リソースの初期化（デバイスごとに1回のみ）
     {
         std::lock_guard<std::mutex> sdkLock(s_live2dSdkInitMutex);
         static ID3D11Device* s_initializedDevice = nullptr;
         if (s_initializedDevice != device) {
-            OutputDebugStringA("Live2DComponent::LoadModel - Initializing Static SDK Resources...\n");
             Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::InitializeConstantSettings(1, device);
             Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::GenerateShader(device);
             s_initializedDevice = device;
-            OutputDebugStringA("Live2DComponent::LoadModel - Static SDK Resources Initialized.\n");
-        }
-        else {
-            OutputDebugStringA("Live2DComponent::LoadModel - Static SDK Resources already initialized for this device.\n");
         }
     }
 
-    OutputDebugStringA("Live2DComponent::LoadModel - Calling _model->LoadAssets...\n");
+    // モデルアセットの読み込み
     _model->LoadAssets(device, dir, fileName);
-    OutputDebugStringA("Live2DComponent::LoadModel - _model->LoadAssets finished.\n");
-
-    auto renderer = _model->GetMyRenderer();
-    if (renderer) {
-        OutputDebugStringA("Live2DComponent::LoadModel - Renderer Ready.\n");
-    }
-    else {
-        OutputDebugStringA("Live2DComponent::LoadModel - [WARNING] Renderer is null after LoadAssets.\n");
-    }
 }
 
+/// モデルの更新処理（モーション・物理演算の進行）
 void Live2DComponent::Update() {
     if (_model) {
         _model->Update();
     }
 }
 
+/// モーションを再生する
 void Live2DComponent::PlayMotion(const char* group, int no, int priority) {
     if (_model) {
         _model->StartMotion(group, no, priority);
     }
 }
 
+/// グリッチモーションを再生する
 void Live2DComponent::StartGlitchMotion(const char* group, int no) {
     if (_model) {
         _model->StartGlitchMotion(group, no);
     }
 }
 
+/// 視線追従の目標座標を設定する
 void Live2DComponent::SetDragging(float x, float y) {
     if (_model) {
         _model->SetDragging(x, y);
     }
 }
 
+/// Live2Dモデルの描画処理
 void Live2DComponent::Draw() {
-    // Live2D関連処理
     std::scoped_lock lock(s_live2dGlobalMutex, m_drawMutex);
     
-    // 条件分岐
-    if (m_isDestroyed) {
-        OutputDebugStringA("Live2DComponent::Draw - SKIPPED (destroyed)\n");
-        return;
-    }
+    // 破棄済みなら描画をスキップ
+    if (m_isDestroyed) return;
 
-    // 処理本体
+    // シーンが非アクティブなら描画をスキップ
     auto owner = actorRef.Target();
-    if (!owner || !owner->GetScene().IsActivate()) {
-        OutputDebugStringA("Live2DComponent::Draw - SKIPPED (scene deactivated)\n");
-        return;
-    }
+    if (!owner || !owner->GetScene().IsActivate()) return;
 
     if (!_model) return;
 
+    // DirectX11デバイス・コンテキストの取得
     auto* dx11 = sf::dx::DirectX11::Instance();
     if (!dx11) return;
 
     auto device = dx11->GetMainDevice().GetDevice();
     auto context = dx11->GetMainDevice().GetContext();
 
-    // 条件分岐
-    if (!device || !context) {
-        OutputDebugStringA("Live2DComponent::Draw - Device or Context is null, skipping draw.\n");
-        return;
-    }
+    if (!device || !context) return;
 
+    // デバイスロスト状態のチェック
     const HRESULT removedReason = device->GetDeviceRemovedReason();
-    if (FAILED(removedReason)) {
-        OutputDebugStringA("Live2DComponent::Draw - Device removed, skipping draw.\n");
-        return;
-    }
+    if (FAILED(removedReason)) return;
 
-    // Live2Dの描画
-
-    // =========================================================
-    // 処理本体
-    // =========================================================
+    // ビューポートの取得と検証
     UINT numViewports = 1;
     D3D11_VIEWPORT vp = {};
     context->RSGetViewports(&numViewports, &vp);
 
-    // 条件分岐
-    if (numViewports == 0 || vp.Width <= 0.0f || vp.Height <= 0.0f) {
-        OutputDebugStringA("Live2DComponent::Draw - Invalid viewport, skipping draw.\n");
-        return;
-    }
+    if (numViewports == 0 || vp.Width <= 0.0f || vp.Height <= 0.0f) return;
 
+    // ===== Live2D描画メインブロック =====
     try {
-        OutputDebugStringA("Live2DComponent::Draw - Before StartFrame\n");
+        // フレーム開始
         Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::StartFrame(device, context, (csmUint32)vp.Width, (csmUint32)vp.Height);
-        OutputDebugStringA("Live2DComponent::Draw - After StartFrame\n");
 
         auto renderer = _model->GetMyRenderer();
         if (renderer) {
             renderer->SetDefaultRenderState();
 
-            // =========================================================
-            // デバッグログを出力
-            // =========================================================
-
-            // デバッグログを出力
+            // プリミティブトポロジーを設定
             context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-            // 処理本体
+            // キャッシュ済みパイプラインステートを適用
             InitCachedStates(device);
             
             if (m_cachedBlendState) {
@@ -184,12 +155,12 @@ void Live2DComponent::Draw() {
                 context->OMSetDepthStencilState(m_cachedDepthState, 0);
             }
 
-            // 処理本体
+            // 不要なシェーダーステージを無効化
             context->GSSetShader(nullptr, nullptr, 0);
             context->HSSetShader(nullptr, nullptr, 0);
             context->DSSetShader(nullptr, nullptr, 0);
 
-            // 陦悟・險育ｮ・
+            // 投影行列の設定
             Live2D::Cubism::Framework::CubismMatrix44 matrix;
             matrix.LoadIdentity();
 
@@ -198,81 +169,69 @@ void Live2DComponent::Draw() {
 
             float aspect = vp.Width / vp.Height;
             
-            // 処理本体
+            // キャンバス高さに基づくスケーリング（NDCに正規化）
             float scale = 2.0f / modelCanvasH; 
             matrix.Scale(scale / aspect, scale);
 
-            // Apply Actor Transform (Position & Scale)
+            // アクターのトランスフォーム（位置・スケール）を行列に適用
             if (auto owner = actorRef.Target()) {
                 Vector3 pos = owner->transform.GetPosition();
                 Vector3 scl = owner->transform.GetScale();
-                
-                // Translate first or after? 
-                // In CubismMatrix, operations are multiplied.
-                // We want to move the fitted model.
                 matrix.Translate(pos.x, pos.y);
                 matrix.Scale(scl.x, scl.y);
             }
 
-            OutputDebugStringA("Live2DComponent::Draw - Before Model Draw\n");
+            // モデル描画
             _model->Draw(device, context, matrix);
-            OutputDebugStringA("Live2DComponent::Draw - After Model Draw\n");
         }
 
+        // フレーム終了
         Live2D::Cubism::Framework::Rendering::CubismRenderer_D3D11::EndFrame(device);
-        OutputDebugStringA("Live2DComponent::Draw - After EndFrame\n");
 
     } catch (const std::exception& e) {
-        OutputDebugStringA("Live2DComponent::Draw - Exception caught: ");
+        OutputDebugStringA("Live2DComponent::Draw - Exception: ");
         OutputDebugStringA(e.what());
         OutputDebugStringA("\n");
     } catch (...) {
-        OutputDebugStringA("Live2DComponent::Draw - Unknown Exception caught!\n");
+        OutputDebugStringA("Live2DComponent::Draw - Unknown Exception!\n");
     }
 
-    // =========================================================
-    // 処理本体
-    // =========================================================
+    // ===== パイプラインステートのクリーンアップ =====
+    // （後続の描画パスへの干渉を防止）
 
-    // 笘・esource Unbind (Driver Clean-up)
+    // シェーダーリソースの解除
     ID3D11ShaderResourceView* nullSRVs[2] = { nullptr, nullptr };
     context->PSSetShaderResources(0, 2, nullSRVs);
     
-    // 処理本体
+    // シザー矩形のリセット
     context->RSSetScissorRects(0, nullptr);
 
-    // 2. シェーダーの解除 (次の描画への干渉防止)
+    // 全シェーダーステージの解除
     context->VSSetShader(nullptr, nullptr, 0);
     context->PSSetShader(nullptr, nullptr, 0);
     context->GSSetShader(nullptr, nullptr, 0);
     context->HSSetShader(nullptr, nullptr, 0);
     context->DSSetShader(nullptr, nullptr, 0);
 
-    // 処理本体
+    // 入力レイアウトのリセット
     context->IASetInputLayout(nullptr);
 
-    // デバッグログを出力
+    // プリミティブトポロジーをデフォルトに復元
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    // 処理本体
+    // ブレンド・深度・ラスタライザステートをデフォルトに復元
     context->OMSetBlendState(nullptr, nullptr, 0xFFFFFFFF);
     context->OMSetDepthStencilState(nullptr, 0);
     context->RSSetState(nullptr);
-
-    // Live2D関連処理
-    // Live2D関連処理
 }
 
+/// デストラクタ - モデルとキャッシュ済みステートを解放する
 Live2DComponent::~Live2DComponent() {
-    // Live2D関連処理
     std::scoped_lock lock(s_live2dGlobalMutex, m_drawMutex);
     
-    // 処理本体
     m_isDestroyed = true;
-    OutputDebugStringA("Live2DComponent::~Live2DComponent - DESTRUCTOR CALLED\n");
 
-    // 処理本体
-    // 処理本体
+    // キャッシュ済みステートとモデルを解放
     ReleaseCachedStates();
     if (_model) {
         delete _model;
@@ -280,11 +239,11 @@ Live2DComponent::~Live2DComponent() {
     }
 }
 
-// Live2D関連処理
+/// パイプラインステートを初期化する（初回のDraw時に1回だけ実行）
 void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     if (m_statesInitialized || !device) return;
 
-    // 処理本体
+    // ブレンドステート（アルファブレンド有効）
     D3D11_BLEND_DESC blendDesc = {};
     blendDesc.AlphaToCoverageEnable = FALSE;
     blendDesc.IndependentBlendEnable = FALSE;
@@ -298,7 +257,7 @@ void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     device->CreateBlendState(&blendDesc, &m_cachedBlendState);
 
-    // 処理本体
+    // ラスタライザステート（カリングなし・ソリッド描画）
     D3D11_RASTERIZER_DESC rasterDesc = {};
     rasterDesc.FillMode = D3D11_FILL_SOLID;
     rasterDesc.CullMode = D3D11_CULL_NONE;
@@ -307,7 +266,7 @@ void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     rasterDesc.ScissorEnable = FALSE;
     device->CreateRasterizerState(&rasterDesc, &m_cachedRasterState);
 
-    // 処理本体
+    // 深度ステンシルステート（深度テスト無効）
     D3D11_DEPTH_STENCIL_DESC depthDesc = {};
     depthDesc.DepthEnable = FALSE;
     depthDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
@@ -318,6 +277,7 @@ void Live2DComponent::InitCachedStates(ID3D11Device* device) {
     m_statesInitialized = true;
 }
 
+/// キャッシュ済みパイプラインステートを解放する
 void Live2DComponent::ReleaseCachedStates() {
     if (m_cachedBlendState) { m_cachedBlendState->Release(); m_cachedBlendState = nullptr; }
     if (m_cachedRasterState) { m_cachedRasterState->Release(); m_cachedRasterState = nullptr; }

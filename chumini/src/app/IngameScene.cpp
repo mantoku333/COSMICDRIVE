@@ -1,4 +1,4 @@
-﻿#include "IngameScene.h"
+#include "IngameScene.h"
 #include "DirectX11.h"
 #include "MoveComponent.h"
 #include "PlayerComponent.h"
@@ -20,59 +20,49 @@
 #include "EffectManager.h"
 #include <Effekseer.h>
 #include <Windows.h>
-#include "StringUtils.h"  // 文字コード変換ユーティリティ
+#include "StringUtils.h"
 
-// sf::util の関数を使用（ローカル関数は削除）
 namespace {
     using sf::util::Utf8ToWstring;
     using sf::util::Utf8ToShiftJis;
 }
 
+/// デストラクタ - ゲームセッションをグローバルにコピーしてResultSceneからもアクセス可能にする
 app::test::IngameScene::~IngameScene()
 {
-    // シーン破棄時、セッションをフォールバック(g_defaultSession)にコピー
-    // これによりResultSceneからも参照可能にする
-    // GetCurrentSession() はまだ this->gameSession を指しているはず
-    GameSession& current = GetCurrentSession();
-    
-    // SetCurrentSession(nullptr) を呼ぶと g_currentSessionPtr が &g_defaultSession になる
-    // その前にデータを退避したいが、g_defaultSession に直接アクセス手段がない
-    // なので、一度 nullptr にして g_defaultSession を指させ、そこに代入する
-    
-    GameSession tempCopy = current; // コピー
-    SetCurrentSession(nullptr); // g_currentSessionPtr = &g_defaultSession
-    GetCurrentSession() = tempCopy; // g_defaultSession に書き込み
+    GameSession tempCopy = GetCurrentSession();
+    SetCurrentSession(nullptr);
+    GetCurrentSession() = tempCopy;
 }
 
+/// シーン初期化 - カメラ・マネージャー・レーン・Live2D・背景オブジェクトを生成する
 void app::test::IngameScene::Init()
 {
-	// sf::debug::Debug::Log("IngameScene initialized");
 	ShowCursor(FALSE);
 
-	// ── カメラ生成 ──
+	// ===== カメラ生成 =====
 	{
 		auto camera = Instantiate();
 		camera.Target()->AddComponent<sf::Camera>();
-		// 固定カメラ (ユーザーが「おかしい」と言ったのでFollowCameraは一旦外す)
-		// 位置は lanes 全体が見渡せる位置に設定
+		// 固定カメラ（レーン全体が見渡せる位置）
 		camera.Target()->transform.SetPosition({ 0.0f, 20.0f, -20.0f });
 		camera.Target()->transform.SetRotation({ 45.0f, 0.0f, 0.0f });
         
-        // Debug Camera Control (Right Click + WASD)
+        // デバッグ用カメラコントロール（右クリック + WASD）
         camera.Target()->AddComponent<app::ControlCamera>();
 	}
 
-	// ── マネージャを生成 ──
+	// ===== マネージャー・コンポーネント生成 =====
 	{
 		managerActor = Instantiate();
 		auto noteManager = managerActor.Target()->AddComponent<app::test::NoteManager>();
 		
-		// NoteManagerへの依存性注入（密結合解消）
+		// 依存性注入
 		noteManager->SetSongInfo(&selectedSong);
 		noteManager->SetSkillCallback([this]() { TriggerSkillEffect(); });
 		
 		auto ingameCanvas = managerActor.Target()->AddComponent<IngameCanvas>();
-		ingameCanvas->SetSongInfo(&selectedSong);  // IngameCanvasへのDI
+		ingameCanvas->SetSongInfo(&selectedSong);
 		
 		managerActor.Target()->AddComponent<app::test::SoundComponent>();
 		managerActor.Target()->AddComponent<SceneChangeComponent>();
@@ -84,11 +74,11 @@ void app::test::IngameScene::Init()
 		// プレイヤー
 		auto player = Instantiate();
 		auto mesh = player.Target()->AddComponent<sf::Mesh>();
-		mesh->SetGeometry(g_cube); // Cubeメッシュ
+		mesh->SetGeometry(g_cube);
 		player.Target()->transform.SetScale({ 0.5f, 0.5f, 0.5f });
 		mesh->material.SetColor({ 0.3f, 0.3f, 1.0f, 0.1f });
 		
-		auto pComp = player.Target()->AddComponent<PlayerComponent>(); // ←ここに移動処理含む
+		auto pComp = player.Target()->AddComponent<PlayerComponent>();
 		
 	}
 
@@ -96,7 +86,7 @@ void app::test::IngameScene::Init()
     {
         lanePanels.clear();
 
-        // ── レーン生成 ──
+        // メインレーン生成
         for (int i = 0; i < lanes; ++i)
         {
             float localX = (i - lanes * 0.5f + 0.5f) * laneW;
@@ -113,19 +103,14 @@ void app::test::IngameScene::Init()
             lanePanels.push_back(lane);
         }
 
-        // 特殊ギミック用サイドレーン（左4 右5）
+        // サイドレーン（左右の特殊ギミック用）
         {
-            // メインレーン群の端の座標を計算
-            // lanes * laneW が全体の幅。その半分が中心からの距離。
             float mainHalfWidth = (lanes * laneW) * 0.5f;
-
             float sideLaneW = laneW;
 
-            // 左右のX座標：メインの端 + サイドレーンの半径
             float leftSideX = -mainHalfWidth - (sideLaneW * 0.5f);
             float rightSideX = mainHalfWidth + (sideLaneW * 0.5f);
 
-            // 左右の座標を配列に入れてループ処理で生成
             float sidePositions[] = { leftSideX, rightSideX };
 
             for (float posX : sidePositions)
@@ -134,18 +119,16 @@ void app::test::IngameScene::Init()
                 auto mesh = sideLane.Target()->AddComponent<sf::Mesh>();
                 mesh->SetGeometry(g_cube);
 
-                // メインレーンと同じ傾き・高さ設定
                 sideLane.Target()->transform.SetScale({ sideLaneW, 0.1f, laneH });
                 sideLane.Target()->transform.SetPosition({ posX, baseY + 1, 0.0f });
                 sideLane.Target()->transform.SetRotation({ rotX, 0.0f, 0.0f });
 
                 mesh->material.SetColor({ 0.3f, 0.3f, 0.3f, 1.0f });
-
                 lanePanels.push_back(sideLane);
             }
         }
 
-        // ── 区切り線 ──
+        // レーン区切り線
         {
             const float lineThickness = 0.05f;
             const float lineHeight = 0.05f;
@@ -155,9 +138,8 @@ void app::test::IngameScene::Init()
             {
                 float localX = (i - lanes * 0.5f) * laneW;
 
-                // レーン中央を基準にY/Z補正
-                float offsetZ = 0.0f; // Zはレーン中央に固定
-                float offsetY = std::tan(slopeRad) * offsetZ; // ← tan(rotX) 符号修正
+                float offsetZ = 0.0f;
+                float offsetY = std::tan(slopeRad) * offsetZ;
 
                 auto line = Instantiate();
                 auto mLine = line.Target()->AddComponent<sf::Mesh>();
@@ -171,7 +153,7 @@ void app::test::IngameScene::Init()
             }
         }
 
-        // ── レーン外枠（左右エッジ）──
+        // レーン外枠（左右エッジ）
         {
             laneEdges.clear(); 
 
@@ -205,11 +187,7 @@ void app::test::IngameScene::Init()
             }
         }
 
-       
-
-
-
-        // ── ジャッジバー（手前ライン）──
+        // 判定バー（手前ライン）
         {
             const float slopeRad = rotX * 3.14159265f / 180.0f;
 
@@ -228,116 +206,94 @@ void app::test::IngameScene::Init()
             mBar->material.SetColor({ 1, 0, 1, 1 });
         }
 
-		// ── Live2D ──
+		// Live2Dモデルの配置
 		{
 			auto live2dActor = Instantiate();
 			l2dComp = live2dActor.Target()->AddComponent<Live2DComponent>();
 			if (l2dComp.Get()) {
-				// TitleSceneと同じモデルをロード
-				    // Relative path to the model directory
 				const std::string MODEL_DIR = "Assets/Live2D/CyberCat";
-				    // Model .model3.json filename
 				const std::string MODEL_FILE = "CyberCat.model3.json";
 
 				l2dComp->LoadModel(MODEL_DIR, MODEL_FILE);
 
-				// 位置調整 (サイズを0.7倍、少し上へ)
+				// 位置・スケール調整
 				live2dActor.Target()->transform.SetPosition({ 0.0f, 0.80f, 0.0f }); 
-				// スケール調整
 				live2dActor.Target()->transform.SetScale({ 0.49f, 0.7f, 1.0f });
 
-				// Start Idle animation
+				// アイドルモーション開始
 				l2dComp->PlayMotion("Idle", 0, 3);
 				
-                // タイトル同様グリッチもかけてみる（お好みで）
+                // グリッチモーション開始
                 l2dComp->StartGlitchMotion("GlitchNoise", 0);
 			}
 		}
         
     }
 
-    // SE Actor
+    // ===== スキルSEの読み込み =====
     auto seActor = Instantiate();
     skillSePlayer = seActor.Target()->AddComponent<sf::sound::SoundPlayer>();
     if (!skillSePlayer.isNull()) {
         skillSeResource = sf::ref::Ref<sf::sound::SoundResource>(new sf::sound::SoundResource());
-        // Load SE (No Loop)
         if (FAILED(skillSeResource.Target()->LoadSound("Assets/Sound/Skill.wav", false))) {
              sf::debug::Debug::LogError("Failed to load Skill.wav");
         } else {
              skillSePlayer->SetResource(skillSeResource);
-             // Default Volume (Significant Boost)
              skillSePlayer->SetVolume(8.0f);
         }
     }
 
+    // NoteManagerにレーンパラメータを設定
     if (auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>())
     {
-        // サイドレーンの座標計算
-        // (lanePanelsの生成時に使った計算と同じもの)
-        float mainHalfWidth = (4 * laneW) * 0.5f; // メイン4レーン分
+        float mainHalfWidth = (4 * laneW) * 0.5f;
         float sideLaneW = laneW;
-
         float leftX = -mainHalfWidth - (sideLaneW * 0.5f);
         float rightX = mainHalfWidth + (sideLaneW * 0.5f);
 
         noteMgr->SetLaneParams(lanePanels, laneW, laneH, rotX, baseY, barRatio, leftX, rightX);
     }
 
-    // --- Background Primitives (3D) ---
+    // ===== 背景3Dオブジェクトの生成 =====
     bgObjects.clear();
     for(int i=0; i<200; ++i) {
         auto obj = Instantiate();
         auto mesh = obj.Target()->AddComponent<sf::Mesh>();
-        mesh->SetGeometry(g_cube); // Cube
+        mesh->SetGeometry(g_cube);
         
-        // Random Pos
-        // Random Pos
-        // Camera sees X: -15 ~ 15, Y: 0 ~ 30, Z: 0 ~ 100?
-        // User Request: "More to sides", "Closer"
-        
-        // User Request: "Closer to center, surrounding lanes"
-        
+        // レーン中央を避けて左右に配置
         float x = 0.0f;
-        // avoid center [-10, 10] (Lanes are approx -6 to +6)
         if (rand() % 2 == 0) {
-             // Left Side: -10 to -40
-             x = -10.0f - (rand() % 300) * 0.1f; 
+             x = -10.0f - (rand() % 300) * 0.1f;  // 左側
         } else {
-             // Right Side: 10 to 40
-             x = 10.0f + (rand() % 300) * 0.1f;
+             x = 10.0f + (rand() % 300) * 0.1f;   // 右側
         }
 
-        // Y: Spread vertically to fill the side void
-        // User Request: "Lower upper limit" -> -20 to 15
-        float y = ((rand() % 350) - 200) * 0.1f;
-        
-        // Z: Closer (Camera at -20). Range -40 to 20
-        float z = -40.0f + (rand() % 600) * 0.1f;
+        float y = ((rand() % 350) - 200) * 0.1f;  // 垂直方向に分散
+        float z = -40.0f + (rand() % 600) * 0.1f;  // 奥行き方向に分散
         
         obj.Target()->transform.SetPosition({x, y, z});
         
-        // Random Scale (Referencing laneW=3.0)
-        float s = 0.5f + (rand() % 15) * 0.1f; // 0.5 to 2.0
+        // ランダムなサイズ
+        float s = 0.5f + (rand() % 15) * 0.1f;
         obj.Target()->transform.SetScale({s, s, s});
         
-        // Random Rotation
+        // ランダムな回転
         float rx = (float)(rand() % 360);
         float ry = (float)(rand() % 360);
         float rz = (float)(rand() % 360);
         obj.Target()->transform.SetRotation({rx, ry, rz});
         
-        // Color: Dark, translucent?
-        // Lanes are 0.3, 0.3, 0.3.
+        // 暗めの半透明色
         float r = 0.1f + (rand()%20)*0.01f;
         float g = 0.1f + (rand()%20)*0.01f;
         float b = 0.2f + (rand()%30)*0.01f;
-        mesh->material.SetColor({r, g, b, 0.3f}); // alpha 0.3
+        mesh->material.SetColor({r, g, b, 0.3f});
         
         BgObject bo;
         bo.actor = obj.Target();
         bo.rotVel = { (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f, (float)((rand()%100)-50)*0.5f };
-        // Disable X movement to prevent drifting into lanes
+        // X方向の移動は無効化（レーンへのドリフト防止）
         bo.moveVel = { 0.0f, (float)((rand()%100)-50)*0.01f, 0.0f };
         bgObjects.push_back(bo);
     }
@@ -345,50 +301,41 @@ void app::test::IngameScene::Init()
     updateCommand.Bind(std::bind(&IngameScene::Update, this, std::placeholders::_1));
 }
 
-
-
-
+/// 毎フレーム更新処理 - ステートマシン、BGM同期、背景アニメーションを管理する
 void app::test::IngameScene::Update(const sf::command::ICommand& command)
 {
+	// Live2Dモデルの更新
 	if (l2dComp.Get()) {
 		l2dComp->Update();
 	}
 
-	// ステートマシンによる制御
+	// ===== ステートマシン =====
 	if (state == State::Idle) {
-		// すぐさまカウントダウンへ移行（必要ならここで少し待機も可）
+		// カウントダウンへ移行
 		state = State::Countdown;
-		countdownTimer = 3.0f; // 3秒カウントダウン
+		countdownTimer = 3.0f;
 	}
 	else if (state == State::Countdown) {
 		countdownTimer -= sf::Time::DeltaTime();
 
-        // Glitch Effect during Countdown
-        // 3.0 -> 2.0 -> 1.0 -> 0.0
-        // Spike glitch at integer crossings
+        // カウントダウン中のグリッチエフェクト
         float t = countdownTimer;
-        float glitch = 0.0f;
+        float glitch = 0.02f; // ベースのノイズ
         
-        // Timer is 3.0 down to 0.0
-        // Trigger at 3.0(start), 2.0, 1.0, 0.0
-        // Simple modulo-like check or just continuous noise
-        // Let's add slight constant noise
-        glitch = 0.02f; 
-        
-        // Big spike at 2.0, 1.0, 0.0 (approx)
+        // 整数の境界（3,2,1,0）付近でグリッチを強化
         float fracT = t - std::floor(t);
         if (fracT > 0.9f || fracT < 0.1f) {
              glitch = 0.5f;
         }
         
-        // Intense noise at the end (GO)
+        // 終了直前（GO表示付近）でグリッチを最大化
         if (t < 0.5f) {
              glitch = 0.8f * (1.0f - t / 0.5f);
         }
 
         sf::dx::DirectX11::Instance()->SetGlitchIntensity(glitch);
 
-		// Canvasに通知
+		// Canvasにカウントダウン表示を通知
 		if (managerActor.Target()) {
 			if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
 				canvas->UpdateCountdownDisplay(countdownTimer, false);
@@ -396,28 +343,27 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 		}
 
 		if (countdownTimer <= 0.0f) {
-			// カウントダウン終了 → START表示 → ゲーム開始
+			// カウントダウン終了 → ゲーム開始
 			state = State::Playing;
-            sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f); // Reset
+            sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f);
 			
-			// CanvasにSTART表示指示
+			// CanvasにSTART表示を指示
 			if (managerActor.Target()) {
 				if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
 					canvas->UpdateCountdownDisplay(0.0f, true);
 				}
 			}
 
-			startDisplayTimer = 1.0f; // タイマー初期化
-
+			startDisplayTimer = 1.0f;
 			StartGame();
 		}
 	}
 	else if (state == State::Playing) {
 		
+		// START表示のフェードアウト
 		if (startDisplayTimer > 0.0f) {
 			startDisplayTimer -= sf::Time::DeltaTime();
 			if (startDisplayTimer <= 0.0f) {
-				// 表示消去
 				if (managerActor.Target()) {
 					if (auto canvas = managerActor.Target()->GetComponent<IngameCanvas>()) {
 						canvas->UpdateCountdownDisplay(-1.0f, false);
@@ -426,35 +372,32 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 			}
 		}
 
-
-		// ゲーム中
+		// BGMとノートマネージャーの時間同期
 		if (managerActor.Target())
 		{
 			auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
 			if (noteMgr) {
-				// まだ曲が再生されていない場合、時間が0になるのを待つ
+				// BGM未再生の場合、楽曲時間が0を超えたら再生開始
 				if (!bgmPlayer.isNull() && !bgmPlayer->IsPlaying()) {
 					float currentSongTime = noteMgr->GetSongTime();
 					
-					// 時間が進んで0（＝判定ライン到達）を超えたら再生開始
 					if (currentSongTime >= 0.0f) {
 						bgmPlayer->Play();
-						// 念のため同期
 						noteMgr->SyncTime(bgmPlayer->GetCurrentTime()); 
 					}
 				}
+				// BGM再生中は常に時間を同期
 				else if (!bgmPlayer.isNull() && bgmPlayer->IsPlaying()) {
-					// 再生中は常に同期
 					noteMgr->SyncTime(bgmPlayer->GetCurrentTime());
 				}
 			}
 		}
 
-		// 背景エフェクト等の更新（Playing中のみ）
+		// 背景アニメーション用タイマー
 		static float time = 0.0f;
 		time += sf::Time::DeltaTime();
 
-		// DEBUG SKIP: Key 'P'
+		// デバッグ用スキップ（Pキー）
 		if (SInput::Instance().GetKeyDown(Key::KEY_P)) {
 			if (managerActor.Target()) {
 				if (auto* noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>()) {
@@ -463,6 +406,7 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 			}
 		}
 
+		// レーンエッジの色アニメーション（虹色のスクロール効果）
 		for (auto& edge : laneEdges)
 		{
 			if (edge.Target() == nullptr) continue;
@@ -481,34 +425,34 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 			mesh->material.SetColor({ r, g, b, a });
 		}
 
+        // スキルエフェクトの減衰処理
         if (skillEffectTimer > 0.0f) {
             skillEffectTimer -= sf::Time::DeltaTime();
             if (skillEffectTimer <= 0.0f) {
                 skillEffectTimer = 0.0f;
                 sf::dx::DirectX11::Instance()->SetGlitchIntensity(0.0f);
             } else {
-                 // Decay from 0.5 down to 0
+                 // グリッチ強度を時間に応じて減衰
                  float ratio = skillEffectTimer / 0.2f; 
-                 // Noise intensity
                  float val = 0.5f * ratio;
                  sf::dx::DirectX11::Instance()->SetGlitchIntensity(val);
             }
         }
         
-        // Update BG Objects
+        // 背景3Dオブジェクトの回転・移動更新
         for(auto& bo : bgObjects) {
              if(auto act = bo.actor.Target()) {
+                 // 回転更新
                  Vector3 rot = act->transform.GetRotation();
                  rot.x += bo.rotVel.x * sf::Time::DeltaTime();
                  rot.y += bo.rotVel.y * sf::Time::DeltaTime();
                  rot.z += bo.rotVel.z * sf::Time::DeltaTime();
                  act->transform.SetRotation(rot);
                  
+                 // Y方向の移動とループ
                  Vector3 pos = act->transform.GetPosition();
                  pos.x += bo.moveVel.x * sf::Time::DeltaTime();
                  pos.y += bo.moveVel.y * sf::Time::DeltaTime();
-                 // Simple bounds?
-                 // X movement is disabled, so no x check needed/wanted (to avoid jumping to center)
                  
                  if(pos.y > 40) pos.y = -10;
                  if(pos.y < -10) pos.y = 40;
@@ -518,16 +462,15 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
 	}
 }
 
+/// シーンがアクティブになった時の初期化処理
 void app::test::IngameScene::OnActivated()
 {
     isPlaying = false;
     state = State::Idle;
     countdownTimer = 0.0f;
 
-    // セッションをリセット
+    // ゲームセッションをリセットしグローバルに登録
     gameSession.Reset();
-
-    // このシーンのセッションをグローバルに登録（他コンポーネントがアクセス可能に）
     SetCurrentSession(&gameSession);
 
     if (selectedSong.musicPath.empty() || bgmPlayer.isNull()) {
@@ -535,54 +478,45 @@ void app::test::IngameScene::OnActivated()
         return;
     }
 
-    // Convert UTF-8 path to Shift-JIS for Windows API
+    // BGMパスを設定（Shift-JIS変換）
     std::string sjisPath = Utf8ToShiftJis(selectedSong.musicPath);
     bgmPlayer->SetPath(sjisPath);
 
-    // Set chart path and difficulty for score saving (via gameSession)
+    // ゲームセッションに楽曲情報を設定
     gameSession.SetChartPath(selectedSong.chartPath);
     gameSession.SetDifficulty(selectedSong.difficulty);
     gameSession.SetTitle(selectedSong.title);
-
-    //bgmPlayer->Play();
 }
 
+/// ゲーム開始処理 - NoteManagerを起動しノート総数をセッションに設定する
 void app::test::IngameScene::StartGame()
 {
     // 二重起動防止
     if (isPlaying) return;
 
     sf::debug::Debug::Log("Game Start");
-
     isPlaying = true;
 
-    // 1. NoteManager を動かす
+    // NoteManagerを開始
     if (managerActor.Target()) {
         auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
         if (noteMgr) {
-            // Set Total Note Count for Score Calculation
             int total = noteMgr->GetMaxTotalCombo();
             gameSession.SetTotalNoteCount(total);
-
             noteMgr->StartGame();
         }
     }
 
-    // BGM再生開始はここで行わず、Update内で時間が0になるのを待ってから行う
-    /*
-    if (!bgmPlayer.isNull()) {
-        bgmPlayer->Play();
-    }
-    */
-
+    // BGM再生はUpdate内で楽曲時間が0になるのを待ってから開始
 }
 
+/// 描画処理 - 基底描画の後にインスタンス描画を実行する
 void app::test::IngameScene::Draw()
 {
-    // Call Base Draw first (standard actors, camera setup, etc.)
+    // 基底描画（通常のアクター・カメラ設定など）
     sf::Scene<IngameScene>::Draw();
 
-    // Draw Instanced Notes
+    // インスタンス描画によるノート描画
     if (managerActor.Target()) {
         auto noteMgr = managerActor.Target()->GetComponent<app::test::NoteManager>();
         if (noteMgr) {
@@ -591,6 +525,7 @@ void app::test::IngameScene::Draw()
     }
 }
 
+/// オーバーレイ描画 - Live2Dモデルを最前面に描画する
 void app::test::IngameScene::DrawOverlay()
 {
 	if (l2dComp.Get()) {
@@ -598,22 +533,20 @@ void app::test::IngameScene::DrawOverlay()
 	}
 }
 
+/// スキルノート発動時のエフェクト処理（グリッチ + SE再生）
 void app::test::IngameScene::TriggerSkillEffect()
 {
-    // 1. Glitch Effect
-    // 1. Glitch Effect
-    skillEffectTimer = 0.2f; // Duration (User Requested)
-    // Intensity set in Update based on timer
+    // グリッチエフェクト開始（強度はUpdateで減衰制御）
+    skillEffectTimer = 0.2f;
     
-    // 2. Play Sound
+    // スキルSEを再生
     if (!skillSePlayer.isNull()) {
-        skillSePlayer->Stop(); // Stop overlapping or re-trigger? 
-        // Better to re-trigger. Stop resets position.
+        skillSePlayer->Stop();
         skillSePlayer->Play(0.0f);
     }
 }
 
+/// ImGUI処理（現在はキーボードショートカットで代替）
 void app::test::IngameScene::OnGUI()
 {
-	// ImGui causes crashes in some environments, so we use Keyboard Shortcut (P) instead.
 }

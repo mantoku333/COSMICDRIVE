@@ -1,5 +1,5 @@
-﻿#include "SelectCanvas.h"
-#include "SelectScene.h"  // MVP: Presenter
+#include "SelectCanvas.h"
+#include "SelectScene.h"
 #include "sf/Time.h"
 #include <algorithm>
 #include <cmath>
@@ -8,7 +8,6 @@
 #include "Easing.h"
 #include "Config.h"
 
-// 依存ヘッダ
 #include "Text.h"
 #include "TextImage.h"
 #include "DWriteContext.h"
@@ -21,22 +20,24 @@
 #include "ChedParser.h" 
 #include "ScoreManager.h" 
 #include "RatingManager.h"
-#include "StringUtils.h"  // 文字コード変換ユーティリティ
+#include "StringUtils.h"
 
 namespace app::test {
 
-    // ユーティリティを利用
     using sf::util::WstringToUtf8;
     using sf::util::Utf8ToWstring;
     using sf::util::Utf8ToShiftJis;
 
-    // ===== Utility =====
+    // ===== ユーティリティ関数 =====
+
+    /// 浮動小数をN範囲でラップする（0〜Nの循環）
     static inline float WrapFloat(float x, float N) {
         float r = std::fmod(x, N);
         if (r < 0) r += N;
         return r;
     }
 
+    /// 円環上での最短距離を計算する
     static inline float ShortestDeltaOnRing(float current, float target, float N) {
         float c = WrapFloat(current, N);
         float diff = target - c;
@@ -45,15 +46,19 @@ namespace app::test {
         return diff;
     }
 
+    /// 距離に応じたスケール値を計算する（ガウス減衰）
     float SelectCanvas::ScaleByDistance(float d, float scaleCenter, float scaleEdge) {
         const float falloff = std::exp(-0.5f * (d * d));
         return scaleEdge + (scaleCenter - scaleEdge) * falloff;
     }
 
-    // ===== Begin =====
+    // ===== 初期化 =====
+
+    /// キャンバスの初期化 - テクスチャ・楽曲・UIを構築し、初期選択状態を設定する
     void SelectCanvas::Begin() {
         sf::ui::Canvas::Begin();
 
+        // シーンチェンジコンポーネントの取得
         if (auto actor = actorRef.Target()) {
             auto* changer = actor->GetComponent<SceneChangeComponent>();
             if (changer) {
@@ -65,36 +70,34 @@ namespace app::test {
         InitializeSongs();
         InitializeUI();
 
+        // 選択インデックスの初期化
         selectedIndex = std::clamp(selectedIndex, 0, (int)songs.size() - 1);
         targetIndex = selectedIndex;
         currentIndex = (float)targetIndex;
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // 条件分岐
+        // 曲情報テキストの初期表示
         if (songTitleText && !songs.empty()) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
 
-        // 条件分岐
         if (artistText) {
             artistText->SetText(Utf8ToWstring(songs[targetIndex].artist));
         }
 
-        // 条件分岐
         if (bpmText) {
             std::wstring bpmStr = L"BPM: " + Utf8ToWstring(songs[targetIndex].bpm);
             bpmText->SetText(bpmStr);
         }
 
-        // 条件分岐
         if (difficultyText) {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
         }
 
-        // Score & Rank Update
+        // スコア・ランクの初期表示
         if (!songs.empty() && highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
             if (record.highScore > 0) {
@@ -109,13 +112,13 @@ namespace app::test {
             }
         }
 
-        // 楽曲リスト情報を更新
+        // ジャンル名の初期表示
         const auto& allGenres = songListService.GetAllGenres();
         int currentGenreIndex = songListService.GetCurrentGenreIndex();
         if (!allGenres.empty()) {
             if(genreText) genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
 
-            int N = (int)allGenres.size(); // ジャンル数
+            int N = (int)allGenres.size();
             if (prevGenreText) {
                 int prevIdx = (currentGenreIndex - 1 + N) % N;
                 prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
@@ -131,7 +134,7 @@ namespace app::test {
         updateCommand.Bind(std::bind(&SelectCanvas::Update, this, std::placeholders::_1));
     }
 
-    // 処理本体
+    /// テクスチャリソースを読み込む
     void SelectCanvas::InitializeTextures() {
         textureBack.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
         textureSelectFrame.LoadTextureFromFile("Assets\\Texture\\SelectFrame.png");
@@ -140,76 +143,63 @@ namespace app::test {
         textureCC.LoadTextureFromFile("Assets\\Texture\\CC.png");
     }
 
-    // 処理本体
+    /// 楽曲データの初期化 - SongListServiceにスキャンを委譲し、ジャケットテクスチャを読み込む
     void SelectCanvas::InitializeSongs() {
-        // SongListServiceにスキャンを委譲
         songListService.ScanSongs("Songs");
         songs = songListService.GetCurrentSongs();
 
-        // ----------------------------------------------------
-        // ジャケット表示を更新
-        // ----------------------------------------------------
+        // ジャケットテクスチャの読み込み
         jacketTextures.resize(songs.size());
         for (size_t i = 0; i < songs.size(); ++i) {
             bool loaded = false;
             if (!songs[i].jacketPath.empty()) {
-
-                // ジャケット表示を更新
-                // ジャケット表示を更新
+                // パスをShift-JISに変換して読み込み
                 std::string sjisPath = Utf8ToShiftJis(songs[i].jacketPath);
 
                 if (jacketTextures[i].LoadTextureFromFile(sjisPath)) {
                     loaded = true;
                 }
                 else {
-                    // ジャケット表示を更新
                     sf::debug::Debug::Log("Jacket Load Failed: " + sjisPath);
                 }
             }
 
+            // 読み込み失敗時はデフォルトジャケットを使用
             if (!loaded) {
                 jacketTextures[i] = textureDefaultJacket;
             }
         }
     }
 
-    // 処理本体
+    /// UI要素の生成 - テキスト・ジャケット・レーティング詳細パネルを構築する
     void SelectCanvas::InitializeUI() {
 
         auto* dx11 = sf::dx::DirectX11::Instance();
         auto device = dx11->GetMainDevice().GetDevice();
 
+        // 選択フレーム
         selectFrame = AddUI<sf::ui::Image>();
         selectFrame->transform.SetPosition(Vector3(LAYOUT_JACKET_CENTER_X, LAYOUT_JACKET_CENTER_Y, 1));
         selectFrame->transform.SetScale(Vector3(10.0f, 50.0f, 1.0f));
         selectFrame->material.texture = &textureSelectFrame;
         selectFrame->material.SetColor({ 1, 1, 1, 0.8f });
 
-        /*CC = AddUI<sf::ui::Image>();
-        CC->transform.SetPosition(Vector3(500, -350, 0));
-        CC->transform.SetScale(Vector3(3.0f, 1.0f, 1.0f));
-        CC->material.texture = &textureCC;*/
-
-        // ジャケット表示を更新
+        // ジャケットUIコンポーネントの生成
         jacketComponents.clear();
         for(int i = 0; i < MAX_VISIBLE; ++i) {
              auto jacket = AddUI<sf::ui::Image>();
              jacket->transform.SetScale(Vector3(SCALE_EDGE, SCALE_EDGE, 1.0f));
-             jacket->SetVisible(false); // 初期は非表示
+             jacket->SetVisible(false);
              jacketComponents.push_back(jacket);
         }
 
         RebuildJacketPool();
         UpdateJacketPositions();
 
-     // =========================================================
-     // 処理本体
-     // =========================================================
-
-     // 処理本体
+     // ===== ヘッダーテキスト「SONG SELECT」（アウトライン付き） =====
         float outlineSize = 3.0f;
 
-        // 処理本体
+        // アウトライン用オフセット（上下左右4方向）
         Vector3 offsets[4] = {
             Vector3(-outlineSize, 0, 0),
             Vector3(outlineSize, 0, 0),
@@ -217,7 +207,7 @@ namespace app::test {
             Vector3(0,  outlineSize, 0)
         };
 
-        // ループして4つ作る
+        // アウトラインテキストを4つ生成
         for (int i = 0; i < 4; ++i) {
             titleOutline[i] = AddUI<sf::ui::TextImage>();
 
@@ -235,9 +225,7 @@ namespace app::test {
             );
         }
 
-        // =========================================================
-        // UI要素を生成
-        // =========================================================
+        // ===== ヘッダーテキスト本体 =====
         titleText = AddUI<sf::ui::TextImage>();
         titleText->transform.SetPosition(Vector3(0, LAYOUT_TITLE_Y, 0.0f));
         titleText->transform.SetScale(Vector3(15.0f, 3.0f, 1.0f));
@@ -251,6 +239,9 @@ namespace app::test {
             1024, 240
         );
 
+        // ===== 曲情報テキスト =====
+
+        // 曲タイトル
         songTitleText = AddUI<sf::ui::TextImage>();
         songTitleText->transform.SetPosition(Vector3(0, LAYOUT_SONG_TITLE_Y, LAYOUT_SONG_INFO_Z));
         songTitleText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
@@ -262,39 +253,33 @@ namespace app::test {
             D2D1::ColorF(D2D1::ColorF::White),
             1800, 200);
 
-    // ---------------------------------------------------------
-    // UI要素を生成
-    // ---------------------------------------------------------
+        // アーティスト名
         artistText = AddUI<sf::ui::TextImage>();
         artistText->transform.SetPosition(Vector3(0, LAYOUT_ARTIST_Y, LAYOUT_SONG_INFO_Z));
         artistText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         artistText->Create(
             device,
-            L"", // 初期値
+            L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
         );
 
-        // ---------------------------------------------------------
-        // BPM陦ｨ遉ｺ
-        // ---------------------------------------------------------
+        // BPM表示
         bpmText = AddUI<sf::ui::TextImage>();
         bpmText->transform.SetPosition(Vector3(0, LAYOUT_BPM_Y, LAYOUT_SONG_INFO_Z));
         bpmText->transform.SetScale(Vector3(8.0f, 1.5f, 1.0f));
         bpmText->Create(
             device,
-            L"", // 初期値
+            L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
             80.0f,
             D2D1::ColorF(D2D1::ColorF::LightGray), 
             1024, 200
         );
 
-        // ---------------------------------------------------------
         // 難易度表示
-        // ---------------------------------------------------------
         difficultyText = AddUI<sf::ui::TextImage>();
         difficultyText->transform.SetPosition(Vector3(650, -300, 1.0f));
         difficultyText->transform.SetScale(Vector3(4.0f, 1.0f, 1.0f));
@@ -307,50 +292,50 @@ namespace app::test {
             512, 128
         );
 
-        // ---------------------------------------------------------
-        // UI要素を生成
-        // ---------------------------------------------------------
+        // ===== ジャンルテキスト =====
+
+        // 現在のジャンル名
         genreText = AddUI<sf::ui::TextImage>();
-        // 位置を更新
         genreText->transform.SetPosition(Vector3(0, LAYOUT_GENRE_Y, 0)); 
         genreText->transform.SetScale(Vector3(10.0f, 2.0f, 1.0f));
         genreText->Create(
             device,
             L"", 
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            100.0f, // 少し大きめ
-            D2D1::ColorF(D2D1::ColorF::Yellow), // 逶ｮ遶九▽濶ｲ
+            100.0f,
+            D2D1::ColorF(D2D1::ColorF::Yellow),
             1024, 200
         );
 
-        // UI要素を生成
+        // 前のジャンル名（左配置）
         prevGenreText = AddUI<sf::ui::TextImage>();
-        prevGenreText->transform.SetPosition(Vector3(-550.0f, LAYOUT_GENRE_Y, 0)); // 左に配置
-        prevGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
+        prevGenreText->transform.SetPosition(Vector3(-550.0f, LAYOUT_GENRE_Y, 0));
+        prevGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f));
         prevGenreText->Create(
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            50.0f, // フォントサイズダウン (70 -> 50)
+            50.0f,
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
         );
 
-        // UI要素を生成
+        // 次のジャンル名（右配置）
         nextGenreText = AddUI<sf::ui::TextImage>();
-        nextGenreText->transform.SetPosition(Vector3(550.0f, LAYOUT_GENRE_Y, 0)); // 右に配置
-        nextGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f)); // サイズダウン
+        nextGenreText->transform.SetPosition(Vector3(550.0f, LAYOUT_GENRE_Y, 0));
+        nextGenreText->transform.SetScale(Vector3(6.0f, 1.2f, 1.0f));
         nextGenreText->Create(
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            50.0f, // フォントサイズダウン (70 -> 50)
+            50.0f,
             D2D1::ColorF(D2D1::ColorF::Gray),
             512, 100
         );
 
-        // UI要素を生成
-        // UI要素を生成
+        // ===== スコア・ランク表示 =====
+
+        // ハイスコアテキスト
         highScoreText = AddUI<sf::ui::TextImage>();
         highScoreText->transform.SetPosition(Vector3(650, -400, 1.0f)); 
         highScoreText->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f));
@@ -363,7 +348,7 @@ namespace app::test {
             1536, 128
         );
 
-        // UI要素を生成
+        // ランクマーク
         rankMark = AddUI<sf::ui::TextImage>();
         rankMark->transform.SetPosition(Vector3(800, -350, 1.0f)); 
         rankMark->transform.SetScale(Vector3(3.0f, 3.0f, 1.0f));
@@ -376,8 +361,7 @@ namespace app::test {
             256, 256
         );
 
-
-        // UI要素を生成
+        // ===== プレイヤーレーティング表示 =====
         playerRatingText = AddUI<sf::ui::TextImage>();
         playerRatingText->transform.SetPosition(Vector3(-750, -450, 1.0f));
         playerRatingText->transform.SetScale(Vector3(6.0f, 1.5f, 1.0f));
@@ -390,27 +374,27 @@ namespace app::test {
             1024, 128
         );
 
-        // 処理本体
+        // レーティング値を小数点2桁で表示
         float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
-        // 処理本体
         float truncatedRating = std::floor(playerRating * 100.0f) / 100.0f;
         wchar_t ratingBuf[64];
         swprintf_s(ratingBuf, L"Rating: %.2f", truncatedRating);
         playerRatingText->SetText(ratingBuf);
 
-        // テクスチャを読み込む
-        // テクスチャを読み込む
+        // ===== レーティング詳細パネル =====
+
+        // 背景テクスチャ
         ratingDetailBackgroundTexture.LoadTextureFromFile("Assets\\Texture\\SelectBack.png");
         
-        // UI要素を生成
+        // 半透明背景
         ratingDetailBackground = AddUI<sf::ui::Image>();
         ratingDetailBackground->transform.SetPosition(Vector3(-550, 0, 5.0f));
-        ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f)); // 10倍に拡大
+        ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f));
         ratingDetailBackground->material.texture = &ratingDetailBackgroundTexture;
-        ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f}); // 半透明の黒（90%）
+        ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.90f});
         ratingDetailBackground->SetVisible(false);
 
-        // "RATING" ラベル（最上段）
+        // 「RATING」ラベル
         ratingDetailLabelText = AddUI<sf::ui::TextImage>();
         ratingDetailLabelText->transform.SetPosition(Vector3(-650, 460, 10.0f));
         ratingDetailLabelText->transform.SetScale(Vector3(6.0f, 2.0f, 1.0f));
@@ -424,23 +408,23 @@ namespace app::test {
         );
         ratingDetailLabelText->SetVisible(false);
 
-        // UI要素を生成
+        // レーティング合計値テキスト
         ratingDetailTotalText = AddUI<sf::ui::TextImage>();
-        ratingDetailTotalText->transform.SetPosition(Vector3(-650, 380, 10.0f)); // 400 -> 380
+        ratingDetailTotalText->transform.SetPosition(Vector3(-650, 380, 10.0f));
         ratingDetailTotalText->transform.SetScale(Vector3(10.0f, 3.0f, 1.0f));
         ratingDetailTotalText->Create(
             device,
             L"",
             L"Assets/Fonts/\x30B4\x30C1\x30AB\x30AF\x30C3\x30C8.ttf",
-            100.0f, // 大きく
+            100.0f,
             D2D1::ColorF(D2D1::ColorF::Cyan),
             1024, 200
         );
         ratingDetailTotalText->SetVisible(false);
 
-        // UI要素を生成
+        // 「Top 10 Charts」タイトル
         ratingDetailTitle = AddUI<sf::ui::TextImage>();
-        ratingDetailTitle->transform.SetPosition(Vector3(-650, 280, 10.0f)); // 300 -> 280
+        ratingDetailTitle->transform.SetPosition(Vector3(-650, 280, 10.0f));
         ratingDetailTitle->transform.SetScale(Vector3(8.0f, 2.0f, 1.0f));
         ratingDetailTitle->Create(
             device,
@@ -452,10 +436,10 @@ namespace app::test {
         );
         ratingDetailTitle->SetVisible(false);
 
-        // ループ処理
+        // 上位チャート詳細行（10行）
         for (int i = 0; i < 10; ++i) {
             auto* line = AddUI<sf::ui::TextImage>();
-            line->transform.SetPosition(Vector3(-650, 200 - i * 70, 10.0f)); // 220 -> 200
+            line->transform.SetPosition(Vector3(-650, 200 - i * 70, 10.0f));
             line->transform.SetScale(Vector3(8.0f, 1.0f, 1.0f));
             line->Create(
                 device,
@@ -468,14 +452,11 @@ namespace app::test {
             line->SetVisible(false);
             ratingDetailLines.push_back(line);
         }
-
-
-
     }
 
-    // ジャケット表示を更新
+    /// ジャケット表示プールを再構築する
     void SelectCanvas::RebuildJacketPool() {
-        // 全て一旦非表示
+        // 全ジャケットを一旦非表示
         for (auto* img : jacketComponents) {
             if (img) img->SetVisible(false);
         }
@@ -483,10 +464,10 @@ namespace app::test {
 
         if (songs.empty()) return;
 
-        // 処理本体
+        // 表示に必要なプールサイズを決定
         const int poolSize = std::min<int>(MAX_VISIBLE, std::max<int>(3, (int)songs.size()));
         
-        // ループ処理
+        // プールにジャケットを登録
         for (int i = 0; i < poolSize; ++i) {
             if (i < (int)jacketComponents.size()) {
                  auto* jacket = jacketComponents[i];
@@ -496,11 +477,13 @@ namespace app::test {
         }
     }
 
-    // ===== Update =====
+    // ===== 更新処理 =====
+
+    /// 毎フレーム更新 - アニメーション・ジャケット位置・フレーム位置を更新する
     void SelectCanvas::Update(const sf::command::ICommand& command) {
         animationTime += sf::Time::DeltaTime();
 
-        // 条件分岐
+        // レーティング詳細パネルのアニメーション進行
         if (showRatingDetail && ratingDetailAnimationTimer < 1.0f) {
             ratingDetailAnimationTimer += sf::Time::DeltaTime() / RATING_DETAIL_ANIMATION_DURATION;
             if (ratingDetailAnimationTimer > 1.0f) ratingDetailAnimationTimer = 1.0f;
@@ -516,28 +499,28 @@ namespace app::test {
 
 
     // ===== アニメーション =====
-    void SelectCanvas::UpdateAnimation() {
-        // ... (existing slide logic) ...
 
+    /// 選択スライドアニメーション・モード別のビジュアル状態を更新する
+    void SelectCanvas::UpdateAnimation() {
+
+        // 選択枠の呼吸アニメーション
         const float pulsePhase = std::fmod(animationTime * 0.8f, 1.0f);
         const float pulse = (float)Easing(pulsePhase, EASE::EaseYoyo);
         const float pulseScale = 1.0f + 0.04f * pulse;
 
-        // Visual State Update based on Mode
+        // ===== モード別のビジュアル更新 =====
         if (selectionMode == InputMode::GenreSelect) {
-            // Genre: Blink Yellow
+            // ジャンル選択モード：ジャンル名を点滅、曲エリアをグレーアウト
             float blink = 0.5f + 0.5f * (std::sin(animationTime * 8.0f) + 1.0f) * 0.5f;
             if (genreText) {
-                // R=1, G=1, B=0, A=blink
                 genreText->material.SetColor({ 1.0f, 1.0f, 0.0f, blink });
             }
             if (prevGenreText) prevGenreText->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
             if (nextGenreText) nextGenreText->material.SetColor({ 0.5f, 0.5f, 0.5f, 1.0f });
 
-            // Song Area: Gray out
-            if (selectFrame) selectFrame->material.SetColor({ 0.3f, 0.3f, 0.3f, 0.5f }); // Dim
+            // 曲エリアのグレーアウト
+            if (selectFrame) selectFrame->material.SetColor({ 0.3f, 0.3f, 0.3f, 0.5f });
             
-            // Jackets: Dim
             for (auto* jacket : jacketPool) {
                 if(jacket) jacket->material.SetColor({ 0.4f, 0.4f, 0.4f, 1.0f });
             }
@@ -547,22 +530,21 @@ namespace app::test {
             if(difficultyText) difficultyText->material.SetColor({0.5f, 0.5f, 0.5f, 1.0f});
 
         } else {
-            // Song Select: Active
+            // 曲選択モード：曲エリアをアクティブ表示
             if (genreText) {
-                 // White, steady
                  genreText->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
             }
-            if (prevGenreText) prevGenreText->material.SetColor({ 0.4f, 0.4f, 0.4f, 0.8f }); // Slightly dim in song mode
+            if (prevGenreText) prevGenreText->material.SetColor({ 0.4f, 0.4f, 0.4f, 0.8f });
             if (nextGenreText) nextGenreText->material.SetColor({ 0.4f, 0.4f, 0.4f, 0.8f });
 
-            // Song Area: Active (Pulse Frame)
+            // 選択枠の呼吸アニメーション
            if (selectFrame)
             {
                 float alpha = 0.5f + 0.5f * pulse;
                 selectFrame->material.SetColor({ 1.0f, 1.0f, 1.0f, alpha });
             }
 
-            // Jackets: White (Normal)
+            // ジャケットを通常色で表示
             for (auto* jacket : jacketPool) {
                 if(jacket) jacket->material.SetColor({ 1.0f, 1.0f, 1.0f, 1.0f });
             }
@@ -572,7 +554,7 @@ namespace app::test {
              if(difficultyText) difficultyText->material.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
         }
         
-        // Frame Breathing (Scale only)
+        // 選択枠のスケールを中央ジャケットに合わせて呼吸させる
         if (selectFrame && !jacketPool.empty()) {
             const int half = (int)jacketPool.size() / 2;
             const Vector3 jacketScale = jacketPool[half]->transform.GetScale();
@@ -584,7 +566,7 @@ namespace app::test {
             ));
         }
 
-
+        // ===== スライド補間処理 =====
         const int N = (int)songs.size();
         if (N <= 0) return;
 
@@ -612,73 +594,60 @@ namespace app::test {
             slideTimer = 0.0f;
         }
 
-        // 条件分岐
+        // ===== レーティング詳細パネルのスライドアニメーション =====
         if (ratingDetailAnimationTimer > 0.0f) {
-            // レーティング詳細UIを更新
             float easedTimer = (float)Easing(ratingDetailAnimationTimer, EASE::EaseOutExpo);
             
-            // 処理本体
-            // 処理本体
+            // 下からスライドインするオフセット
             const float startOffsetY = -1080.0f;
             float currentOffsetY = startOffsetY * (1.0f - easedTimer);
             
-            // 処理本体
             const float uiX = -650.0f;
 
-            // 背景の更新
+            // 背景
             if (ratingDetailBackground) {
-                // 位置を更新
                 ratingDetailBackground->transform.SetPosition(Vector3(uiX, 0.0f + currentOffsetY, 5.0f));
-                // スケールを更新
                 ratingDetailBackground->transform.SetScale(Vector3(7.0f, 16.0f, 1.0f));
                 ratingDetailBackground->material.SetColor({0.0f, 0.0f, 0.0f, 0.50f * easedTimer});
                 ratingDetailBackground->SetVisible(true);
             }
             
-            // ラベルの更新
+            // 「RATING」ラベル
             if (ratingDetailLabelText) {
-                // 位置を更新
                 ratingDetailLabelText->transform.SetPosition(Vector3(uiX, 460.0f + currentOffsetY, 10.0f));
                 ratingDetailLabelText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer});
                 ratingDetailLabelText->SetVisible(true);
             }
 
-            // 合計レートの更新
+            // レーティング合計値
             if (ratingDetailTotalText) {
-                // 位置を更新
                 ratingDetailTotalText->transform.SetPosition(Vector3(uiX, 380.0f + currentOffsetY, 10.0f));
-                ratingDetailTotalText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer}); // シアンで目立たせる
+                ratingDetailTotalText->material.SetColor({0.0f, 1.0f, 1.0f, easedTimer});
                 ratingDetailTotalText->SetVisible(true);
             }
             
-            // タイトルの更新
+            // 「Top 10 Charts」タイトル
             if (ratingDetailTitle) {
-                // 位置を更新
                 ratingDetailTitle->transform.SetPosition(Vector3(uiX, 280.0f + currentOffsetY, 10.0f));
                 ratingDetailTitle->material.SetColor({1.0f, 1.0f, 0.0f, easedTimer});
                 ratingDetailTitle->SetVisible(true);
             }
             
-            // 処理本体
+            // 各チャート詳細行
             int lineIndex = 0;
             for (auto* line : ratingDetailLines) {
                 if (line) {
-                    // 処理本体
                     float baseLineY = 200.0f - lineIndex * 70.0f;
                     line->transform.SetPosition(Vector3(uiX, baseLineY + currentOffsetY, 10.0f));
                     line->material.SetColor({1.0f, 1.0f, 1.0f, easedTimer});
                     
-                    // 条件分岐
-                    if (lineIndex < ratingDetailItemCount) {
-                        line->SetVisible(true);
-                    } else {
-                        line->SetVisible(false);
-                    }
+                    // データがある行のみ表示
+                    line->SetVisible(lineIndex < ratingDetailItemCount);
                 }
                 lineIndex++;
             }
         } else {
-            // 条件分岐
+            // パネル閉鎖時は全要素を非表示
             if (ratingDetailBackground) ratingDetailBackground->SetVisible(false);
             if (ratingDetailLabelText) ratingDetailLabelText->SetVisible(false);
             if (ratingDetailTitle) ratingDetailTitle->SetVisible(false);
@@ -689,7 +658,7 @@ namespace app::test {
         }
     }
 
-    // ジャケット表示を更新
+    /// ジャケットの位置・スケール・深度を現在の選択位置に基づいて更新する
     void SelectCanvas::UpdateJacketPositions() {
         if (songs.empty() || jacketPool.empty()) return;
         const int N = (int)songs.size();
@@ -719,7 +688,7 @@ namespace app::test {
         }
     }
 
-    // ===== 選択枠更新 =====
+    /// 選択枠を中央ジャケットの位置に配置する
     void SelectCanvas::UpdateSelectedFrame() {
         if (songs.empty() || jacketPool.empty()) {
             if (selectFrame) selectFrame->SetVisible(false);
@@ -731,7 +700,9 @@ namespace app::test {
         selectFrame->SetVisible(true);
     }
 
-    // ===== 次へ =====
+    // ===== 曲選択操作 =====
+
+    /// 次の曲を選択し、曲情報UIを更新する
     void SelectCanvas::SelectNext() {
         if (songs.empty()) return;
         const int N = (int)songs.size();
@@ -741,12 +712,13 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
+        // 曲タイトル更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
 
-        // 条件分岐
+        // アーティスト名更新
         if (artistText) {
             std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
             artistText->SetText(artist);
@@ -764,7 +736,7 @@ namespace app::test {
             difficultyText->SetText(levelStr);
         }
 
-        // Score & Rank Update
+        // スコア・ランク更新
         if (!songs.empty() && highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
             if (record.highScore > 0) {
@@ -779,14 +751,12 @@ namespace app::test {
             }
         }
 
-
-        // デバッグログを出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
         
         PlayPreview();
     }
 
-    // ===== 蜑阪∈ =====
+    /// 前の曲を選択し、曲情報UIを更新する
     void SelectCanvas::SelectPrevious() {
         if (songs.empty()) return;
         const int N = (int)songs.size();
@@ -796,11 +766,13 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
+        // 曲タイトル更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
         }
-        // 条件分岐
+
+        // アーティスト名更新
         if (artistText) {
             std::wstring artist = Utf8ToWstring(songs[targetIndex].artist);
             artistText->SetText(artist);
@@ -818,7 +790,7 @@ namespace app::test {
             difficultyText->SetText(levelStr);
         }
 
-        // Score & Rank Update
+        // スコア・ランク更新
         if (!songs.empty() && highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
             if (record.highScore > 0) {
@@ -833,30 +805,30 @@ namespace app::test {
             }
         }
 
-        // デバッグログを出力
         sf::debug::Debug::Log("Selected: " + Utf8ToShiftJis(songs[targetIndex].title));
 
         PlayPreview();
     }
 
+    /// 選択をキャンセルしてタイトル画面に戻る
     void SelectCanvas::CancelSelection() {
-        // MVP: Presenterにシーン遷移を委譲
         if (presenter) {
             presenter->NavigateToTitle();
         }
     }
 
+    /// 選択を確定してゲーム画面に遷移する
     void SelectCanvas::ConfirmSelection() {
         if (songs.empty()) return;
 
         const SongInfo& selected = songs[targetIndex];
 
-        // MVP: Presenterにシーン遷移を委譲
         if (presenter) {
             presenter->NavigateToGame(selected);
         }
     }
 
+    /// 現在選択中の楽曲情報を返す
     const SongInfo& SelectCanvas::GetSelectedSong() const {
         if (songs.empty()) {
             static SongInfo empty = { "", "", "" };
@@ -866,7 +838,7 @@ namespace app::test {
         return songs[idx];
     }
 
-    // ===== MVP: SetTargetIndex =====
+    /// 指定インデックスの曲を選択状態にし、UIを更新する
     void SelectCanvas::SetTargetIndex(int index) {
         if (songs.empty()) return;
         const int N = (int)songs.size();
@@ -875,7 +847,7 @@ namespace app::test {
         slideStartIdx = currentIndex;
         slideTimer = 0.0f;
 
-        // UI更新
+        // 曲情報UIの更新
         if (songTitleText) {
             std::wstring title = Utf8ToWstring(songs[targetIndex].title);
             songTitleText->SetText(title);
@@ -891,7 +863,8 @@ namespace app::test {
             std::wstring levelStr = L"LEVEL: " + std::to_wstring(songs[targetIndex].level);
             difficultyText->SetText(levelStr);
         }
-        // Score & Rank 更新
+
+        // スコア・ランク更新
         if (highScoreText && rankMark) {
             auto record = app::test::ScoreManager::Instance().GetScore(songs[targetIndex].chartPath);
             if (record.highScore > 0) {
@@ -908,24 +881,24 @@ namespace app::test {
         PlayPreview();
     }
 
-    // ===== MVP: SetGenreSelectMode =====
+    /// ジャンル選択モードの切り替え
     void SelectCanvas::SetGenreSelectMode(bool isGenreMode) {
         selectionMode = isGenreMode ? InputMode::GenreSelect : InputMode::SongSelect;
     }
 
-    // ===== MVP: SetShowRatingDetail =====
+    /// レーティング詳細パネルの表示切り替え
     void SelectCanvas::SetShowRatingDetail(bool show) {
         showRatingDetail = show;
         
         if (show && ratingDetailTotalText) {
-            // 処理本体
+            // レーティング合計値を更新
             float playerRating = app::test::RatingManager::Instance().GetPlayerRating();
             float truncated = std::floor(playerRating * 100.0f) / 100.0f;
             wchar_t totalBuf[64];
             swprintf_s(totalBuf, L"%.2f", truncated);
             ratingDetailTotalText->SetText(totalBuf);
             
-            // 処理本体
+            // 上位チャートの詳細行を更新
             auto topCharts = app::test::RatingManager::Instance().GetTopCharts(10);
             ratingDetailItemCount = std::min<int>((int)topCharts.size(), (int)ratingDetailLines.size());
             
@@ -946,8 +919,9 @@ namespace app::test {
     }
 
     // ===== プレビュー再生 =====
+
+    /// 選択中の楽曲のプレビュー音声を再生する
     void SelectCanvas::PlayPreview() {
-        // プレビュー再生を制御
         previewPlayer.Stop();
         previewResource = nullptr;
 
@@ -961,11 +935,10 @@ namespace app::test {
         // パスをShift-JISに変換
         std::string sjisPath = Utf8ToShiftJis(info.musicPath);
 
-        // 処理本体
+        // サウンドリソースを生成して読み込み
         previewResource = new sf::sound::SoundResource();
 
-        // 条件分岐
-        if (FAILED(previewResource.Target()->LoadSound(sjisPath, true))) { // true = loop
+        if (FAILED(previewResource.Target()->LoadSound(sjisPath, true))) {
             sf::debug::Debug::Log("Preview Load Failed: " + sjisPath);
             return;
         }
@@ -976,27 +949,27 @@ namespace app::test {
     }
 
     // ===== ジャンル変更 =====
+
+    /// ジャンルを変更し、楽曲リスト・ジャケット・UIを再構築する
     void SelectCanvas::ChangeGenre(int direction) {
-        // 楽曲リスト情報を更新
         int currentIdx = songListService.GetCurrentGenreIndex();
         int newIdx = currentIdx + direction;
-        // 楽曲リスト情報を更新
         songs = songListService.ChangeGenre(newIdx);
         
-        // 処理本体
+        // 選択位置をリセット
         targetIndex = 0;
         selectedIndex = 0;
         currentIndex = 0.0f;
         slideStartIdx = 0.0f;
         slideTimer = 0.0f;
 
-        // タイトル等更新
+        // 曲情報UIの更新
         if (!songs.empty()) {
             if (songTitleText) songTitleText->SetText(Utf8ToWstring(songs[0].title));
             if (artistText)    artistText->SetText(Utf8ToWstring(songs[0].artist));
             if (bpmText)       bpmText->SetText(L"BPM: " + Utf8ToWstring(songs[0].bpm));
 
-            // Score & Rank Update
+            // スコア・ランク更新
             if (highScoreText && rankMark) {
                 auto record = app::test::ScoreManager::Instance().GetScore(songs[0].chartPath);
                 if (record.highScore > 0) {
@@ -1012,7 +985,7 @@ namespace app::test {
             }
         }
 
-        // ジャンル名更新
+        // ジャンル名表示の更新
         const auto& allGenres = songListService.GetAllGenres();
         int currentGenreIndex = songListService.GetCurrentGenreIndex();
         int N = (int)allGenres.size();
@@ -1021,7 +994,7 @@ namespace app::test {
             genreText->SetText(Utf8ToWstring(allGenres[currentGenreIndex].name));
         }
 
-        // 条件分岐
+        // 前後のジャンル名を更新
         if (prevGenreText && N > 0) {
             int prevIdx = (currentGenreIndex - 1 + N) % N;
             prevGenreText->SetText(Utf8ToWstring(allGenres[prevIdx].name));
@@ -1031,7 +1004,7 @@ namespace app::test {
             nextGenreText->SetText(Utf8ToWstring(allGenres[nextIdx].name));
         }
 
-        // ジャケット表示を更新
+        // ジャケットテクスチャを再読み込み
         jacketTextures.clear();
         jacketTextures.resize(songs.size());
         
@@ -1054,10 +1027,12 @@ namespace app::test {
         PlayPreview();
     }
 
+    /// 次のジャンルに変更する
     void SelectCanvas::SelectNextGenre() {
         ChangeGenre(songListService.GetCurrentGenreIndex() + 1);
     }
 
+    /// 前のジャンルに変更する
     void SelectCanvas::SelectPreviousGenre() {
         ChangeGenre(songListService.GetCurrentGenreIndex() - 1);
     }

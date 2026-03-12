@@ -1,4 +1,4 @@
-﻿#include "EffectManager.h"
+#include "EffectManager.h"
 #include "sf/Time.h"
 #include "Debug.h"
 
@@ -13,9 +13,9 @@ namespace app::test {
         efkRenderer = nullptr;
     }
 
-    // ----------------------------------------------------------------
-    // 処理本体
-    // ----------------------------------------------------------------
+    // ===== Effekseer初期化 =====
+
+    /// Effekseerのレンダラーとマネージャーを生成し、各種レンダラーを登録する
     void EffectManager::InitializeEffekseer(ID3D11Device* device, ID3D11DeviceContext* context) {
         if (device != nullptr && context != nullptr) {
             efkRenderer = EffekseerRendererDX11::Renderer::Create(device, context, 2000);
@@ -24,13 +24,13 @@ namespace app::test {
             m_context = context;
 
             if (efkRenderer != nullptr && efkManager != nullptr) {
-
-                // 処理本体
+                // 左手座標系に設定（DirectXに合わせる）
                 efkManager->SetCoordinateSystem(Effekseer::CoordinateSystem::LH);
 
-                // 処理本体
+                // 描画ステートの自動復元を有効化
                 efkRenderer->SetRestorationOfStatesFlag(true);
 
+                // 各種レンダラー・ローダーを登録
                 efkManager->SetSpriteRenderer(efkRenderer->CreateSpriteRenderer());
                 efkManager->SetRibbonRenderer(efkRenderer->CreateRibbonRenderer());
                 efkManager->SetRingRenderer(efkRenderer->CreateRingRenderer());
@@ -44,9 +44,9 @@ namespace app::test {
         updateCommand.Bind(std::bind(&EffectManager::Update, this, std::placeholders::_1));
     }
 
-    // ----------------------------------------------------------------
-    // 処理本体
-    // ----------------------------------------------------------------
+    // ===== スプライト初期化 =====
+
+    /// スプライトエフェクト用のオブジェクトプールを生成する
     void EffectManager::InitializeSprite(ImageFactory factory, sf::Texture* texture, int poolSize) {
         if (factory && texture) {
             spritePool.clear();
@@ -70,9 +70,9 @@ namespace app::test {
         updateCommand.Bind(std::bind(&EffectManager::Update, this, std::placeholders::_1));
     }
 
-    // ----------------------------------------------------------------
-    // Effekseer 読み込み
-    // ----------------------------------------------------------------
+    // ===== Effekseerエフェクト操作 =====
+
+    /// エフェクトファイルを読み込み、キー名でリソースマップに登録する
     void EffectManager::LoadEffekseer(const std::string& key, const std::u16string& path) {
         if (efkManager == nullptr) return;
         auto effect = Effekseer::Effect::Create(efkManager, path.c_str());
@@ -81,36 +81,39 @@ namespace app::test {
         }
     }
 
+    /// 登録済みエフェクトをキー名で再生し、ハンドルを返す
     Effekseer::Handle EffectManager::PlayEffekseer(const std::string& key, float x, float y, float z) {
         if (efkManager == nullptr) return -1;
         if (efkResourceMap.find(key) == efkResourceMap.end()) return -1;
         return efkManager->Play(efkResourceMap[key], x, y, z);
     }
 
+    /// Effekseerエフェクトを描画する
     void EffectManager::DrawEffekseer() {
         if (efkManager != nullptr && efkRenderer != nullptr) {
-
-            // シェーダー解除
+            // 不要なシェーダーステージを無効化
             m_context->GSSetShader(nullptr, nullptr, 0);
             m_context->HSSetShader(nullptr, nullptr, 0);
             m_context->DSSetShader(nullptr, nullptr, 0);
 
-            // デバッグログを出力
+            // プリミティブトポロジーを設定
             m_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+            // Effekseer描画
             efkRenderer->BeginRendering();
             efkManager->Draw();
             efkRenderer->EndRendering();
         }
     }
 
-    // ----------------------------------------------------------------
-    // 処理本体
-    // ----------------------------------------------------------------
+    // ===== スプライトエフェクト操作 =====
+
+    /// スプライトエフェクトを再生する（均一スケール版）
     void EffectManager::SpawnSprite(float x, float y, float scale, float duration, const Color& color) {
         SpawnSprite(x, y, scale, scale, duration, color);
     }
 
+    /// プールから未使用のスプライトを取得し、エフェクトを再生する
     void EffectManager::SpawnSprite(float x, float y, float scaleX, float scaleY, float duration, const Color& color) {
         for (auto& effect : spritePool) {
             if (!effect.active) {
@@ -127,30 +130,34 @@ namespace app::test {
         }
     }
 
-    // ----------------------------------------------------------------
-    // 共通更新処理
-    // ----------------------------------------------------------------
+    // ===== 共通更新処理 =====
+
+    /// スプライトとEffekseerの毎フレーム更新
     void EffectManager::Update(const sf::command::ICommand&) {
 
         float dt = sf::Time::DeltaTime();
 
-        // スプライト更新
+        // --- スプライトエフェクトの更新 ---
         for (auto& effect : spritePool) {
             if (!effect.active) continue;
             if (effect.image.isNull()) { effect.active = false; continue; }
 
             effect.timer += dt;
+
+            // 再生時間を超えたら非表示にして返却
             if (effect.timer >= effect.duration) {
                 effect.active = false;
                 effect.image->SetVisible(false);
                 continue;
             }
+
+            // スプライトシートのフレームを進行率に応じて更新
             if (effect.duration > 0.0f) {
-                // スプライトシートのフレーム更新
                 float t = effect.timer / effect.duration;
                 int totalFrames = gridCols * gridRows;
                 int currentFrame = static_cast<int>(t * totalFrames);
                 if (currentFrame >= totalFrames) currentFrame = totalFrames - 1;
+
                 int col = currentFrame % gridCols;
                 int row = currentFrame / gridCols;
                 float uSize = 1.0f / gridCols;
@@ -159,12 +166,13 @@ namespace app::test {
             }
         }
 
-        // Effekseer更新
+        // --- Effekseerの更新（60FPS基準に変換） ---
         if (efkManager != nullptr) {
             efkManager->Update(dt * 60.0f);
         }
     }
 
+    /// 全スプライトを非表示にし、全Effekseerエフェクトを停止する
     void EffectManager::ClearAll() {
         for (auto& effect : spritePool) {
             effect.active = false;
@@ -173,16 +181,19 @@ namespace app::test {
         if (efkManager != nullptr) efkManager->StopAllEffects();
     }
 
+    /// Effekseerの射影行列を設定する
     void EffectManager::SetProjectionMatrix(const Effekseer::Matrix44& proj) {
         if (efkRenderer != nullptr) efkRenderer->SetProjectionMatrix(proj);
     }
+
+    /// Effekseerのカメラ行列を設定する
     void EffectManager::SetCameraMatrix(const Effekseer::Matrix44& camera) {
         if (efkRenderer != nullptr) efkRenderer->SetCameraMatrix(camera);
     }
 
+    /// Effekseerエフェクトのスケールを設定する
     void EffectManager::SetScale(Effekseer::Handle handle, float x, float y, float z) {
         if (efkManager != nullptr) {
-            // スケールを更新
             efkManager->SetScale(handle, x, y, z);
         }
     }

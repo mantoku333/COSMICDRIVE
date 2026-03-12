@@ -1,94 +1,97 @@
-﻿#pragma once
+#pragma once
 #include "Component.h"
 #include "Image.h"
 #include "Texture.h"
 #include <vector>
 #include <map>
 #include <string>
-#include <functional> // std::function用
+#include <functional>
 
-// Effekseer
 #include <Effekseer.h>
 #include <EffekseerRendererDX11.h>
 
 namespace app::test {
 
+    /// RGBA色情報
     struct Color {
         float r, g, b, a;
     };
 
+    /// エフェクトの管理コンポーネント
+    /// Effekseer（3Dパーティクル）とスプライトシート（2Dエフェクト）の両方を統合管理する
     class EffectManager : public sf::Component {
     public:
         EffectManager();
         virtual ~EffectManager();
 
-        // ========================================================================
-        // 初期化メソッド
-        // ========================================================================
+        // ===== 初期化 =====
 
-        // Effekseerを使う場合の初期化3Dエフェクト
+        /// Effekseerの初期化（3Dエフェクト用）
         void InitializeEffekseer(ID3D11Device* device, ID3D11DeviceContext* context);
 
-        // 2Dスプライトを使う場合の初期化 (板ポリ用)
+        /// スプライトエフェクトの初期化（2Dエフェクト用）
         using ImageFactory = std::function<sf::SafePtr<sf::ui::Image>()>;
         void InitializeSprite(ImageFactory factory, sf::Texture* texture, int poolSize = 20);
 
+        // ===== Effekseer操作 =====
 
-        // ========================================================================
-        // 操作メソッド
-        // ========================================================================
-
-        // Effekseerの再生
-        Effekseer::Handle PlayEffekseer(const std::string& key, float x, float y, float z = 0.0f);
-        // Effekseerファイルのロード
+        /// Effekseerエフェクトファイルを読み込む
         void LoadEffekseer(const std::string& key, const std::u16string& path);
-        // Effekseerの描画 (シーンのDrawで呼ぶ)
+
+        /// Effekseerエフェクトを再生する
+        Effekseer::Handle PlayEffekseer(const std::string& key, float x, float y, float z = 0.0f);
+
+        /// Effekseerエフェクトを描画する（シーンのDraw内で呼び出す）
         void DrawEffekseer();
 
-
-        // スプライトの再生
-        void SpawnSprite(float x, float y, float scale, float duration, const Color& color);
-        void SpawnSprite(float x, float y, float scaleX, float scaleY, float duration, const Color& color);
-
-
-        // 共通
-        void ClearAll(); // 全停止
-        void Update(const sf::command::ICommand& cmd); // 更新
-
-        // カメラ設定
-        void SetProjectionMatrix(const Effekseer::Matrix44& proj);
-        void SetCameraMatrix(const Effekseer::Matrix44& camera);
-
+        /// Effekseerエフェクトのスケールを設定する
         void SetScale(Effekseer::Handle handle, float x, float y, float z);
 
+        /// Effekseerの射影行列を設定する
+        void SetProjectionMatrix(const Effekseer::Matrix44& proj);
+
+        /// Effekseerのカメラ行列を設定する
+        void SetCameraMatrix(const Effekseer::Matrix44& camera);
+
+        // ===== スプライトエフェクト操作 =====
+
+        /// スプライトエフェクトを再生する（均一スケール）
+        void SpawnSprite(float x, float y, float scale, float duration, const Color& color);
+
+        /// スプライトエフェクトを再生する（XY個別スケール）
+        void SpawnSprite(float x, float y, float scaleX, float scaleY, float duration, const Color& color);
+
+        /// スプライトシートのグリッド分割数を設定する
+        void SetGrid(int c, int r) { gridCols = c; gridRows = r; }
+
+        // ===== 共通 =====
+
+        /// 全エフェクトを停止する
+        void ClearAll();
+
+        /// 毎フレーム更新処理
+        void Update(const sf::command::ICommand& cmd);
 
     private:
+        ID3D11DeviceContext* m_context = nullptr;  // 描画コンテキスト（Effekseer描画時に使用）
 
-        ID3D11DeviceContext* m_context = nullptr;
-
-        // スプライト管理用
+        // --- スプライトエフェクト管理 ---
         struct EffectInstance {
-            sf::SafePtr<sf::ui::Image> image;
-            bool active = false;
-            float timer = 0.0f;
-            float duration = 0.0f;
+            sf::SafePtr<sf::ui::Image> image;  // スプライト画像
+            bool active = false;                // 再生中フラグ
+            float timer = 0.0f;                 // 経過時間
+            float duration = 0.0f;              // 再生時間
         };
-        std::vector<EffectInstance> spritePool;
-        
-        // Grid Configuration
-        // Default 8x8 (Restoring original default to fix Tap Effect)
-        int gridCols = 8; 
-        int gridRows = 8;
-        
-    public:
-         void SetGrid(int c, int r) { gridCols = c; gridRows = r; }
-    
-    private:
-        // Effekseer管理用
-        EffekseerRenderer::RendererRef efkRenderer;
-        Effekseer::ManagerRef efkManager;
-        std::map<std::string, Effekseer::EffectRef> efkResourceMap;
+        std::vector<EffectInstance> spritePool;  // スプライトのオブジェクトプール
 
-        sf::command::Command<> updateCommand;
+        int gridCols = 8;  // スプライトシートの列数
+        int gridRows = 8;  // スプライトシートの行数
+
+        // --- Effekseer管理 ---
+        EffekseerRenderer::RendererRef efkRenderer;                    // Effekseerレンダラー
+        Effekseer::ManagerRef efkManager;                              // Effekseerマネージャー
+        std::map<std::string, Effekseer::EffectRef> efkResourceMap;   // エフェクトリソースマップ
+
+        sf::command::Command<> updateCommand;  // 更新コマンド
     };
 }
