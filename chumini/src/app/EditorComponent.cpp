@@ -3,7 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <string>
-#include <cstdlib>   // rand()
+#include <cstdlib>   
 #include <ctime>  
 
 #include "EditScene.h"
@@ -21,13 +21,13 @@ void app::test::EditorComponent::Update()
     if (!owner) return;
 
     auto* scene = &owner->GetScene();
-    auto* editScene = dynamic_cast<EditScene*>(scene); // ← パネル情報を取るためにキャスト
+    auto* editScene = dynamic_cast<EditScene*>(scene); 
     if (!editScene) return;
 
     // 左クリック：パネル面に沿ってノーツを生成
     if (I.GetMouseDown(0))
     {
-        // ==== ① パネル情報を取得 ====
+        // ==== パネル情報を取得 ====
         float panelW = editScene->panelW;
         float panelH = editScene->panelH;
         int lanes = editScene->lanes;
@@ -38,17 +38,16 @@ void app::test::EditorComponent::Update()
         float originY = editScene->panelPos.y;
         float panelZ = editScene->panelPos.z;
 
-        // ==== ② レーン位置を計算
+        // ==== レーン位置を計算
         int laneIndex = std::rand() % 5;
         float noteX = originX + (-panelW / 2.0f + laneW * (laneIndex + 0.5f));
 
-        // ==== ③ ノーツ生成 ====
+        // ==== ノーツ生成 ====
         auto note = scene->Instantiate();
         auto mesh = note.Target()->AddComponent<sf::Mesh>();
         mesh->SetGeometry(g_cube);\
         note.Target()->transform.SetScale({ laneW - 0.1f, 0.5f, 0.1f });
 
-        // 上端スタート or 中央など、好きな位置でOK
         float startY = originY + panelH / 2.0f;
         float Y = -5.0f + static_cast<float>(std::rand()) / RAND_MAX * (15.0f - (-5.0f));
         note.Target()->transform.SetPosition({

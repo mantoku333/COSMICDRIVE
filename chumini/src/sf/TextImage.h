@@ -3,7 +3,7 @@
 #include "Texture.h"
 #include <d2d1.h>
 #include <dwrite.h>
-#include <dwrite_3.h>   // ★追加: これがないと IDWriteFontCollection1 が使えません
+#include <dwrite_3.h> 
 #include <wrl/client.h>
 #include <string>
 
@@ -26,7 +26,6 @@ namespace sf {
             void Draw() override;
 
         private:
-            // ★第2引数に std::wstring& を追加
             bool LoadFontFile(const std::wstring& fontPath, std::wstring& outFontFamilyName);
 
             class InlineTexture : public sf::Texture {
@@ -46,15 +45,12 @@ namespace sf {
             Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
             Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
 
-            // ★ Static factories to prevent resource exhaustion
             static Microsoft::WRL::ComPtr<ID2D1Factory> d2dFactory;
             static Microsoft::WRL::ComPtr<IDWriteFactory> dwFactory;
 
             Microsoft::WRL::ComPtr<ID2D1RenderTarget> rt;
             Microsoft::WRL::ComPtr<ID2D1SolidColorBrush> brush;
             Microsoft::WRL::ComPtr<IDWriteTextFormat> format;
-
-            // ★ IDWriteFontCollection1 に修正
             Microsoft::WRL::ComPtr<IDWriteFontCollection1> customFontCollection;
 
             ID3D11Device* deviceRef = nullptr;

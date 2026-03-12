@@ -35,7 +35,6 @@ namespace app
 			void UpdateComboDisplay(int combo);
 			void UpdateJudgeCountDisplay();
 
-			// ★ここを SetJudgeImage に戻しました（中身はテキスト更新です）
 			void SetJudgeImage(JudgeResult result);
 
 			void UpdateJacketImage();
@@ -43,7 +42,6 @@ namespace app
 			sf::SafePtr<NoteManager> noteManager;
 			void DestroyEffect(sf::ui::Image* effect);
 
-			// 依存性注入（Dependency Injection）
 			void SetSongInfo(const SongInfo* info) { songInfoPtr = info; }
 
 

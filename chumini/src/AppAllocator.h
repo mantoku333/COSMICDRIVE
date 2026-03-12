@@ -10,7 +10,7 @@ using namespace Live2D::Cubism::Framework;
 // Live2D用のメモリアロケータ
 class LAppAllocator : public ICubismAllocator {
 public:
-    // ★修正箇所: csmSize を csmSizeType に変更
+    // csmSize を csmSizeType に変更
     void* Allocate(const csmSizeType size) override {
         return malloc(size);
     }
@@ -20,7 +20,7 @@ public:
         free(memory);
     }
 
-    // ★修正箇所: csmSize を csmSizeType に変更
+    // csmSize を csmSizeType に変更
     void* AllocateAligned(const csmSizeType size, const csmUint32 alignment) override {
         return _aligned_malloc(size, alignment);
     }

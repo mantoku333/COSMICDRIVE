@@ -11,7 +11,6 @@ using namespace sf::ui;
 
 #include <mutex> // Added for thread safety
 
-// ★ Static Member Definition
 Microsoft::WRL::ComPtr<ID2D1Factory> TextImage::d2dFactory;
 Microsoft::WRL::ComPtr<IDWriteFactory> TextImage::dwFactory;
 static std::mutex s_factoryMutex; // Protects initialization of d2dFactory and dwFactory
@@ -56,7 +55,7 @@ bool TextImage::LoadFontFile(const std::wstring& fontPath, std::wstring& outFont
     Microsoft::WRL::ComPtr<IDWriteFontSet> fontSet;
     if (FAILED(fontSetBuilder->CreateFontSet(&fontSet))) return false;
 
-    // ★ ComPtr の安全なアドレス取得を使用
+    // ComPtr の安全なアドレス取得を使用
     if (FAILED(dwFactory5->CreateFontCollectionFromFontSet(fontSet.Get(), customFontCollection.ReleaseAndGetAddressOf())))
         return false;
 

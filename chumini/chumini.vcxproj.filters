@@ -64,7 +64,9 @@
     <FxCompile Include="src\shader\psScoreGauge.hlsl">
       <Filter>App\Shader\ps</Filter>
     </FxCompile>
-    <FxCompile Include="src\shader\vsNoteInstancing.hlsl" />
+    <FxCompile Include="src\shader\vsNoteInstancing.hlsl">
+      <Filter>App\Shader\vs</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\sf\Actor.cpp">
@@ -281,16 +283,16 @@
       <Filter>App\ControlCamera</Filter>
     </ClCompile>
     <ClCompile Include="src\app\ChangeMotionComponent.cpp">
-      <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
+      <Filter>App\Component\ChangeMotionComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\app\FollowCameraComponent.cpp">
-      <Filter>App\Component\hoge\FollowCameraComponent</Filter>
+      <Filter>App\Component\FollowCameraComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\app\LookAtComponent.cpp">
-      <Filter>App\Component\hoge\LookAtComponent</Filter>
+      <Filter>App\Component\LookAtComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\app\MoveComponent.cpp">
-      <Filter>App\Component\hoge\MoveComponent</Filter>
+      <Filter>App\Component\MoveComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\app\NoteComponent.cpp">
       <Filter>App\Component\NoteComponent</Filter>
@@ -338,10 +340,10 @@
       <Filter>App\Component\NoteManagerComponent</Filter>
     </ClCompile>
     <ClCompile Include="src\app\GeometrySwat.cpp">
-      <Filter>App\Component\hoge\GeometrySwat</Filter>
+      <Filter>App\Component\GeometrySwat</Filter>
     </ClCompile>
     <ClCompile Include="src\app\SwatMotionArray.cpp">
-      <Filter>App\Component\hoge\SwatMotionArray</Filter>
+      <Filter>App\Component\SwatMotionArray</Filter>
     </ClCompile>
     <ClCompile Include="src\sf\AutoRef.cpp">
       <Filter>sf\Ref\AutoRef</Filter>
@@ -358,12 +360,6 @@
     <ClCompile Include="src\app\EditorComponent.cpp">
       <Filter>App\Component\EditorComponent</Filter>
     </ClCompile>
-    <ClCompile Include="src\DirectWriteCustomFont.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
-    <ClCompile Include="src\DirectWrite.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
     <ClCompile Include="src\sf\TextComponent.cpp">
       <Filter>App\Component</Filter>
     </ClCompile>
@@ -375,15 +371,6 @@
     </ClCompile>
     <ClCompile Include="src\sf\TextImage.cpp">
       <Filter>App\UItext</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\ScoreManager.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\ChedParser.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
-    <ClCompile Include="src\app\EffectManager.cpp">
-      <Filter>App</Filter>
     </ClCompile>
     <ClCompile Include="src\app\LoadingScene.cpp">
       <Filter>App\Scene\LoadingScene</Filter>
@@ -520,20 +507,51 @@
     <ClCompile Include="src\app\ConfigScene.cpp">
       <Filter>App\Scene\ConfigScene</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\Config.cpp">
-      <Filter>App</Filter>
-    </ClCompile>
     <ClCompile Include="src\app\ConfigCanvas.cpp">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClCompile>
-    <ClCompile Include="src\app\RatingManager.cpp" />
-    <ClCompile Include="src\app\ChartLoader.cpp" />
-    <ClCompile Include="src\app\ComboManager.cpp" />
-    <ClCompile Include="src\app\JudgeService.cpp" />
-    <ClCompile Include="src\app\NoteInstanceRenderer.cpp" />
-    <ClCompile Include="src\app\TempoService.cpp" />
-    <ClCompile Include="src\app\SongListService.cpp" />
-    <ClCompile Include="src\app\GameSession.cpp" />
+    <ClCompile Include="src\app\RatingManager.cpp">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ChartLoader.cpp">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ComboManager.cpp">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\JudgeService.cpp">
+      <Filter>App\Gameplay\Judge</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\NoteInstanceRenderer.cpp">
+      <Filter>App\Gameplay\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\TempoService.cpp">
+      <Filter>App\Gameplay\Timing</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\SongListService.cpp">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\GameSession.cpp">
+      <Filter>App\Gameplay\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DirectWrite.cpp">
+      <Filter>App\UItext</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DirectWriteCustomFont.cpp">
+      <Filter>App\UItext</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\Config.cpp">
+      <Filter>App\Gameplay</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ChedParser.cpp">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\ScoreManager.cpp">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClCompile>
+    <ClCompile Include="src\app\EffectManager.cpp">
+      <Filter>App\Gameplay\Render</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\sf\Actor.h">
@@ -773,26 +791,20 @@
     <ClInclude Include="src\app\App.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\NoteData.h">
-      <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\ScoreManager.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\ControlCamera.h">
       <Filter>App\ControlCamera</Filter>
     </ClInclude>
     <ClInclude Include="src\app\ChangeMotionComponent.h">
-      <Filter>App\Component\hoge\ChangeMotionComponent</Filter>
+      <Filter>App\Component\ChangeMotionComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\app\FollowCameraComponent.h">
-      <Filter>App\Component\hoge\FollowCameraComponent</Filter>
+      <Filter>App\Component\FollowCameraComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\app\LookAtComponent.h">
-      <Filter>App\Component\hoge\LookAtComponent</Filter>
+      <Filter>App\Component\LookAtComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\app\MoveComponent.h">
-      <Filter>App\Component\hoge\MoveComponent</Filter>
+      <Filter>App\Component\MoveComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\app\NoteComponent.h">
       <Filter>App\Component\NoteComponent</Filter>
@@ -840,10 +852,10 @@
       <Filter>App\Component\NoteManagerComponent</Filter>
     </ClInclude>
     <ClInclude Include="src\app\GeometrySwat.h">
-      <Filter>App\Component\hoge\GeometrySwat</Filter>
+      <Filter>App\Component\GeometrySwat</Filter>
     </ClInclude>
     <ClInclude Include="src\app\SwatMotionArray.h">
-      <Filter>App\Component\hoge\SwatMotionArray</Filter>
+      <Filter>App\Component\SwatMotionArray</Filter>
     </ClInclude>
     <ClInclude Include="src\sf\AutoRef.h">
       <Filter>sf\Ref\AutoRef</Filter>
@@ -854,9 +866,6 @@
     <ClInclude Include="src\sf.h">
       <Filter>sf</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\SongInfo.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\EditScene.h">
       <Filter>App\Scene\EditScene</Filter>
     </ClInclude>
@@ -866,17 +875,8 @@
     <ClInclude Include="src\app\BGMComponent.h">
       <Filter>App\Component\BGMComponent</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\Config.h">
-      <Filter>App</Filter>
-    </ClInclude>
     <ClInclude Include="src\app\EditorComponent.h">
       <Filter>App\Component\EditorComponent</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DirectWriteCustomFont.h">
-      <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="src\DirectWrite.h">
-      <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="src\sf\TextComponent.h">
       <Filter>App\Component</Filter>
@@ -889,12 +889,6 @@
     </ClInclude>
     <ClInclude Include="src\sf\TextImage.h">
       <Filter>App\UItext</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\ChedParser.h">
-      <Filter>App</Filter>
-    </ClInclude>
-    <ClInclude Include="src\app\EffectManager.h">
-      <Filter>App</Filter>
     </ClInclude>
     <ClInclude Include="src\app\LoadingScene.h">
       <Filter>App\Scene\LoadingScene</Filter>
@@ -1076,19 +1070,60 @@
     <ClInclude Include="src\app\ConfigCanvas.h">
       <Filter>App\Scene\ConfigScene\ConfigCanvas</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\RatingManager.h" />
+    <ClInclude Include="src\app\RatingManager.h">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClInclude>
     <ClInclude Include="src\sf\StringUtils.h">
       <Filter>App</Filter>
     </ClInclude>
-    <ClInclude Include="src\app\ChartLoader.h" />
-    <ClInclude Include="src\app\ComboManager.h" />
-    <ClInclude Include="src\app\JudgeConstants.h" />
-    <ClInclude Include="src\app\JudgeService.h" />
-    <ClInclude Include="src\app\NoteInstanceRenderer.h" />
-    <ClInclude Include="src\app\TempoService.h" />
-    <ClInclude Include="src\app\SongListService.h" />
-    <ClInclude Include="src\app\GameSession.h" />
-    <ClInclude Include="GlobalSoundComponent.h" />
+    <ClInclude Include="src\app\ChartLoader.h">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\ComboManager.h">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\JudgeConstants.h">
+      <Filter>App\Gameplay\Judge</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\JudgeService.h">
+      <Filter>App\Gameplay\Judge</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\NoteInstanceRenderer.h">
+      <Filter>App\Gameplay\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\TempoService.h">
+      <Filter>App\Gameplay\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\SongListService.h">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\GameSession.h">
+      <Filter>App\Gameplay\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DirectWrite.h">
+      <Filter>App\UItext</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DirectWriteCustomFont.h">
+      <Filter>App\UItext</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\Config.h">
+      <Filter>App\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\NoteData.h">
+      <Filter>App\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\SongInfo.h">
+      <Filter>App\Gameplay</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\ChedParser.h">
+      <Filter>App\Gameplay\Chart</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\ScoreManager.h">
+      <Filter>App\Gameplay\Scoring</Filter>
+    </ClInclude>
+    <ClInclude Include="src\app\EffectManager.h">
+      <Filter>App\Gameplay\Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="App">
@@ -1271,19 +1306,16 @@
     <Filter Include="App\Component">
       <UniqueIdentifier>{d1caffa9-4502-42ba-82e8-2b3da500dcb0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge">
-      <UniqueIdentifier>{c6875a08-b279-4bd9-bee5-c1c59c6663cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="App\Component\hoge\ChangeMotionComponent">
+    <Filter Include="App\Component\ChangeMotionComponent">
       <UniqueIdentifier>{084088d1-4c53-49cd-b457-971d2693caed}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge\FollowCameraComponent">
+    <Filter Include="App\Component\FollowCameraComponent">
       <UniqueIdentifier>{ca3c1cac-00f3-4697-bd84-e260f7822109}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge\LookAtComponent">
+    <Filter Include="App\Component\LookAtComponent">
       <UniqueIdentifier>{08ec2ea7-c711-4370-bd62-248989607dc6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge\MoveComponent">
+    <Filter Include="App\Component\MoveComponent">
       <UniqueIdentifier>{a9b2b4fe-e63c-49e9-a289-bc31a914fb49}</UniqueIdentifier>
     </Filter>
     <Filter Include="App\Component\NoteComponent">
@@ -1328,10 +1360,10 @@
     <Filter Include="App\Component\NoteManagerComponent">
       <UniqueIdentifier>{fd0b3d98-cc13-4914-8961-aed4395f7b70}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge\GeometrySwat">
+    <Filter Include="App\Component\GeometrySwat">
       <UniqueIdentifier>{21554619-3dec-4573-8e69-1f9442bb4c52}</UniqueIdentifier>
     </Filter>
-    <Filter Include="App\Component\hoge\SwatMotionArray">
+    <Filter Include="App\Component\SwatMotionArray">
       <UniqueIdentifier>{9f65a268-ea72-4ebc-9fdc-2a280d4ada4b}</UniqueIdentifier>
     </Filter>
     <Filter Include="sf\Ref\AutoRef">
@@ -1375,6 +1407,27 @@
     </Filter>
     <Filter Include="App\Scene\ConfigScene\ConfigCanvas">
       <UniqueIdentifier>{5a8fa5f6-5876-4511-9906-f20294391031}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay">
+      <UniqueIdentifier>{4ea89c06-9c4d-4898-8792-99f4d17dc8d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Chart">
+      <UniqueIdentifier>{08cb3d87-8ca8-4fa8-b49d-9f8ed7eec611}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Judge">
+      <UniqueIdentifier>{b4570d33-cd7d-47dd-b63c-7a39f33fb2f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Render">
+      <UniqueIdentifier>{9f98e70b-c3fd-4581-81cd-8eb4e5ac4a2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Scoring">
+      <UniqueIdentifier>{9df9f4df-5a1f-4940-a4e3-d9c5f8f3ec56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Session">
+      <UniqueIdentifier>{19be10cd-4782-4f84-978b-d44fb032d4df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="App\Gameplay\Timing">
+      <UniqueIdentifier>{7c7d39a5-8ce9-4bef-b4df-9890da8d43ad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

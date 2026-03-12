@@ -32,8 +32,8 @@ namespace app::test {
         // ★追加: XAudio2 制御用変数
         IXAudio2* pXAudio2 = nullptr;             // エンジン本体
         IXAudio2MasteringVoice* pMasterVoice = nullptr; // マスターボイス
-        IXAudio2SourceVoice* pSourceVoice = nullptr;    // ★これが「再生中の音声」
-        WAVEFORMATEX waveFormat = { 0 };          // ★これが「音声フォーマット情報」
+        IXAudio2SourceVoice* pSourceVoice = nullptr;    // 再生中の音声
+        WAVEFORMATEX waveFormat = { 0 };          // 音声フォーマット情報
 
     private:
         sf::SafePtr<sf::sound::SoundPlayer> player; // 内部で利用
