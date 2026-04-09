@@ -1,7 +1,6 @@
-<video src="https://github.com/user-attachments/assets/7228d44b-63bc-4dbe-96cc-15f925f03136" width="100%" controls></video>
-<video src="https://github.com/user-attachments/assets/9b75bafd-bbf7-4e63-8bdc-28f20f4c19de" width="100%" controls></video>
+https://github.com/user-attachments/assets/ce14a340-bf0e-42a4-950f-b1de12d99f93
 
-
+https://github.com/user-attachments/assets/ddeb5986-60b2-4efd-bc13-b6196ef773cb
 
  ## 🎮 作品概要
 本作品はLive2D・Chedを用いた、非エンジニアでもコードを書き換える必要なく新規楽曲を実装できるリズムゲームです。
