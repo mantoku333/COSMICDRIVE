@@ -1,5 +1,6 @@
-<img src="https://raw.githubusercontent.com/mantoku333/COSMICDRIVE/main/pv.mp4" width="100%">
-<img src="https://raw.githubusercontent.com/mantoku333/COSMICDRIVE/main/demoplay.mp4" width="100%">
+https://github.com/user-attachments/assets/ce14a340-bf0e-42a4-950f-b1de12d99f93
+
+https://github.com/user-attachments/assets/ddeb5986-60b2-4efd-bc13-b6196ef773cb
 
  ## 🎮 作品概要
 本作品はLive2D・Chedを用いた、非エンジニアでもコードを書き換える必要なく新規楽曲を実装できるリズムゲームです。
