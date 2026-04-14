@@ -19,11 +19,14 @@ namespace sf
 		void SetGPU(ID3D11DeviceContext* d3dContext, bool diffuseTexture = false, bool normalTexture = false)const;
 
 		void SetColor(const DirectX::XMFLOAT4& color);
+		void SetEmission(const DirectX::XMFLOAT4& color);
 
 		const DirectX::XMFLOAT4& GetColor() const;
+		const DirectX::XMFLOAT4& GetEmission() const;
 
 	public:
 		DirectX::XMFLOAT4 diffuseColor = DirectX::XMFLOAT4(1, 1, 1, 1);
+		DirectX::XMFLOAT4 emissionColor = DirectX::XMFLOAT4(0, 0, 0, 0);
 
 		bool shadow = false;
 

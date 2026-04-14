@@ -43,6 +43,13 @@ PS3D_Out main(PS3D_In input) : SV_TARGET
     {
         output.baseColor *= Shadow(input.shadowSpacePos);
     }
+
+    // Neon accent: enabled by non-zero emission alpha.
+    float emissionMask = saturate(emissionColor.a);
+    float sweep = 0.5f + 0.5f * sin(input.uv.x * 18.0f + input.wpos.x * 0.25f - time * 9.0f);
+    float sweepSharp = pow(sweep, 3.0f);
+    float3 neon = emissionColor.rgb * (0.45f + 1.55f * sweepSharp) * emissionMask;
+    output.baseColor.rgb += neon;
    
     float alpha = output.baseColor.a;
     float depth = input.pos.z / input.pos.w;
@@ -60,7 +67,9 @@ PS3D_Out main(PS3D_In input) : SV_TARGET
     //    }
     //}
     
-    output.luminance = float4(output.baseColor.rgb - float3(1, 1, 1), 1.0f);
+    float3 baseBloom = max(output.baseColor.rgb - float3(1, 1, 1), 0.0f);
+    float3 neonBloom = neon * 1.35f;
+    output.luminance = float4(baseBloom + neonBloom, 1.0f);
     
     return output;
 }
