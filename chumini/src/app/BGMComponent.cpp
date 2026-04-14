@@ -1,6 +1,10 @@
 ﻿#include "BGMComponent.h"
 #include "Debug.h"
 #include "Config.h"
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
 
 namespace app::test {
 
@@ -96,17 +100,124 @@ namespace app::test {
         return 0.0f;
     }
 
+    float BGMComponent::SampleRmsAtTime(float timeSec, int windowSamples) const {
+        if (!loaded || windowSamples <= 0) {
+            return 0.0f;
+        }
+
+        const BYTE* raw = resource.GetRawAudioData();
+        const size_t rawSize = resource.GetRawAudioSize();
+        if (raw == nullptr || rawSize == 0) {
+            return 0.0f;
+        }
+
+        const WAVEFORMATEXTENSIBLE fmtEx = resource.GetWAVEFORMATEXTENSIBLE();
+        const WAVEFORMATEX& fmt = fmtEx.Format;
+
+        const int sampleRate = static_cast<int>(fmt.nSamplesPerSec);
+        const int channels = std::max(1, static_cast<int>(fmt.nChannels));
+        const int bits = static_cast<int>(fmt.wBitsPerSample);
+        const int blockAlign = std::max(1, static_cast<int>(fmt.nBlockAlign));
+        if (sampleRate <= 0 || bits <= 0 || blockAlign <= 0) {
+            return 0.0f;
+        }
+
+        const bool isFloat =
+            (fmt.wFormatTag == WAVE_FORMAT_IEEE_FLOAT) ||
+            (fmt.wFormatTag == WAVE_FORMAT_EXTENSIBLE && bits == 32);
+
+        const size_t totalFrames = rawSize / static_cast<size_t>(blockAlign);
+        if (totalFrames == 0) {
+            return 0.0f;
+        }
+
+        const int centerFrame = static_cast<int>(timeSec * static_cast<float>(sampleRate));
+        const int startFrame = std::max(0, centerFrame - (windowSamples / 2));
+        const int endFrame = std::min(static_cast<int>(totalFrames), startFrame + windowSamples);
+        if (endFrame <= startFrame) {
+            return 0.0f;
+        }
+
+        double sumSq = 0.0;
+        int sampleCount = 0;
+        const int bytesPerSample = std::max(1, bits / 8);
+
+        for (int frame = startFrame; frame < endFrame; ++frame) {
+            const size_t frameOffset = static_cast<size_t>(frame) * static_cast<size_t>(blockAlign);
+            for (int ch = 0; ch < channels; ++ch) {
+                const size_t sampleOffset = frameOffset + static_cast<size_t>(ch) * static_cast<size_t>(bytesPerSample);
+                if (sampleOffset + static_cast<size_t>(bytesPerSample) > rawSize) {
+                    break;
+                }
+
+                const BYTE* p = raw + sampleOffset;
+                float v = 0.0f;
+
+                switch (bits) {
+                case 8: {
+                    v = (static_cast<int>(p[0]) - 128) / 128.0f;
+                    break;
+                }
+                case 16: {
+                    int16_t s = 0;
+                    std::memcpy(&s, p, sizeof(int16_t));
+                    v = static_cast<float>(s) / 32768.0f;
+                    break;
+                }
+                case 24: {
+                    int32_t s = (static_cast<int32_t>(p[0])) |
+                        (static_cast<int32_t>(p[1]) << 8) |
+                        (static_cast<int32_t>(p[2]) << 16);
+                    if (s & 0x00800000) {
+                        s |= ~0x00FFFFFF;
+                    }
+                    v = static_cast<float>(s) / 8388608.0f;
+                    break;
+                }
+                case 32: {
+                    if (isFloat) {
+                        float f = 0.0f;
+                        std::memcpy(&f, p, sizeof(float));
+                        v = std::clamp(f, -1.0f, 1.0f);
+                    }
+                    else {
+                        int32_t s = 0;
+                        std::memcpy(&s, p, sizeof(int32_t));
+                        v = static_cast<float>(s) / 2147483648.0f;
+                    }
+                    break;
+                }
+                default:
+                    break;
+                }
+
+                sumSq += static_cast<double>(v) * static_cast<double>(v);
+                ++sampleCount;
+            }
+        }
+
+        if (sampleCount <= 0) {
+            return 0.0f;
+        }
+
+        const float rms = static_cast<float>(std::sqrt(sumSq / static_cast<double>(sampleCount)));
+        return std::clamp(rms, 0.0f, 1.0f);
+    }
+
+    float BGMComponent::GetAmplitude01(float timeOffsetSec) const {
+        const float currentTime = GetCurrentTime();
+        const float time = std::max(0.0f, currentTime + timeOffsetSec);
+        // 2048 samples keeps motion responsive while reducing per-frame noise.
+        return SampleRmsAtTime(time, 2048);
+    }
+
     bool BGMComponent::IsPlaying() const {
         if (player.isNull()) return false;
         auto* sv = player->GetSourceVoice();
         if (!sv) return false;
 
-        // 再生中かどうかの簡易チェック
-        // XAudio2には直接 IsPlaying はないが、バッファキューの状態などで判定可能
-        // ここではSoundPlayerの状態に依存するか、SourceVoiceがあれば再生中とみなす実装にする
-        // より厳密には XAUDIO2_VOICE_STATE の pCurrentBufferContext などを見る必要があるが
-        // 今回は「再生開始済み」かどうかが分かればいいので
-        return true; 
+        // 既存挙動維持: SourceVoiceが存在すれば再生開始済み扱い。
+        return true;
     }
 
 }

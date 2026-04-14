@@ -79,6 +79,8 @@ namespace app
 			bool isPlaying = false;            // ゲーム開始済みフラグ
 
 			void StartGame();                  // ゲーム開始処理
+            void CreateAudioVisualizer();
+            void UpdateAudioVisualizer();
 
 			// --- 楽曲情報 ---
 			SongInfo selectedSong;
@@ -107,6 +109,17 @@ namespace app
                 Vector3 moveVel;                // 移動速度
             };
             std::vector<BgObject> bgObjects;
+            struct AudioVisPoint {
+                float x = 0.0f;
+                float z = 0.0f;
+                float phase = 0.0f;
+                float smoothLevel = 0.0f;
+            };
+            struct AudioVisSegment {
+                sf::ref::Ref<sf::Actor> actor;
+            };
+            std::vector<AudioVisPoint> audioVisPoints;
+            std::vector<AudioVisSegment> audioVisSegments;
 
             GameSession gameSession;  // ゲームセッションデータ
 		};

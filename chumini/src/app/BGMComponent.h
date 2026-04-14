@@ -26,9 +26,11 @@ namespace app::test {
         bool IsPlaying() const;
 
         float GetCurrentTime() const;
+        float GetAmplitude01(float timeOffsetSec = 0.0f) const;
 
     private:
         void ensurePlayer();
+        float SampleRmsAtTime(float timeSec, int windowSamples) const;
         // ★追加: XAudio2 制御用変数
         IXAudio2* pXAudio2 = nullptr;             // エンジン本体
         IXAudio2MasteringVoice* pMasterVoice = nullptr; // マスターボイス

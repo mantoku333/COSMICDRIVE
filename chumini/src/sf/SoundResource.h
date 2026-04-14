@@ -5,6 +5,7 @@
 #include <x3daudio.h>
 #include <string>
 #include <map>
+#include <cstddef>
 
 #ifdef _XBOX //Big-Endian
 #define fourccRIFF 'RIFF'
@@ -40,6 +41,12 @@ namespace sf
 
 			WAVEFORMATEXTENSIBLE GetWAVEFORMATEXTENSIBLE()const { return wfx; }
 			XAUDIO2_BUFFER GetXAUDIO2_BUFFER()const { return buffer; }
+			const BYTE* GetRawAudioData() const { return DataBuffer; }
+			size_t GetRawAudioSize() const { return static_cast<size_t>(buffer.AudioBytes); }
+			int GetSampleRate() const { return static_cast<int>(wfx.Format.nSamplesPerSec); }
+			int GetChannels() const { return static_cast<int>(wfx.Format.nChannels); }
+			int GetBitsPerSample() const { return static_cast<int>(wfx.Format.wBitsPerSample); }
+			int GetBlockAlign() const { return static_cast<int>(wfx.Format.nBlockAlign); }
 
 			static IXAudio2* GetIXAudio2() { return pXAudio2; }
 			static IXAudio2MasteringVoice* GetIXAudio2MasteringVoice() { return pMasterVoice; }

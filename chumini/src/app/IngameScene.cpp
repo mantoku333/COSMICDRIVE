@@ -20,6 +20,8 @@
 #include "EffectManager.h"
 #include <Effekseer.h>
 #include <Windows.h>
+#include <algorithm>
+#include <cmath>
 #include "StringUtils.h"
 
 namespace {
@@ -298,6 +300,8 @@ void app::test::IngameScene::Init()
         bgObjects.push_back(bo);
     }
 
+    CreateAudioVisualizer();
+
     updateCommand.Bind(std::bind(&IngameScene::Update, this, std::placeholders::_1));
 }
 
@@ -460,9 +464,118 @@ void app::test::IngameScene::Update(const sf::command::ICommand& command)
              }
         }
 	}
+
+    UpdateAudioVisualizer();
 }
 
 /// シーンがアクティブになった時の初期化処理
+void app::test::IngameScene::CreateAudioVisualizer()
+{
+    audioVisPoints.clear();
+    audioVisSegments.clear();
+
+    constexpr int kPointCount = 56;
+    constexpr float kSpanX = 75.0f;
+    // Keep depth fixed; move only downward in world Y.
+    constexpr float kBaseY = -7.0f;
+    constexpr float kBaseZ = -7.0f;
+    constexpr float kLineThickness = 0.08f;
+    constexpr float kLineDepth = 0.04f;
+
+    for (int i = 0; i < kPointCount; ++i) {
+        const float t = static_cast<float>(i) / static_cast<float>(kPointCount - 1);
+        const float x = (t - 0.5f) * kSpanX;
+        AudioVisPoint point;
+        point.x = x;
+        point.z = kBaseZ;
+        point.phase = t * 6.2831853f + static_cast<float>(rand() % 100) * 0.08f;
+        point.smoothLevel = 0.0f;
+        audioVisPoints.push_back(point);
+    }
+
+    for (int i = 0; i < kPointCount - 1; ++i) {
+        auto segActor = Instantiate();
+        auto mesh = segActor.Target()->AddComponent<sf::Mesh>();
+        mesh->SetGeometry(g_cube);
+        segActor.Target()->transform.SetPosition({ 0.0f, kBaseY, kBaseZ });
+        segActor.Target()->transform.SetScale({ 0.6f, kLineThickness, kLineDepth });
+        mesh->material.SetColor({ 0.10f, 0.80f, 1.00f, 1.00f });
+
+        AudioVisSegment segment;
+        segment.actor = segActor.Target();
+        audioVisSegments.push_back(segment);
+    }
+}
+
+void app::test::IngameScene::UpdateAudioVisualizer()
+{
+    if (audioVisPoints.size() < 2 || audioVisSegments.empty()) {
+        return;
+    }
+
+    constexpr float kBaseY = -7.0f;
+    constexpr float kLineThickness = 0.08f;
+    constexpr float kLineDepth = 0.04f;
+    constexpr float kMinRise = 0.10f;
+    constexpr float kMaxRise = 6.6f;
+    const float dt = sf::Time::DeltaTime();
+    const bool active = (state == State::Playing && !bgmPlayer.isNull() && bgmPlayer->IsPlaying());
+    const float currentTime = (!bgmPlayer.isNull()) ? bgmPlayer->GetCurrentTime() : 0.0f;
+
+    for (size_t i = 0; i < audioVisPoints.size(); ++i) {
+        auto& point = audioVisPoints[i];
+        float target = 0.0f;
+        if (active) {
+            const float lookAhead = static_cast<float>(i) * 0.006f;
+            const float amp = bgmPlayer->GetAmplitude01(lookAhead);
+            const float pulse = 0.80f + 0.20f * static_cast<float>(std::sin(currentTime * 5.0f + point.phase));
+            const float compressed = amp / (amp + 0.14f);
+            target = std::clamp(compressed * pulse, 0.0f, 1.0f);
+        }
+
+        const float interp = std::clamp(dt * 12.0f, 0.0f, 1.0f);
+        point.smoothLevel += (target - point.smoothLevel) * interp;
+    }
+
+    const float kRadToDeg = 57.2957795f;
+    const size_t segmentCount = std::min(audioVisSegments.size(), audioVisPoints.size() - 1);
+    for (size_t i = 0; i < segmentCount; ++i) {
+        auto* actor = audioVisSegments[i].actor.Target();
+        if (actor == nullptr) {
+            continue;
+        }
+
+        const auto& p0 = audioVisPoints[i];
+        const auto& p1 = audioVisPoints[i + 1];
+
+        const float y0 = kBaseY + kMinRise + (p0.smoothLevel * kMaxRise);
+        const float y1 = kBaseY + kMinRise + (p1.smoothLevel * kMaxRise);
+
+        const float dx = p1.x - p0.x;
+        const float dy = y1 - y0;
+        const float length = std::max(0.01f, std::sqrt(dx * dx + dy * dy));
+        const float midX = (p0.x + p1.x) * 0.5f;
+        const float midY = (y0 + y1) * 0.5f;
+        const float midZ = (p0.z + p1.z) * 0.5f;
+        const float rotZ = std::atan2(dy, dx) * kRadToDeg;
+
+        actor->transform.SetPosition({ midX, midY, midZ });
+        actor->transform.SetScale({ length, kLineThickness, kLineDepth });
+        actor->transform.SetRotation({ 0.0f, 0.0f, rotZ });
+
+        auto mesh = actor->GetComponent<sf::Mesh>();
+        if (mesh) {
+            const float level = (p0.smoothLevel + p1.smoothLevel) * 0.5f;
+            const float glow = 0.25f + level * 0.75f;
+            const float r = 0.10f + 0.30f * glow;
+            const float g = 0.45f + 0.50f * glow;
+            const float b = 0.75f + 0.25f * glow;
+            const float a = 0.95f;
+            mesh->material.SetColor({ r, g, b, a });
+        }
+    }
+}
+
 void app::test::IngameScene::OnActivated()
 {
     isPlaying = false;
